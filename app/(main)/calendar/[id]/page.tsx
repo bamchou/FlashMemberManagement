@@ -61,6 +61,15 @@ export default async function EventDetailPage({
             <span className="text-xs font-semibold text-gray-400 border border-gray-200 px-2.5 py-1 rounded-full">
               {TARGET_LABEL[e.target] ?? e.target}
             </span>
+            {e.event_type === 'practice' && (
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                e.status === 'provisional'
+                  ? 'bg-orange-100 text-orange-600 border border-orange-300'
+                  : 'bg-green-100 text-green-700 border border-green-300'
+              }`}>
+                {e.status === 'provisional' ? '仮登録' : '確定'}
+              </span>
+            )}
             {!e.is_visible && (
               <span className="text-xs font-semibold text-gray-400 border border-gray-300 px-2.5 py-1 rounded-full">
                 非表示

@@ -36,6 +36,7 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
 
   const [title, setTitle] = useState(event.title)
   const [eventType, setEventType] = useState(event.event_type)
+  const [status, setStatus] = useState(event.status)
   const [target, setTarget] = useState(event.target)
   const [startAt, setStartAt] = useState(isoToJSTDatetimeLocal(event.start_at))
   const [endAt, setEndAt] = useState(isoToJSTDatetimeLocal(event.end_at))
@@ -47,6 +48,7 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
     const fd = new FormData()
     fd.set('title', title)
     fd.set('event_type', eventType)
+    fd.set('status', eventType === 'practice' ? status : 'confirmed')
     fd.set('target', target)
     fd.set('start_at', startAt)
     fd.set('end_at', endAt)
@@ -110,6 +112,30 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
           </select>
         </div>
       </div>
+
+      {eventType === 'practice' && (
+        <div>
+          <label className="block text-sm font-semibold text-[#1A3666] mb-2">登録状態</label>
+          <div className="flex gap-3">
+            {(['provisional', 'confirmed'] as const).map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStatus(s)}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${
+                  status === s
+                    ? s === 'provisional'
+                      ? 'bg-orange-50 border-orange-400 text-orange-600'
+                      : 'bg-green-50 border-green-500 text-green-700'
+                    : 'bg-white border-gray-200 text-gray-400'
+                }`}
+              >
+                {s === 'provisional' ? '仮登録' : '確定'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div>

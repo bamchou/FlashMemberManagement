@@ -39,6 +39,9 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
 
   if (new Date(end_at) <= new Date(start_at)) return { error: '終了日時は開始日時より後にしてください' }
 
+  // 練習は仮登録スタート、その他は確定
+  const status = event_type === 'practice' ? 'provisional' : 'confirmed'
+
   const { error } = await supabase.from('events').insert({
     title,
     description,
@@ -46,6 +49,7 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     target,
     start_at,
     end_at,
+    status,
     created_by: user.id,
   })
 
@@ -78,6 +82,11 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
 
   if (new Date(end_at) <= new Date(start_at)) return { error: '終了日時は開始日時より後にしてください' }
 
+  const status_raw = formData.get('status') as string | null
+  const status = status_raw === 'provisional' || status_raw === 'confirmed'
+    ? status_raw
+    : 'confirmed'
+
   const { error } = await supabase.from('events').update({
     title,
     description,
@@ -85,6 +94,7 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     target,
     start_at,
     end_at,
+    status,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 
@@ -92,7 +102,7 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
 
   revalidatePath('/calendar')
   revalidatePath(`/calendar/${id}`)
-  redirect(`/calendar/${id}`)
+  redirect('/calendar')
 }
 
 export async function deleteEvent(id: string): Promise<void> {

@@ -40,12 +40,14 @@ export default function AgendaView({
   events,
   role,
   currentUserId,
+  creatorMap = {},
 }: {
   year: number
   month: number
   events: CalendarEvent[]
   role: Role
   currentUserId: string
+  creatorMap?: Record<string, string>
 }) {
   const router = useRouter()
   const todayStr = toDateStr(new Date())
@@ -152,6 +154,7 @@ export default function AgendaView({
                   {dayEvents.map(e => {
                     const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
                     const isHidden = !e.is_visible
+                    const isProvisional = e.event_type === 'practice' && e.status === 'provisional'
                     return (
                       <Link
                         key={e.id}
@@ -160,10 +163,13 @@ export default function AgendaView({
                           isHidden ? 'border-gray-200 opacity-50' : 'border-[#EAE0A8]'
                         }`}
                       >
-                        <div className="shrink-0 mt-0.5">
+                        <div className="shrink-0 mt-0.5 flex flex-col gap-1 items-start">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${bg}`}>
                             {label}
                           </span>
+                          {isProvisional && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">仮</span>
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -172,8 +178,11 @@ export default function AgendaView({
                               <span className="text-[10px] text-gray-400 border border-gray-300 px-1.5 py-0.5 rounded-full shrink-0">非表示</span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-black mt-0.5">
                             {formatTime(e.start_at)} 〜 {formatTime(e.end_at)}
+                            {e.created_by && creatorMap[e.created_by] && (
+                              <span className="ml-2">({creatorMap[e.created_by]})</span>
+                            )}
                           </p>
                           {e.description && (
                             <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{e.description}</p>

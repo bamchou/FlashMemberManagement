@@ -80,6 +80,7 @@ export type CalendarEvent = {
   target: 'all' | 'coach' | 'member'
   start_at: string
   end_at: string
+  status: 'provisional' | 'confirmed'
   is_visible: boolean
   created_by: string | null
   created_at: string

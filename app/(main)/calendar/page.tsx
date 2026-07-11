@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Role, CalendarEvent } from '@/lib/types'
 import CalendarView from './_components/CalendarView'
 import AgendaView from './_components/AgendaView'
@@ -35,7 +36,6 @@ export default async function CalendarPage({
     .lte('start_at', fetchEnd.toISOString())
     .order('start_at', { ascending: true })
 
-  // 保護者は対象フィルタ（RLSでも制御しているが二重チェック）
   if (!isAdminOrCoach) {
     query = query.in('target', ['all', 'member'])
   } else if (role === 'coach') {
@@ -43,6 +43,23 @@ export default async function CalendarPage({
   }
 
   const { data: events } = await query
+
+  // 登録者名を adminClient で取得（RLS 回避）
+  const creatorIds = [...new Set((events ?? []).map(e => e.created_by).filter(Boolean))]
+  const adminSupabase = createAdminClient()
+  const { data: creatorsData } = creatorIds.length > 0
+    ? await adminSupabase
+        .from('profiles')
+        .select('id, display_name, username')
+        .in('id', creatorIds)
+    : { data: [] }
+
+  const creatorMap: Record<string, string> = Object.fromEntries(
+    (creatorsData ?? []).map(p => [
+      p.id,
+      p.display_name ?? p.username ?? '不明',
+    ])
+  )
 
   return (
     <div className="w-full">
@@ -53,6 +70,7 @@ export default async function CalendarPage({
           events={(events ?? []) as CalendarEvent[]}
           role={role}
           currentUserId={user!.id}
+          creatorMap={creatorMap}
         />
       </div>
       <div className="sm:hidden">
@@ -62,6 +80,7 @@ export default async function CalendarPage({
           events={(events ?? []) as CalendarEvent[]}
           role={role}
           currentUserId={user!.id}
+          creatorMap={creatorMap}
         />
       </div>
     </div>

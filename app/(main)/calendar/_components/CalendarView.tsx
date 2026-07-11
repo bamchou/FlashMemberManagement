@@ -42,12 +42,14 @@ export default function CalendarView({
   events,
   role,
   currentUserId,
+  creatorMap = {},
 }: {
   year: number
   month: number
   events: CalendarEvent[]
   role: Role
   currentUserId: string
+  creatorMap?: Record<string, string>
 }) {
   const router = useRouter()
   const isAdminOrCoach = role === 'admin' || role === 'coach'
@@ -189,14 +191,15 @@ export default function CalendarView({
                   {dayEvents.slice(0, 3).map(e => {
                     const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
                     const isHidden = !e.is_visible
+                    const isProvisional = e.event_type === 'practice' && e.status === 'provisional'
                     return (
                       <Link
                         key={e.id}
                         href={`/calendar/${e.id}`}
                         className={`block text-[10px] font-semibold px-1 py-0.5 rounded truncate leading-tight ${bg} ${isHidden ? 'opacity-40' : ''}`}
-                        title={`${label} ${formatTime(e.start_at)} ${e.title}`}
+                        title={`${label} ${formatTime(e.start_at)} ${e.title}${e.created_by && creatorMap[e.created_by] ? ` (${creatorMap[e.created_by]})` : ''}`}
                       >
-                        {isHidden && '🚫 '}{formatTime(e.start_at)} {e.title}
+                        {isHidden && '🚫 '}{isProvisional && '仮 '}{formatTime(e.start_at)} {e.title}{e.created_by && creatorMap[e.created_by] ? ` ・${creatorMap[e.created_by]}` : ''}
                       </Link>
                     )
                   })}
