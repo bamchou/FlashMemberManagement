@@ -5,12 +5,13 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export type UserFormState = { error: string } | { password: string } | undefined
+export type UserFormState = { error: string } | undefined
+export type CreateUserState = { error: string } | { password: string } | undefined
 
 export async function createUser(
-  _state: UserFormState,
+  _state: CreateUserState,
   formData: FormData
-): Promise<UserFormState> {
+): Promise<CreateUserState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラーが発生しました' }

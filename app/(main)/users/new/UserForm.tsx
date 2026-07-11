@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createUser } from '../actions'
+import { createUser, type CreateUserState } from '../actions'
 
 const ROLE_OPTIONS = [
   { value: 'admin',  label: '管理者' },
