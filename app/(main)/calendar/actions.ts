@@ -8,16 +8,15 @@ import type { EventType } from '@/lib/types'
 const VALID_EVENT_TYPES = ['practice', 'tournament', 'event', 'social', 'other']
 const VALID_TARGETS = ['all', 'coach', 'member']
 
+// datetime-local の値 (YYYY-MM-DDTHH:MM または YYYY-MM-DDTHH:MM:SS) を JST として UTC ISO に変換
 function jstToISO(dtLocal: string): string {
-  return new Date(dtLocal + ':00+09:00').toISOString()
+  const base = dtLocal.slice(0, 16) // 秒以下を除去して "YYYY-MM-DDTHH:MM" に統一
+  return new Date(base + ':00+09:00').toISOString()
 }
 
 export type EventFormState = { error: string } | undefined
 
-export async function createEvent(
-  _prev: EventFormState,
-  formData: FormData
-): Promise<EventFormState> {
+export async function createEvent(formData: FormData): Promise<EventFormState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラーが発生しました' }
@@ -56,11 +55,7 @@ export async function createEvent(
   redirect('/calendar')
 }
 
-export async function updateEvent(
-  id: string,
-  _prev: EventFormState,
-  formData: FormData
-): Promise<EventFormState> {
+export async function updateEvent(id: string, formData: FormData): Promise<EventFormState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラーが発生しました' }

@@ -41,8 +41,8 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
   const [endAt, setEndAt] = useState(isoToJSTDatetimeLocal(event.end_at))
   const [description, setDescription] = useState(event.description ?? '')
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  function handleSubmit() {
+    if (!title.trim()) { setError('タイトルを入力してください'); return }
     setError(null)
     const fd = new FormData()
     fd.set('title', title)
@@ -52,13 +52,13 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
     fd.set('end_at', endAt)
     fd.set('description', description)
     startTransition(async () => {
-      const result = await updateEvent(event.id, undefined, fd)
+      const result = await updateEvent(event.id, fd)
       if (result && 'error' in result) setError(result.error)
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-[#EAE0A8] p-6 space-y-5">
+    <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 space-y-5">
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600">
           {error}
@@ -158,13 +158,14 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
           キャンセル
         </Link>
         <button
-          type="submit"
+          type="button"
+          onClick={handleSubmit}
           disabled={isPending}
           className="flex-1 py-2.5 bg-[#1A3666] text-white text-sm font-semibold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
         >
           {isPending ? '更新中...' : '更新する'}
         </button>
       </div>
-    </form>
+    </div>
   )
 }

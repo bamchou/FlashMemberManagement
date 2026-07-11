@@ -33,21 +33,13 @@ function toLocalDatetimeStr(d: Date): string {
 }
 
 function makeDefaults(dateStr?: string): { start: string; end: string } {
-  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    // 日付クリックからの遷移: その日の9:00〜11:00をデフォルトに
-    return {
-      start: `${dateStr}T09:00`,
-      end:   `${dateStr}T11:00`,
-    }
+  const base = dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+    ? dateStr
+    : toLocalDatetimeStr(new Date()).slice(0, 10)
+  return {
+    start: `${base}T19:30`,
+    end:   `${base}T21:30`,
   }
-  // 通常遷移: 現在時刻の次の1時間〜3時間
-  const d = new Date()
-  d.setSeconds(0, 0)
-  d.setMinutes(0)
-  d.setHours(d.getHours() + 1)
-  const start = toLocalDatetimeStr(d)
-  d.setHours(d.getHours() + 2)
-  return { start, end: toLocalDatetimeStr(d) }
 }
 
 export default function EventForm({ role, defaultDate }: { role: string; defaultDate?: string }) {
@@ -64,8 +56,8 @@ export default function EventForm({ role, defaultDate }: { role: string; default
   const [endAt, setEndAt] = useState(initEnd)
   const [description, setDescription] = useState('')
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  function handleSubmit() {
+    if (!title.trim()) { setError('タイトルを入力してください'); return }
     setError(null)
     const fd = new FormData()
     fd.set('title', title)
@@ -75,13 +67,13 @@ export default function EventForm({ role, defaultDate }: { role: string; default
     fd.set('end_at', endAt)
     fd.set('description', description)
     startTransition(async () => {
-      const result = await createEvent(undefined, fd)
+      const result = await createEvent(fd)
       if (result && 'error' in result) setError(result.error)
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-[#EAE0A8] p-6 space-y-5">
+    <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 space-y-5">
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600">
           {error}
@@ -182,13 +174,14 @@ export default function EventForm({ role, defaultDate }: { role: string; default
           キャンセル
         </Link>
         <button
-          type="submit"
+          type="button"
+          onClick={handleSubmit}
           disabled={isPending}
           className="flex-1 py-2.5 bg-[#1A3666] text-white text-sm font-semibold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
         >
           {isPending ? '登録中...' : '登録する'}
         </button>
       </div>
-    </form>
+    </div>
   )
 }
