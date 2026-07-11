@@ -43,10 +43,14 @@ export async function createMember(
   const joinDate = formData.get('join_date') as string
   const badmintonStartDate = formData.get('badminton_start_date') as string
   const playStyle = (formData.get('play_style') as string).trim()
+  const registrationNumber = (formData.get('registration_number') as string).trim()
   const photo = formData.get('photo') as File | null
 
   if (!fullName || !birthDate || !joinDate) {
     return { error: '氏名・生年月日・加入年月日は必須です' }
+  }
+  if (registrationNumber && !/^\d{10}$/.test(registrationNumber)) {
+    return { error: '登録番号は数字10桁で入力してください' }
   }
 
   const { data: member, error } = await supabase
@@ -58,6 +62,7 @@ export async function createMember(
       join_date: joinDate,
       badminton_start_date: badmintonStartDate || null,
       play_style: playStyle || null,
+      registration_number: registrationNumber || null,
     })
     .select('id')
     .single()
@@ -98,10 +103,15 @@ export async function updateMember(
   const joinDate = formData.get('join_date') as string
   const badmintonStartDate = formData.get('badminton_start_date') as string
   const playStyle = (formData.get('play_style') as string).trim()
+  const registrationNumber = (formData.get('registration_number') as string).trim()
+  const isVisible = formData.get('is_visible') === 'on'
   const photo = formData.get('photo') as File | null
 
   if (!fullName || !birthDate || !joinDate) {
     return { error: '氏名・生年月日・加入年月日は必須です' }
+  }
+  if (registrationNumber && !/^\d{10}$/.test(registrationNumber)) {
+    return { error: '登録番号は数字10桁で入力してください' }
   }
 
   let photoUrl: string | undefined = undefined
@@ -120,6 +130,8 @@ export async function updateMember(
       join_date: joinDate,
       badminton_start_date: badmintonStartDate || null,
       play_style: playStyle || null,
+      registration_number: registrationNumber || null,
+      is_visible: isVisible,
       ...(photoUrl !== undefined && { photo_url: photoUrl }),
     })
     .eq('id', id)
@@ -129,6 +141,18 @@ export async function updateMember(
   revalidatePath(`/members/${id}`)
   revalidatePath('/members')
   redirect(`/members/${id}`)
+}
+
+export async function toggleMemberVisibility(id: string, isVisible: boolean): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return
+
+  await supabase.from('members').update({ is_visible: isVisible }).eq('id', id)
+  revalidatePath('/members')
 }
 
 export async function deleteMember(id: string): Promise<void> {

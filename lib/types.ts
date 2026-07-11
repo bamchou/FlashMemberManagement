@@ -21,6 +21,8 @@ export type Member = {
   badminton_start_date: string | null
   play_style: string | null
   photo_url: string | null
+  registration_number: string | null
+  is_visible: boolean
   created_at: string
   updated_at: string
 }

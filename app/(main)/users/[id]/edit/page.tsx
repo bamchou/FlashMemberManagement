@@ -13,7 +13,7 @@ export default async function EditUserPage({
 
   const [{ data: profile }, { data: target }, { count: adminCount }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
-    supabase.from('profiles').select('id, username, display_name, role, photo_url, birth_date, badminton_start_date, show_on_members_page').eq('id', id).single(),
+    supabase.from('profiles').select('id, username, display_name, role, photo_url, birth_date, badminton_start_date, show_on_members_page, temp_password').eq('id', id).single(),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'admin'),
   ])
 
@@ -39,6 +39,7 @@ export default async function EditUserPage({
           initialBirthDate={target.birth_date ?? ''}
           initialBadmintonStartDate={target.badminton_start_date ?? ''}
           initialShowOnMembersPage={target.show_on_members_page ?? false}
+          initialTempPassword={target.temp_password ?? null}
           roleChangeLocked={roleChangeLocked}
         />
       </div>

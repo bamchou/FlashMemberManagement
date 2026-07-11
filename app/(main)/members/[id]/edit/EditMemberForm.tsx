@@ -13,6 +13,7 @@ function Field({
   defaultValue,
   max,
   placeholder,
+  lang,
 }: {
   label: string
   name: string
@@ -21,6 +22,7 @@ function Field({
   defaultValue?: string
   max?: string
   placeholder?: string
+  lang?: string
 }) {
   return (
     <div>
@@ -35,6 +37,7 @@ function Field({
         defaultValue={defaultValue}
         max={max}
         placeholder={placeholder}
+        lang={lang}
         className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white"
       />
     </div>
@@ -91,7 +94,7 @@ export default function EditMemberForm({ member }: { member: Member }) {
 
       <Field
         label="氏名" name="full_name" required
-        defaultValue={member.full_name}
+        defaultValue={member.full_name} lang="ja"
       />
 
       {/* 性別 */}
@@ -127,6 +130,23 @@ export default function EditMemberForm({ member }: { member: Member }) {
       />
 
       <div>
+        <label htmlFor="registration_number" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          協会登録番号
+        </label>
+        <input
+          id="registration_number"
+          name="registration_number"
+          type="text"
+          inputMode="numeric"
+          maxLength={10}
+          defaultValue={member.registration_number ?? ''}
+          placeholder="数字10桁"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white"
+        />
+        <p className="text-xs text-gray-400 mt-1">数字10桁で入力してください</p>
+      </div>
+
+      <div>
         <label htmlFor="play_style" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
           プレイスタイル・強み
         </label>
@@ -136,8 +156,23 @@ export default function EditMemberForm({ member }: { member: Member }) {
           rows={3}
           defaultValue={member.play_style ?? ''}
           placeholder="例: 前衛が得意で、ネット際のコントロールに強み"
+          lang="ja"
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white resize-none"
         />
+      </div>
+
+      {/* 表示/非表示 */}
+      <div className="flex items-center gap-3 bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-4 py-3">
+        <input
+          id="is_visible"
+          name="is_visible"
+          type="checkbox"
+          defaultChecked={member.is_visible}
+          className="w-4 h-4 rounded border-gray-300 text-[#1A3666] focus:ring-[#1A3666] cursor-pointer"
+        />
+        <label htmlFor="is_visible" className="text-sm font-semibold text-[#1A3666] cursor-pointer">
+          メンバー一覧に表示する
+        </label>
       </div>
 
       {state?.error && (

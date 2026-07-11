@@ -12,6 +12,7 @@ function Field({
   min,
   max,
   placeholder,
+  lang,
 }: {
   label: string
   name: string
@@ -20,6 +21,7 @@ function Field({
   min?: string
   max?: string
   placeholder?: string
+  lang?: string
 }) {
   return (
     <div>
@@ -34,6 +36,7 @@ function Field({
         min={min}
         max={max}
         placeholder={placeholder}
+        lang={lang}
         className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white"
       />
     </div>
@@ -80,7 +83,7 @@ export default function MemberForm() {
         </div>
       </div>
 
-      <Field label="氏名" name="full_name" required placeholder="例: 山田 太郎" />
+      <Field label="氏名" name="full_name" required placeholder="例: 山田 太郎" lang="ja" />
 
       {/* 性別 */}
       <div>
@@ -105,6 +108,22 @@ export default function MemberForm() {
       <Field label="バドミントン開始年月日" name="badminton_start_date" type="date" max={today} />
 
       <div>
+        <label htmlFor="registration_number" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          協会登録番号
+        </label>
+        <input
+          id="registration_number"
+          name="registration_number"
+          type="text"
+          inputMode="numeric"
+          maxLength={10}
+          placeholder="数字10桁"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white"
+        />
+        <p className="text-xs text-gray-400 mt-1">数字10桁で入力してください</p>
+      </div>
+
+      <div>
         <label htmlFor="play_style" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
           プレイスタイル・強み
         </label>
@@ -113,6 +132,7 @@ export default function MemberForm() {
           name="play_style"
           rows={3}
           placeholder="例: 前衛が得意で、ネット際のコントロールに強み"
+          lang="ja"
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white resize-none"
         />
       </div>

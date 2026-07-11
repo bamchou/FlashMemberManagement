@@ -68,6 +68,12 @@ export default async function MemberDetailPage({
                 : '未設定'}
             </dd>
           </div>
+          {member.registration_number && (
+            <div>
+              <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">協会登録番号</dt>
+              <dd className="text-[#1A3666] font-medium font-mono">{member.registration_number}</dd>
+            </div>
+          )}
         </dl>
 
         {member.play_style && (

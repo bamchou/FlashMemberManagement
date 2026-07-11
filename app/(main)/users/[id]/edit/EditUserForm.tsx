@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateUser } from '../../actions'
+import { updateUser, resetPassword } from '../../actions'
 
 const ROLE_OPTIONS = [
   { value: 'admin',  label: '管理者' },
@@ -19,6 +19,7 @@ type Props = {
   initialBirthDate: string
   initialBadmintonStartDate: string
   initialShowOnMembersPage: boolean
+  initialTempPassword: string | null
   roleChangeLocked: boolean
 }
 
@@ -31,12 +32,16 @@ export default function EditUserForm({
   initialBirthDate,
   initialBadmintonStartDate,
   initialShowOnMembersPage,
+  initialTempPassword,
   roleChangeLocked,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [isResetting, startReset] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [tempPassword, setTempPassword] = useState<string | null>(initialTempPassword)
+  const [copied, setCopied] = useState(false)
   const [fields, setFields] = useState({
     username: initialUsername,
     display_name: initialDisplayName,
@@ -44,8 +49,6 @@ export default function EditUserForm({
     birth_date: initialBirthDate,
     badminton_start_date: initialBadmintonStartDate,
     show_on_members_page: initialShowOnMembersPage,
-    password: '',
-    password_confirm: '',
   })
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
@@ -67,6 +70,23 @@ export default function EditUserForm({
     startTransition(async () => {
       const result = await updateUser(userId, undefined, formData)
       if (result?.error) setError(result.error)
+    })
+  }
+
+  function handleReset() {
+    if (!confirm('パスワードを再発行しますか？現在のパスワードは使えなくなります。')) return
+    startReset(async () => {
+      const result = await resetPassword(userId)
+      if ('password' in result) setTempPassword(result.password)
+      else setError(result.error)
+    })
+  }
+
+  function handleCopy() {
+    if (!tempPassword) return
+    navigator.clipboard.writeText(tempPassword).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     })
   }
 
@@ -174,27 +194,6 @@ export default function EditUserForm({
         </label>
       </div>
 
-      {/* パスワード変更 */}
-      <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg p-4 space-y-4">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">パスワード変更（変更しない場合は空欄）</p>
-        <div>
-          <label htmlFor="password" className="block text-xs font-semibold text-[#1A3666] mb-1">新しいパスワード</label>
-          <input
-            id="password" name="password" type="password"
-            value={fields.password} onChange={handleChange} placeholder="6文字以上"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-          />
-        </div>
-        <div>
-          <label htmlFor="password_confirm" className="block text-xs font-semibold text-[#1A3666] mb-1">新しいパスワード（確認）</label>
-          <input
-            id="password_confirm" name="password_confirm" type="password"
-            value={fields.password_confirm} onChange={handleChange} placeholder="同じパスワードを入力"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-          />
-        </div>
-      </div>
-
       {error && (
         <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3.5 py-2.5">{error}</p>
       )}
@@ -207,6 +206,37 @@ export default function EditUserForm({
         <button type="submit" disabled={isPending}
           className="flex-1 bg-[#1A3666] text-white font-bold py-2.5 rounded-lg text-sm hover:bg-[#2A52A0] transition-colors disabled:opacity-60">
           {isPending ? '更新中...' : '更新する'}
+        </button>
+      </div>
+
+      {/* パスワード確認・再発行 */}
+      <div className="pt-5 border-t border-[#EAE0A8] space-y-3">
+        <p className="text-sm font-semibold text-[#1A3666]">パスワード</p>
+        {tempPassword ? (
+          <div className="flex items-center gap-2">
+            <p className="flex-1 font-mono text-sm bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-3 py-2.5 tracking-widest select-all">
+              {tempPassword}
+            </p>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className={`shrink-0 text-sm font-semibold px-3 py-2.5 rounded-lg transition-colors ${
+                copied ? 'bg-green-100 text-green-700' : 'bg-[#1A3666] text-white hover:bg-[#2A52A0]'
+              }`}
+            >
+              {copied ? 'コピー済' : 'コピー'}
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">パスワードは確認できません</p>
+        )}
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={isResetting}
+          className="w-full text-sm text-amber-600 border border-amber-300 hover:bg-amber-50 font-semibold py-2 rounded-lg transition-colors disabled:opacity-50"
+        >
+          {isResetting ? '再発行中...' : 'パスワードを再発行する'}
         </button>
       </div>
     </form>

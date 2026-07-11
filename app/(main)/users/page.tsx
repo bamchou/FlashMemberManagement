@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Role } from '@/lib/types'
 import DeleteUserButton from './_components/DeleteUserButton'
+import UserVisibilityToggle from './_components/VisibilityToggle'
 
 const ROLE_LABELS: Record<string, { label: string; className: string }> = {
   admin:  { label: '管理者', className: 'bg-[#1A3666] text-white' },
@@ -24,7 +25,7 @@ export default async function UsersPage() {
 
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, username, display_name, role')
+    .select('id, username, display_name, role, show_on_members_page')
     .order('created_at', { ascending: true })
 
   return (
@@ -47,6 +48,7 @@ export default async function UsersPage() {
               {profiles.map((p) => {
                 const roleInfo = ROLE_LABELS[p.role] ?? { label: p.role, className: 'bg-gray-100 text-gray-600' }
                 const isSelf = p.id === user!.id
+                const isCoachOrAdmin = p.role === 'admin' || p.role === 'coach'
                 return (
                   <div key={p.id} className="px-4 py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -60,7 +62,10 @@ export default async function UsersPage() {
                         <p className="text-xs text-gray-500 mt-0.5">{p.display_name}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isCoachOrAdmin && (
+                        <UserVisibilityToggle id={p.id} show={p.show_on_members_page ?? false} />
+                      )}
                       <Link href={`/users/${p.id}/edit`} className="text-xs text-[#1A3666] font-semibold">
                         編集
                       </Link>
@@ -80,6 +85,7 @@ export default async function UsersPage() {
                   <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">ユーザー名</th>
                   <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">表示名</th>
                   <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">役割</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">一覧表示</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -87,6 +93,7 @@ export default async function UsersPage() {
                 {profiles.map((p) => {
                   const roleInfo = ROLE_LABELS[p.role] ?? { label: p.role, className: 'bg-gray-100 text-gray-600' }
                   const isSelf = p.id === user!.id
+                  const isCoachOrAdmin = p.role === 'admin' || p.role === 'coach'
                   return (
                     <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-medium text-[#1A3666]">{p.username ?? '—'}</td>
@@ -95,6 +102,11 @@ export default async function UsersPage() {
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${roleInfo.className}`}>
                           {roleInfo.label}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {isCoachOrAdmin && (
+                          <UserVisibilityToggle id={p.id} show={p.show_on_members_page ?? false} />
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-3">

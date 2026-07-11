@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { calculateGrade, formatDate, calculateAge, calculateExperience } from '@/lib/utils/grade'
 import type { Role, Member, Profile } from '@/lib/types'
+import VisibilityToggle from './_components/VisibilityToggle'
 
 export default async function MembersPage() {
   const supabase = await createClient()
@@ -9,7 +10,7 @@ export default async function MembersPage() {
 
   const [{ data: profile }, { data: members }, { data: coaches }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
-    supabase.from('members').select('*').order('join_date', { ascending: true }),
+    supabase.from('members').select('*').order('join_date', { ascending: true }).order('full_name', { ascending: true }),
     supabase.from('profiles')
       .select('id, display_name, username, role, photo_url, birth_date, badminton_start_date')
       .eq('show_on_members_page', true)
@@ -43,10 +44,10 @@ export default async function MembersPage() {
                     <p className="font-bold text-[#1A3666] truncate">{coach.display_name ?? coach.username}</p>
                   </div>
                   {coach.birth_date && (
-                    <p className="text-sm text-gray-500 mt-0.5">{calculateAge(coach.birth_date)}</p>
+                    <p className="text-sm text-gray-900 mt-0.5">{calculateAge(coach.birth_date)}</p>
                   )}
                   {coach.badminton_start_date && (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-900 mt-0.5">
                       バドミントン歴: {calculateExperience(coach.badminton_start_date)}
                     </p>
                   )}
@@ -76,26 +77,32 @@ export default async function MembersPage() {
       </div>
 
       {/* メンバーカード一覧 */}
-      {members && members.length > 0 ? (
+      {members && members.filter((m: Member) => isAdmin || m.is_visible).length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {members.map((member: Member) => (
-            <Link
-              key={member.id}
-              href={`/members/${member.id}`}
-              className="bg-white rounded-xl border border-[#EAE0A8] p-5 flex items-center gap-4 hover:shadow-md hover:border-[#F5C800] transition-all"
-            >
-              <div className="w-14 h-14 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
-                {member.photo_url
-                  ? <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover" />
-                  : <span className="text-2xl">👤</span>
-                }
-              </div>
-              <div className="min-w-0">
-                <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
-                <p className="text-sm text-gray-500 mt-0.5">{calculateGrade(member.birth_date)}</p>
-                <p className="text-xs text-gray-400 mt-0.5">加入: {formatDate(member.join_date)}</p>
-              </div>
-            </Link>
+          {members.filter((m: Member) => isAdmin || m.is_visible).map((member: Member) => (
+            <div key={member.id} className={`relative bg-white rounded-xl border p-5 flex items-center gap-4 transition-all ${member.is_visible ? 'border-[#EAE0A8] hover:shadow-md hover:border-[#F5C800]' : 'border-gray-200 opacity-50'}`}>
+              <Link href={`/members/${member.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-14 h-14 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
+                  {member.photo_url
+                    ? <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover" />
+                    : <span className="text-2xl">👤</span>
+                  }
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
+                  <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
+                  <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
+                  <p className="text-xs text-gray-900 mt-0.5 font-mono">
+                    登録番号: {member.registration_number ?? '登録なし'}
+                  </p>
+                </div>
+              </Link>
+              {isAdmin && (
+                <div className="shrink-0">
+                  <VisibilityToggle id={member.id} isVisible={member.is_visible} />
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (

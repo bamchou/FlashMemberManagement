@@ -9,7 +9,7 @@ export default function LoginPage() {
         <div className="bg-[#1A3666] px-8 py-8 text-center">
           <div className="text-4xl mb-3">🏸</div>
           <h1 className="text-white font-bold text-base leading-relaxed tracking-wide">
-            バドミントンクラブ
+            BC FLASH
             <br />
             メンバー管理システム
           </h1>

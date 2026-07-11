@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export type UserFormState = { error: string } | undefined
+export type UserFormState = { error: string } | { password: string } | undefined
 
 export async function createUser(
   _state: UserFormState,
@@ -26,21 +26,16 @@ export async function createUser(
   const username = (formData.get('username') as string).trim()
   const displayName = (formData.get('display_name') as string).trim()
   const role = formData.get('role') as string
-  const password = formData.get('password') as string
-  const passwordConfirm = formData.get('password_confirm') as string
 
-  if (!username || !role || !password) {
-    return { error: 'ユーザー名・役割・パスワードは必須です' }
+  if (!username || !role) {
+    return { error: 'ユーザー名・役割は必須です' }
   }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
     return { error: 'ユーザー名は英数字とアンダースコアのみ使用できます' }
   }
-  if (password.length < 6) {
-    return { error: 'パスワードは6文字以上で設定してください' }
-  }
-  if (password !== passwordConfirm) {
-    return { error: 'パスワードが一致しません' }
-  }
+
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%'
+  const password = Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 
   // ユーザー名の重複チェック
   const { data: existing } = await supabase
@@ -70,6 +65,7 @@ export async function createUser(
       username,
       display_name: displayName || null,
       role,
+      temp_password: password,
     })
     .eq('id', newUser.id)
 
@@ -79,7 +75,27 @@ export async function createUser(
   }
 
   revalidatePath('/users')
-  redirect('/users')
+  return { password }
+}
+
+export async function resetPassword(targetUserId: string): Promise<{ password: string } | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラーが発生しました' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: '権限がありません' }
+
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%'
+  const password = Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+
+  const adminSupabase = createAdminClient()
+  const { error: authError } = await adminSupabase.auth.admin.updateUserById(targetUserId, { password })
+  if (authError) return { error: 'パスワードの再発行に失敗しました' }
+
+  await adminSupabase.from('profiles').update({ temp_password: password }).eq('id', targetUserId)
+  revalidatePath('/users')
+  return { password }
 }
 
 export async function updateUser(
@@ -102,8 +118,6 @@ export async function updateUser(
   const username = (formData.get('username') as string).trim()
   const displayName = (formData.get('display_name') as string).trim()
   const role = formData.get('role') as string
-  const password = formData.get('password') as string
-  const passwordConfirm = formData.get('password_confirm') as string
   const birthDate = formData.get('birth_date') as string
   const badmintonStartDate = formData.get('badminton_start_date') as string
   const showOnMembersPage = formData.get('show_on_members_page') === 'on'
@@ -112,10 +126,6 @@ export async function updateUser(
   if (!username || !role) return { error: 'ユーザー名・役割は必須です' }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
     return { error: 'ユーザー名は英数字とアンダースコアのみ使用できます' }
-  }
-  if (password) {
-    if (password.length < 6) return { error: 'パスワードは6文字以上で設定してください' }
-    if (password !== passwordConfirm) return { error: 'パスワードが一致しません' }
   }
 
   const { data: existing } = await supabase
@@ -160,11 +170,24 @@ export async function updateUser(
 
   await adminSupabase.auth.admin.updateUserById(targetUserId, {
     email: `${username}@flash.internal`,
-    ...(password ? { password } : {}),
   })
 
   revalidatePath('/users')
   redirect('/users')
+}
+
+export async function toggleUserVisibility(targetUserId: string, show: boolean): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return
+
+  const adminSupabase = createAdminClient()
+  await adminSupabase.from('profiles').update({ show_on_members_page: show }).eq('id', targetUserId)
+  revalidatePath('/users')
+  revalidatePath('/members')
 }
 
 export async function deleteUser(targetUserId: string): Promise<void> {
