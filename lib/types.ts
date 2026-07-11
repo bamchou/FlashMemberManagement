@@ -59,6 +59,33 @@ export type Announcement = {
   updated_at: string
 }
 
+export type AnnouncementComment = {
+  id: string
+  announcement_id: string
+  user_id: string
+  content: string
+  is_visible: boolean
+  created_at: string
+  updated_at: string
+  profiles?: { display_name: string | null; username: string | null }
+}
+
+export type EventType = 'practice' | 'tournament' | 'event' | 'social' | 'other'
+
+export type CalendarEvent = {
+  id: string
+  title: string
+  description: string | null
+  event_type: EventType
+  target: 'all' | 'coach' | 'member'
+  start_at: string
+  end_at: string
+  is_visible: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 export type CoachNote = {
   id: string
   title: string

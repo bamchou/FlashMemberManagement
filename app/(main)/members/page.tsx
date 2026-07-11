@@ -20,6 +20,7 @@ export default async function MembersPage() {
 
   const role = profile?.role as Role
   const isAdmin = role === 'admin'
+  const isAdminOrCoach = role === 'admin' || role === 'coach'
 
   return (
     <div>
@@ -92,9 +93,11 @@ export default async function MembersPage() {
                   <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
                   <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
-                  <p className="text-xs text-gray-900 mt-0.5 font-mono">
-                    登録番号: {member.registration_number ?? '登録なし'}
-                  </p>
+                  {isAdminOrCoach && (
+                    <p className="text-xs text-gray-900 mt-0.5 font-mono">
+                      登録番号: {member.registration_number ?? '登録なし'}
+                    </p>
+                  )}
                 </div>
               </Link>
               {isAdmin && (

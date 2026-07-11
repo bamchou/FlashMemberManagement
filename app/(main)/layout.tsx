@@ -35,9 +35,9 @@ export default async function MainLayout({
           {/* ロゴ */}
           <div className="flex items-center gap-2 mr-4 shrink-0">
             <span className="text-xl">🏸</span>
-            <span className="text-[#F5C800] font-bold text-sm hidden sm:block leading-tight">
-              BC FLASH<br />
-              <span className="text-white/80 font-normal text-xs">メンバー管理</span>
+            <span className="text-[#F5C800] font-bold text-sm leading-tight">
+              BC FLASH
+              <span className="text-white/80 font-normal text-xs hidden sm:block">メンバー管理</span>
             </span>
           </div>
 

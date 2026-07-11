@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { formatDate } from '@/lib/utils/grade'
-import type { Role } from '@/lib/types'
+import type { Role, AnnouncementComment } from '@/lib/types'
+import CommentSection from './_components/CommentSection'
 
 const TARGET_LABEL: Record<string, { label: string; className: string }> = {
   coach:  { label: '指導者のみ', className: 'bg-[#1A3666] text-white' },
@@ -18,10 +20,26 @@ export default async function AnnouncementDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: announcement }] = await Promise.all([
+  const [{ data: profile }, { data: announcement }, { data: rawComments }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('announcements').select('*').eq('id', id).single(),
+    supabase.from('announcement_comments')
+      .select('*')
+      .eq('announcement_id', id)
+      .order('created_at', { ascending: true }),
   ])
+
+  // adminクライアントでコメント投稿者のプロフィールを取得（RLS回避）
+  const adminSupabase = createAdminClient()
+  const userIds = [...new Set((rawComments ?? []).map((c: { user_id: string }) => c.user_id))]
+  const { data: profilesData } = userIds.length > 0
+    ? await adminSupabase.from('profiles').select('id, display_name, username').in('id', userIds)
+    : { data: [] }
+  const profileMap = Object.fromEntries((profilesData ?? []).map((p: { id: string; display_name: string | null; username: string | null }) => [p.id, p]))
+  const comments = (rawComments ?? []).map((c: AnnouncementComment) => ({
+    ...c,
+    profiles: profileMap[c.user_id] ?? null,
+  }))
 
   if (!announcement) notFound()
 
@@ -56,8 +74,8 @@ export default async function AnnouncementDetailPage({
   const targetInfo = TARGET_LABEL[announcement.target]
 
   return (
-    <div className="max-w-2xl">
-      <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
+    <div className="max-w-2xl space-y-4">
+      <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline inline-block">
         ← 連絡事項一覧に戻る
       </Link>
 
@@ -94,6 +112,13 @@ export default async function AnnouncementDetailPage({
           </div>
         )}
       </div>
+
+      <CommentSection
+        announcementId={id}
+        comments={(comments ?? []) as AnnouncementComment[]}
+        currentUserId={user!.id}
+        role={role}
+      />
     </div>
   )
 }
