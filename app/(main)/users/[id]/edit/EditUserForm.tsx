@@ -69,7 +69,7 @@ export default function EditUserForm({
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await updateUser(userId, undefined, formData)
-      if (result?.error) setError(result.error)
+      if (result && 'error' in result) setError(result.error)
     })
   }
 
