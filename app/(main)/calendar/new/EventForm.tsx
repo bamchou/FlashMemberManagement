@@ -76,7 +76,7 @@ export default function EventForm({
   const [singlesAmount, setSinglesAmount] = useState('')
   const [doublesMode, setDoublesMode] = useState<FeeMode>('amount')
   const [doublesAmount, setDoublesAmount] = useState('')
-  const [accompType, setAccompType] = useState('')
+  const [accompType, setAccompType] = useState('local')
 
   function toggleAllDay(val: boolean) {
     if (val) {
@@ -271,15 +271,6 @@ export default function EventForm({
           <div>
             <label className="block text-sm font-semibold text-[#1A3666] mb-2">帯同費</label>
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setAccompType('')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-colors ${
-                  accompType === '' ? 'bg-[#1A3666] border-[#1A3666] text-white' : 'bg-white border-gray-200 text-gray-500'
-                }`}
-              >
-                なし
-              </button>
               {accompanimentFees.map(f => (
                 <button
                   key={f.area_type}
@@ -292,6 +283,15 @@ export default function EventForm({
                   {f.label}（{f.amount_per_person.toLocaleString()}円/人）
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setAccompType('')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-colors ${
+                  accompType === '' ? 'bg-[#1A3666] border-[#1A3666] text-white' : 'bg-white border-gray-200 text-gray-500'
+                }`}
+              >
+                なし
+              </button>
             </div>
           </div>
         </div>
