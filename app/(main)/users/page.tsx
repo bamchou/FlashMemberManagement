@@ -66,12 +66,12 @@ export default async function UsersPage() {
                       {isCoachOrAdmin && (
                         <UserVisibilityToggle id={p.id} show={p.show_on_members_page ?? false} />
                       )}
-                      <Link href={`/users/${p.id}/edit`} className="text-xs text-[#1A3666] font-semibold">
+                      <Link href={`/users/${p.id}/edit`} className="text-xs text-[#1A3666] font-semibold w-6 text-center">
                         編集
                       </Link>
-                      {!isSelf && (
+                      <span className={isSelf ? 'invisible' : ''}>
                         <DeleteUserButton userId={p.id} username={p.username} />
-                      )}
+                      </span>
                     </div>
                   </div>
                 )
@@ -108,14 +108,14 @@ export default async function UsersPage() {
                           <UserVisibilityToggle id={p.id} show={p.show_on_members_page ?? false} />
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-3">
                           <Link href={`/users/${p.id}/edit`} className="text-xs text-[#1A3666] hover:underline">
                             編集
                           </Link>
-                          {!isSelf && (
+                          <span className={isSelf ? 'invisible' : ''}>
                             <DeleteUserButton userId={p.id} username={p.username} />
-                          )}
+                          </span>
                         </div>
                       </td>
                     </tr>
