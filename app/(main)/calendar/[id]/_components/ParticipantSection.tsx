@@ -88,21 +88,31 @@ export default function ParticipantSection({
       </h2>
 
       {/* 参加登録セクション（保護者・管理者） */}
-      {canRegister && myMembers.length > 0 && (
+      {canRegister && (
         <div className="mb-5">
-          <p className="text-xs font-semibold text-gray-500 mb-2">参加登録</p>
-          <div className="space-y-2">
-            {myMembers.map(m => (
-              <ToggleButton
-                key={m.id}
-                eventId={eventId}
-                memberId={m.id}
-                isJoining={participantIds.has(m.id)}
-                name={m.full_name}
-                photoUrl={m.photo_url}
-              />
-            ))}
-          </div>
+          <p className="text-xs font-semibold text-gray-500 mb-2">
+            {role === 'admin' ? '参加登録（全メンバー）' : '参加するお子様を選択'}
+          </p>
+          {myMembers.length > 0 ? (
+            <div className="space-y-2">
+              {myMembers.map(m => (
+                <ToggleButton
+                  key={m.id}
+                  eventId={eventId}
+                  memberId={m.id}
+                  isJoining={participantIds.has(m.id)}
+                  name={m.full_name}
+                  photoUrl={m.photo_url}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-4 py-3">
+              {role === 'member'
+                ? 'メンバーを登録して管理者に承認されると、参加登録ができます。'
+                : '承認済みメンバーがいません。'}
+            </p>
+          )}
         </div>
       )}
 
