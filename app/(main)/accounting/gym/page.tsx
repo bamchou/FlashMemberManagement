@@ -193,9 +193,14 @@ export default async function GymFeesPage({
                 <div key={e.id} className="px-4 py-4 space-y-1.5">
                   <p className="text-xs font-semibold text-[#1A3666]">{formatDate(e.start_at)}</p>
                   <div className="flex items-center justify-between gap-2">
-                    <Link href={`/calendar/${e.id}`} className="font-bold text-[#1A3666] hover:underline truncate">
-                      {e.title}
-                    </Link>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Link href={`/calendar/${e.id}`} className="font-bold text-[#1A3666] hover:underline truncate">
+                        {e.title}
+                      </Link>
+                      <span className="text-xs text-gray-700 shrink-0">
+                        {e.created_by ? (creatorMap[e.created_by] ?? '—') : '—'}
+                      </span>
+                    </div>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
                       e.status === 'confirmed'
                         ? 'bg-green-100 text-green-700'
@@ -204,8 +209,7 @@ export default async function GymFeesPage({
                       {e.status === 'confirmed' ? '確定' : '仮'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-700">
-                    <span>予約者: {e.created_by ? (creatorMap[e.created_by] ?? '—') : '—'}</span>
+                  <div className="text-xs text-gray-700">
                     <span>{e.payment_method ?? '—'}</span>
                   </div>
                   <p className="text-sm font-bold text-[#1A3666]">
