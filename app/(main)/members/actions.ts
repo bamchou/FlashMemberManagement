@@ -104,6 +104,7 @@ export async function approveMember(id: string): Promise<void> {
     .eq('id', id)
 
   revalidatePath('/members')
+  redirect('/members')
 }
 
 export async function rejectMember(id: string): Promise<void> {
@@ -123,6 +124,7 @@ export async function rejectMember(id: string): Promise<void> {
   await adminSupabase.from('members').delete().eq('id', id)
 
   revalidatePath('/members')
+  redirect('/members')
 }
 
 export async function updateMember(

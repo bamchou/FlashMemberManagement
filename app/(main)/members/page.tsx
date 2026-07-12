@@ -4,7 +4,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateAge, calculateExperience, calculateGrade, formatDate } from '@/lib/utils/grade'
 import type { Role, Member, Profile } from '@/lib/types'
 import MemberList from './_components/MemberList'
-import ApprovalButtons from './_components/ApprovalButtons'
 
 export default async function MembersPage() {
   const supabase = await createClient()
@@ -12,9 +11,9 @@ export default async function MembersPage() {
 
   const [{ data: profile }, { data: members }, { data: coaches }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
-    supabase.from('members').select('*').order('join_date', { ascending: true }).order('full_name', { ascending: true }),
+    supabase.from('members').select('*').order('birth_date', { ascending: true }).order('join_date', { ascending: true }),
     supabase.from('profiles')
-      .select('id, display_name, username, role, photo_url, birth_date, badminton_start_date')
+      .select('id, display_name, username, role, photo_url, birth_date, badminton_start_date, qualifications')
       .eq('show_on_members_page', true)
       .in('role', ['admin', 'coach'])
       .order('created_at', { ascending: true }),
@@ -67,6 +66,9 @@ export default async function MembersPage() {
                   {coach.badminton_start_date && (
                     <p className="text-xs text-gray-900 mt-0.5">バドミントン歴: {calculateExperience(coach.badminton_start_date)}</p>
                   )}
+                  {coach.qualifications && (
+                    <p className="text-xs text-gray-500 mt-0.5">{coach.qualifications}</p>
+                  )}
                 </div>
               </div>
             ))}
@@ -92,13 +94,18 @@ export default async function MembersPage() {
                       ? <img src={m.photo_url} alt={m.full_name} className="w-full h-full object-cover" />
                       : <span className="text-xl">👤</span>}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="font-bold text-[#1A3666] truncate">{m.full_name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{calculateGrade(m.birth_date)}</p>
                     <p className="text-xs text-gray-400 mt-0.5">加入: {formatDate(m.join_date)}</p>
                   </div>
+                  <Link
+                    href={`/members/${m.id}`}
+                    className="shrink-0 text-xs font-semibold text-[#1A3666] border border-[#1A3666] px-3 py-1.5 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
+                  >
+                    詳細
+                  </Link>
                 </div>
-                <ApprovalButtons id={m.id} />
               </div>
             ))}
           </div>

@@ -6,6 +6,7 @@ import { calculateGrade, formatDate, calculateExperience } from '@/lib/utils/gra
 import type { Role, TournamentResult, PrefecturalReinforcement } from '@/lib/types'
 import MemberEventSection from './_components/MemberEventSection'
 import DeleteMemberButton from './_components/DeleteMemberButton'
+import ApprovalButtons from '../_components/ApprovalButtons'
 
 export default async function MemberDetailPage({
   params,
@@ -15,12 +16,13 @@ export default async function MemberDetailPage({
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const adminSupabase = createAdminClient()
 
   const [{ data: profile }, { data: member }, { data: results }, { data: reinforcements }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
-    supabase.from('members').select('*').eq('id', id).single(),
-    supabase.from('tournament_results').select('*').eq('member_id', id).order('tournament_date', { ascending: false }),
-    supabase.from('prefectural_reinforcements').select('*').eq('member_id', id).order('selected_date', { ascending: false }),
+    adminSupabase.from('members').select('*').eq('id', id).single(),
+    adminSupabase.from('tournament_results').select('*').eq('member_id', id).order('tournament_date', { ascending: false }),
+    adminSupabase.from('prefectural_reinforcements').select('*').eq('member_id', id).order('selected_date', { ascending: false }),
   ])
 
   if (!member) notFound()
@@ -30,12 +32,15 @@ export default async function MemberDetailPage({
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const isGuardian = role === 'member'
   const isMyMember = member.guardian_id === user!.id
+  const isPending = member.approval_status === 'pending'
+
+  // 承認待ちメンバーは管理者のみ閲覧可
+  if (isPending && !isAdmin) notFound()
 
   // 保護者が自分の子を見ている場合のみ参加登録セクションを表示
   const showEventSection = isGuardian && isMyMember
 
   // 今後の予定を取得（保護者のみ）
-  const adminSupabase = createAdminClient()
   let upcomingEvents: { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string }[] = []
   let participationStatusMap = new Map<string, 'approved' | 'pending'>()
 
@@ -71,6 +76,13 @@ export default async function MemberDetailPage({
 
       {/* メンバー基本情報 */}
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
+        {isPending && (
+          <div className="mb-4 bg-orange-50 border border-orange-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
+            <span className="text-xs font-bold bg-orange-100 text-orange-600 border border-orange-300 px-2 py-0.5 rounded-full">承認待ち</span>
+            <p className="text-sm text-orange-700">このメンバーはまだ承認されていません</p>
+          </div>
+        )}
+
         <div className="flex items-center gap-5 mb-5">
           <div className="w-20 h-20 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
             {member.photo_url ? (
@@ -121,7 +133,14 @@ export default async function MemberDetailPage({
           </div>
         )}
 
-        {isAdmin && (
+        {isAdmin && isPending && (
+          <div className="mt-5 pt-5 border-t border-[#EAE0A8]">
+            <p className="text-sm font-semibold text-[#1A3666] mb-2">承認・却下</p>
+            <ApprovalButtons id={id} />
+          </div>
+        )}
+
+        {isAdmin && !isPending && (
           <div className="mt-5 pt-5 border-t border-[#EAE0A8] flex gap-3 flex-wrap">
             <Link
               href={`/members/${id}/edit`}
@@ -134,103 +153,107 @@ export default async function MemberDetailPage({
         )}
       </div>
 
-      {/* 戦績 */}
-      <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-[#1A3666]">戦績</h2>
-          {isAdmin && (
-            <Link
-              href={`/members/${id}/results/new`}
-              className="text-sm font-semibold bg-[#1A3666] text-white px-3 py-1.5 rounded-lg hover:bg-[#2A52A0] transition-colors"
-            >
-              ＋ 追加
-            </Link>
-          )}
-        </div>
+      {!isPending && (
+        <>
+          {/* 戦績 */}
+          <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-[#1A3666]">戦績</h2>
+              {isAdmin && (
+                <Link
+                  href={`/members/${id}/results/new`}
+                  className="text-sm font-semibold bg-[#1A3666] text-white px-3 py-1.5 rounded-lg hover:bg-[#2A52A0] transition-colors"
+                >
+                  ＋ 追加
+                </Link>
+              )}
+            </div>
 
-        {results && results.length > 0 ? (
-          <div className="space-y-3">
-            {results.map((r: TournamentResult) => (
-              <div key={r.id} className="border border-[#EAE0A8] rounded-lg p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-[#1A3666]">{r.tournament_name}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {formatDate(r.tournament_date)}　{r.event_type}
-                    </p>
-                    {r.result && (
-                      <p className="text-sm font-medium text-gray-700 mt-1">成績: {r.result}</p>
-                    )}
+            {results && results.length > 0 ? (
+              <div className="space-y-3">
+                {results.map((r: TournamentResult) => (
+                  <div key={r.id} className="border border-[#EAE0A8] rounded-lg p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-[#1A3666]">{r.tournament_name}</p>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          {formatDate(r.tournament_date)}　{r.event_type}
+                        </p>
+                        {r.result && (
+                          <p className="text-sm font-medium text-gray-700 mt-1">成績: {r.result}</p>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1 shrink-0">
+                        {r.advanced_to_kyushu && (
+                          <span className="text-xs font-bold bg-[#1A3666] text-white px-2 py-0.5 rounded-full">九州大会</span>
+                        )}
+                        {r.advanced_to_prefectural && !r.advanced_to_kyushu && (
+                          <span className="text-xs font-bold bg-[#2A52A0] text-white px-2 py-0.5 rounded-full">県大会</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1 shrink-0">
-                    {r.advanced_to_kyushu && (
-                      <span className="text-xs font-bold bg-[#1A3666] text-white px-2 py-0.5 rounded-full">九州大会</span>
-                    )}
-                    {r.advanced_to_prefectural && !r.advanced_to_kyushu && (
-                      <span className="text-xs font-bold bg-[#2A52A0] text-white px-2 py-0.5 rounded-full">県大会</span>
-                    )}
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="py-10 text-center">
+                <p className="text-gray-400 text-sm">戦績がまだ登録されていません</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="py-10 text-center">
-            <p className="text-gray-400 text-sm">戦績がまだ登録されていません</p>
-          </div>
-        )}
-      </div>
 
-      {/* 参加予定・参加登録（保護者が自分の子を見るときのみ） */}
-      {showEventSection && (
-        <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
-          <h2 className="text-base font-bold text-[#1A3666] mb-4">今後の予定・参加登録</h2>
-          <MemberEventSection
-            memberId={id}
-            events={upcomingEvents}
-            participationStatusMap={participationStatusMap}
-          />
-        </div>
+          {/* 参加予定・参加登録（保護者が自分の子を見るときのみ） */}
+          {showEventSection && (
+            <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
+              <h2 className="text-base font-bold text-[#1A3666] mb-4">今後の予定・参加登録</h2>
+              <MemberEventSection
+                memberId={id}
+                events={upcomingEvents}
+                participationStatusMap={participationStatusMap}
+              />
+            </div>
+          )}
+
+          {/* 県強化選手選出 */}
+          <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-[#1A3666]">県強化選手選出</h2>
+              {isAdmin && (
+                <Link
+                  href={`/members/${id}/reinforcements/new`}
+                  className="text-sm font-semibold bg-[#F5C800] text-[#1A3666] px-3 py-1.5 rounded-lg hover:bg-[#E5B800] transition-colors"
+                >
+                  ＋ 追加
+                </Link>
+              )}
+            </div>
+
+            {reinforcements && reinforcements.length > 0 ? (
+              <div className="space-y-3">
+                {reinforcements.map((r: PrefecturalReinforcement) => (
+                  <div key={r.id} className="border border-[#EAE0A8] rounded-lg p-4 bg-[#FFFDF0]">
+                    <div className="flex items-start gap-3">
+                      <span className="text-xs font-bold bg-[#F5C800] text-[#1A3666] px-2 py-0.5 rounded-full shrink-0 mt-0.5">
+                        県強化選手
+                      </span>
+                      <div>
+                        <p className="font-semibold text-[#1A3666]">{formatDate(r.selected_date)}</p>
+                        {r.notes && (
+                          <p className="text-sm text-gray-600 mt-0.5">{r.notes}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-10 text-center">
+                <p className="text-gray-400 text-sm">県強化選手選出の記録がありません</p>
+              </div>
+            )}
+          </div>
+        </>
       )}
-
-      {/* 県強化選手選出 */}
-      <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-[#1A3666]">県強化選手選出</h2>
-          {isAdmin && (
-            <Link
-              href={`/members/${id}/reinforcements/new`}
-              className="text-sm font-semibold bg-[#F5C800] text-[#1A3666] px-3 py-1.5 rounded-lg hover:bg-[#E5B800] transition-colors"
-            >
-              ＋ 追加
-            </Link>
-          )}
-        </div>
-
-        {reinforcements && reinforcements.length > 0 ? (
-          <div className="space-y-3">
-            {reinforcements.map((r: PrefecturalReinforcement) => (
-              <div key={r.id} className="border border-[#EAE0A8] rounded-lg p-4 bg-[#FFFDF0]">
-                <div className="flex items-start gap-3">
-                  <span className="text-xs font-bold bg-[#F5C800] text-[#1A3666] px-2 py-0.5 rounded-full shrink-0 mt-0.5">
-                    県強化選手
-                  </span>
-                  <div>
-                    <p className="font-semibold text-[#1A3666]">{formatDate(r.selected_date)}</p>
-                    {r.notes && (
-                      <p className="text-sm text-gray-600 mt-0.5">{r.notes}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-10 text-center">
-            <p className="text-gray-400 text-sm">県強化選手選出の記録がありません</p>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

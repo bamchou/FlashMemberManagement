@@ -27,6 +27,7 @@ export async function createUser(
   const username = (formData.get('username') as string).trim()
   const displayName = (formData.get('display_name') as string).trim()
   const role = formData.get('role') as string
+  const qualifications = (formData.get('qualifications') as string | null)?.trim() || null
 
   if (!username || !role) {
     return { error: 'ユーザー名・役割は必須です' }
@@ -67,6 +68,7 @@ export async function createUser(
       display_name: displayName || null,
       role,
       temp_password: password,
+      qualifications: (role === 'admin' || role === 'coach') ? qualifications : null,
     })
     .eq('id', newUser.id)
 
@@ -122,6 +124,7 @@ export async function updateUser(
   const birthDate = formData.get('birth_date') as string
   const badmintonStartDate = formData.get('badminton_start_date') as string
   const showOnMembersPage = formData.get('show_on_members_page') === 'on'
+  const qualificationsRaw = (formData.get('qualifications') as string | null)?.trim() || null
   const photo = formData.get('photo') as File | null
 
   if (!username || !role) return { error: 'ユーザー名・役割は必須です' }
@@ -169,6 +172,7 @@ export async function updateUser(
       birth_date: birthDate || null,
       badminton_start_date: badmintonStartDate || null,
       show_on_members_page: showOnMembersPage,
+      qualifications: (role === 'admin' || role === 'coach') ? qualificationsRaw : null,
       ...(photoUrl !== undefined && { photo_url: photoUrl }),
     })
     .eq('id', targetUserId)

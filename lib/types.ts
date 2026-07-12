@@ -9,6 +9,7 @@ export type Profile = {
   birth_date: string | null
   badminton_start_date: string | null
   show_on_members_page: boolean
+  qualifications: string | null
   created_at: string
 }
 

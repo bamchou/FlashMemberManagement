@@ -19,6 +19,7 @@ type Props = {
   initialBirthDate: string
   initialBadmintonStartDate: string
   initialShowOnMembersPage: boolean
+  initialQualifications: string | null
   initialTempPassword: string | null
   roleChangeLocked: boolean
 }
@@ -32,6 +33,7 @@ export default function EditUserForm({
   initialBirthDate,
   initialBadmintonStartDate,
   initialShowOnMembersPage,
+  initialQualifications,
   initialTempPassword,
   roleChangeLocked,
 }: Props) {
@@ -49,9 +51,10 @@ export default function EditUserForm({
     birth_date: initialBirthDate,
     badminton_start_date: initialBadmintonStartDate,
     show_on_members_page: initialShowOnMembersPage,
+    qualifications: initialQualifications ?? '',
   })
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value, type } = e.target
     const checked = (e.target as HTMLInputElement).checked
     const val = type === 'checkbox' ? checked : (name === 'username' ? value.replace(/[^a-zA-Z0-9_]/g, '') : value)
@@ -160,6 +163,22 @@ export default function EditUserForm({
           </>
         )}
       </div>
+
+      {/* 資格・免許（管理者・指導者のみ） */}
+      {(fields.role === 'admin' || fields.role === 'coach') && (
+        <div>
+          <label htmlFor="qualifications" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+            資格・免許
+          </label>
+          <textarea
+            id="qualifications" name="qualifications"
+            value={fields.qualifications} onChange={handleChange}
+            rows={3}
+            placeholder="例: 審判資格B級、指導員資格"
+            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white resize-none"
+          />
+        </div>
+      )}
 
       {/* 生年月日・バドミントン開始年月日 */}
       <div className="grid grid-cols-2 gap-3">

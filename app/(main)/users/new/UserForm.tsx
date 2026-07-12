@@ -16,9 +16,9 @@ export default function UserForm() {
   const [error, setError] = useState<string | null>(null)
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [fields, setFields] = useState({ username: '', display_name: '', role: '' })
+  const [fields, setFields] = useState({ username: '', display_name: '', role: '', qualifications: '' })
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const value = e.target.name === 'username'
       ? e.target.value.replace(/[^a-zA-Z0-9_]/g, '')
       : e.target.value
@@ -127,6 +127,21 @@ export default function UserForm() {
           ))}
         </select>
       </div>
+
+      {(fields.role === 'admin' || fields.role === 'coach') && (
+        <div>
+          <label htmlFor="qualifications" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+            資格・免許
+          </label>
+          <textarea
+            id="qualifications" name="qualifications"
+            value={fields.qualifications} onChange={handleChange}
+            rows={3}
+            placeholder="例: 審判資格B級、指導員資格"
+            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white resize-none"
+          />
+        </div>
+      )}
 
       <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-4 py-3 text-sm text-gray-600">
         パスワードは自動で設定されます。登録後に表示されますのでユーザーにお伝えください。
