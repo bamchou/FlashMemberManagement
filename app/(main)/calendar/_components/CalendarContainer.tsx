@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { CalendarEvent, Role } from '@/lib/types'
 import CalendarView from './CalendarView'
 import AgendaView from './AgendaView'
+
+const STORAGE_KEY = 'calendar-mobile-view'
 
 export default function CalendarContainer({
   year,
@@ -20,7 +22,17 @@ export default function CalendarContainer({
   currentUserId: string
   creatorMap: Record<string, string>
 }) {
-  const [mobileView, setMobileView] = useState<'agenda' | 'grid'>('agenda')
+  const [mobileView, setMobileViewState] = useState<'agenda' | 'grid'>('grid')
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY) as 'agenda' | 'grid' | null
+    if (saved) setMobileViewState(saved)
+  }, [])
+
+  function setMobileView(view: 'agenda' | 'grid') {
+    setMobileViewState(view)
+    localStorage.setItem(STORAGE_KEY, view)
+  }
 
   const props = { year, month, events, role, currentUserId, creatorMap }
 
