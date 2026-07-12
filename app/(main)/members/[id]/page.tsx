@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateGrade, formatDate, calculateExperience } from '@/lib/utils/grade'
 import type { Role, TournamentResult, PrefecturalReinforcement } from '@/lib/types'
+import MemberEventSection from './_components/MemberEventSection'
 
 export default async function MemberDetailPage({
   params,
@@ -25,6 +27,31 @@ export default async function MemberDetailPage({
   const role = profile?.role as Role
   const isAdmin = role === 'admin'
   const isAdminOrCoach = role === 'admin' || role === 'coach'
+  const isGuardian = role === 'member'
+  const isMyMember = member.guardian_id === user!.id
+
+  // 参加登録できる場合: 管理者、または自分の子
+  const canRegisterEvents = isAdmin || (isGuardian && isMyMember)
+
+  // 今後の予定を取得（参加登録セクション用）
+  const adminSupabase = createAdminClient()
+  const now = new Date().toISOString()
+  const { data: upcomingEvents } = await adminSupabase
+    .from('events')
+    .select('id, title, event_type, start_at, end_at, status, target')
+    .gte('start_at', now)
+    .in('target', isAdmin ? ['all', 'coach', 'member'] : ['all', 'member'])
+    .eq('is_visible', true)
+    .order('start_at', { ascending: true })
+    .limit(20)
+
+  // このメンバーが参加登録している予定ID一覧
+  const { data: participations } = await adminSupabase
+    .from('event_participants')
+    .select('event_id')
+    .eq('member_id', id)
+
+  const participatingEventIds = new Set((participations ?? []).map((p: { event_id: string }) => p.event_id))
 
   return (
     <div className="max-w-2xl">
@@ -143,6 +170,19 @@ export default async function MemberDetailPage({
           </div>
         )}
       </div>
+
+      {/* 参加予定・参加登録 */}
+      {(canRegisterEvents || isAdminOrCoach) && (
+        <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
+          <h2 className="text-base font-bold text-[#1A3666] mb-4">今後の予定・参加登録</h2>
+          <MemberEventSection
+            memberId={id}
+            events={(upcomingEvents ?? []) as { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string }[]}
+            participatingEventIds={participatingEventIds}
+            canRegister={canRegisterEvents}
+          />
+        </div>
+      )}
 
       {/* 県強化選手選出 */}
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
