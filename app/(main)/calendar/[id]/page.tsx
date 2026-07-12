@@ -96,6 +96,17 @@ export default async function EventDetailPage({
     myMembers = (data ?? []) as typeof myMembers
   }
 
+  // 大会の帯同費を取得（保護者向け参加費表示用）
+  let accompFeePerPerson = 0
+  if (e.event_type === 'tournament' && e.accompaniment_type) {
+    const { data: feeSettings } = await adminSupabase
+      .from('accompaniment_fee_settings')
+      .select('amount_per_person')
+      .eq('area_type', e.accompaniment_type)
+      .single()
+    if (feeSettings) accompFeePerPerson = feeSettings.amount_per_person
+  }
+
   return (
     <div className="max-w-2xl">
       <Link href="/calendar" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
@@ -189,6 +200,9 @@ export default async function EventDetailPage({
         participants={participants}
         myMembers={myMembers}
         role={role}
+        singlesFee={e.singles_fee}
+        doublesFee={e.doubles_fee}
+        accompFeePerPerson={accompFeePerPerson}
       />
     </div>
   )

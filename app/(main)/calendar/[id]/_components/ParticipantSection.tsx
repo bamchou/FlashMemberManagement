@@ -19,6 +19,20 @@ type MyMember = {
 
 type Category = 'singles' | 'doubles' | 'both'
 
+function calcFee(
+  category: string | null,
+  singlesFee: number | null | undefined,
+  doublesFee: number | null | undefined,
+  accompFeePerPerson: number,
+): number | null {
+  if (!category) return null
+  let entryFee = 0
+  if (category === 'singles') entryFee = singlesFee ?? 0
+  else if (category === 'doubles') entryFee = doublesFee ?? 0
+  else if (category === 'both') entryFee = (singlesFee ?? 0) + (doublesFee ?? 0)
+  return entryFee + accompFeePerPerson
+}
+
 const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
   { value: 'singles', label: 'シングルス' },
   { value: 'doubles', label: 'ダブルス' },
@@ -43,11 +57,12 @@ function MemberAvatar({ photoUrl, name }: { photoUrl: string | null; name: strin
 
 function RegisterBlock({
   eventId, memberId, isTournament, isJoining, isPending: isApprovalPending,
-  name, photoUrl, category,
+  name, photoUrl, category, singlesFee, doublesFee, accompFeePerPerson,
 }: {
   eventId: string; memberId: string; isTournament: boolean
   isJoining: boolean; isPending: boolean; name: string; photoUrl: string | null
   category: string | null
+  singlesFee?: number | null; doublesFee?: number | null; accompFeePerPerson?: number
 }) {
   const [isTransitioning, startTransition] = useTransition()
   const [selectedCategory, setSelectedCategory] = useState<Category>('singles')
@@ -74,9 +89,20 @@ function RegisterBlock({
           <MemberAvatar photoUrl={photoUrl} name={name} />
           <div>
             <p className="text-sm font-semibold text-[#1A3666]">{name}</p>
-            {isTournament && category && (
-              <p className="text-[10px] text-gray-500">{CATEGORY_OPTIONS.find(o => o.value === category)?.label}</p>
-            )}
+            {isTournament && category && (() => {
+              const catLabel = CATEGORY_OPTIONS.find(o => o.value === category)?.label
+              const fee = !isPending
+                ? calcFee(category, singlesFee, doublesFee, accompFeePerPerson ?? 0)
+                : null
+              return (
+                <p className="text-[10px] text-gray-500">
+                  {catLabel}
+                  {fee != null && (
+                    <span className="ml-1.5 font-semibold text-green-700">参加費 ¥{fee.toLocaleString()}</span>
+                  )}
+                </p>
+              )
+            })()}
           </div>
         </div>
         <button
@@ -151,12 +177,16 @@ function ApproveButton({ eventId, memberId }: { eventId: string; memberId: strin
 
 export default function ParticipantSection({
   eventId, eventType, participants, myMembers, role,
+  singlesFee, doublesFee, accompFeePerPerson,
 }: {
   eventId: string
   eventType: string
   participants: Participant[]
   myMembers: MyMember[]
   role: Role
+  singlesFee?: number | null
+  doublesFee?: number | null
+  accompFeePerPerson?: number
 }) {
   const participantMap = new Map(participants.map(p => [p.member_id, p]))
   const canRegister = role === 'member'
@@ -196,6 +226,9 @@ export default function ParticipantSection({
                     name={m.full_name}
                     photoUrl={m.photo_url}
                     category={entry?.participation_category ?? null}
+                    singlesFee={singlesFee}
+                    doublesFee={doublesFee}
+                    accompFeePerPerson={accompFeePerPerson}
                   />
                 )
               })}
