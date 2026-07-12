@@ -103,15 +103,19 @@ export default async function EventDetailPage({
     myMembers = (data ?? []) as typeof myMembers
   }
 
-  // 大会の帯同費を取得（保護者向け参加費表示用）
+  // 大会の帯同費を取得
   let accompFeePerPerson = 0
+  let accompFeeLabel = ''
   if (e.event_type === 'tournament' && e.accompaniment_type) {
     const { data: feeSettings } = await adminSupabase
       .from('accompaniment_fee_settings')
-      .select('amount_per_person')
+      .select('label, amount_per_person')
       .eq('area_type', e.accompaniment_type)
       .single()
-    if (feeSettings) accompFeePerPerson = feeSettings.amount_per_person
+    if (feeSettings) {
+      accompFeePerPerson = feeSettings.amount_per_person
+      accompFeeLabel = `${feeSettings.label} ${feeSettings.amount_per_person.toLocaleString()}円/人`
+    }
   }
 
   return (
@@ -180,7 +184,7 @@ export default async function EventDetailPage({
               <p className="text-sm text-[#1A3666]">{e.venue}</p>
             </div>
           )}
-          {e.event_type === 'tournament' && (e.singles_fee != null || e.doubles_fee != null) && (
+          {e.event_type === 'tournament' && (e.singles_fee != null || e.doubles_fee != null || accompFeeLabel) && (
             <div className="flex items-start gap-3">
               <span className="text-gray-400 w-5 mt-0.5 shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -196,6 +200,11 @@ export default async function EventDetailPage({
                 {e.doubles_fee != null && (
                   <span className="text-xs font-semibold bg-[#F5C800]/20 text-[#1A3666] px-2.5 py-1 rounded-full">
                     ダブルス {e.doubles_fee.toLocaleString()}円
+                  </span>
+                )}
+                {accompFeeLabel && (
+                  <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">
+                    帯同費 {accompFeeLabel}
                   </span>
                 )}
               </div>
