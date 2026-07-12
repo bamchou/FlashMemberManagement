@@ -1,24 +1,19 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import PaymentStatusButton from './_components/PaymentStatusButton'
 
-function formatDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString('ja-JP', {
-    timeZone: 'Asia/Tokyo',
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
-  })
-}
-
-type PaymentEvent = {
-  id: string
-  title: string
-  start_at: string
-  payment_method: string
-  payment_amount: number
-  payment_status: string
-}
+const MENU_ITEMS = [
+  {
+    href: '/accounting/gym',
+    label: '体育館使用料管理',
+    description: '確定した練習の体育館使用料を管理します',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    ),
+  },
+]
 
 export default async function AccountingPage() {
   const supabase = await createClient()
@@ -26,118 +21,29 @@ export default async function AccountingPage() {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user!.id).single()
   if (profile?.role !== 'admin') redirect('/members')
 
-  const adminSupabase = createAdminClient()
-
-  // 確定済みで決済情報がある練習予定を取得
-  const { data: events } = await adminSupabase
-    .from('events')
-    .select('id, title, start_at, payment_method, payment_amount, payment_status')
-    .eq('event_type', 'practice')
-    .eq('status', 'confirmed')
-    .not('payment_method', 'is', null)
-    .order('start_at', { ascending: false })
-
-  const rows = (events ?? []) as PaymentEvent[]
-
-  const totalAmount = rows.reduce((sum, e) => sum + (e.payment_amount ?? 0), 0)
-  const paidAmount = rows.filter(e => e.payment_status === 'paid').reduce((sum, e) => sum + (e.payment_amount ?? 0), 0)
-  const unpaidAmount = totalAmount - paidAmount
-  const unpaidCount = rows.filter(e => e.payment_status !== 'paid').length
-
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-2xl">
       <h1 className="text-xl font-bold text-[#1A3666] mb-6">経理管理</h1>
 
-      {/* サマリーカード */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
-          <p className="text-xs font-semibold text-gray-400 mb-1">合計</p>
-          <p className="text-lg font-bold text-[#1A3666]">¥{totalAmount.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{rows.length} 件</p>
-        </div>
-        <div className="bg-white rounded-xl border border-orange-200 p-4 text-center">
-          <p className="text-xs font-semibold text-orange-500 mb-1">未払い</p>
-          <p className="text-lg font-bold text-orange-600">¥{unpaidAmount.toLocaleString()}</p>
-          <p className="text-xs text-orange-400 mt-0.5">{unpaidCount} 件</p>
-        </div>
-        <div className="bg-white rounded-xl border border-green-200 p-4 text-center">
-          <p className="text-xs font-semibold text-green-600 mb-1">支払い済み</p>
-          <p className="text-lg font-bold text-green-700">¥{paidAmount.toLocaleString()}</p>
-          <p className="text-xs text-green-500 mt-0.5">{rows.length - unpaidCount} 件</p>
-        </div>
-      </div>
-
-      {/* 一覧 */}
-      <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
-        <div className="px-5 py-3 border-b border-[#EAE0A8] bg-[#F5C800]/10">
-          <h2 className="text-sm font-bold text-[#1A3666]">体育館使用料 一覧</h2>
-        </div>
-
-        {rows.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-gray-400 text-sm">確定済みの練習予定がまだありません</p>
-            <Link href="/calendar" className="text-xs text-[#1A3666] underline mt-2 inline-block">
-              カレンダーで練習を確定する
-            </Link>
-          </div>
-        ) : (
-          <>
-            {/* デスクトップ: テーブル */}
-            <table className="hidden sm:table w-full text-sm">
-              <thead className="bg-gray-50 border-b border-[#EAE0A8]">
-                <tr>
-                  <th className="text-left px-5 py-3 font-semibold text-gray-500 text-xs">日付</th>
-                  <th className="text-left px-5 py-3 font-semibold text-gray-500 text-xs">タイトル</th>
-                  <th className="text-left px-5 py-3 font-semibold text-gray-500 text-xs">決済方法</th>
-                  <th className="text-right px-5 py-3 font-semibold text-gray-500 text-xs">金額</th>
-                  <th className="text-center px-5 py-3 font-semibold text-gray-500 text-xs">状態</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#EAE0A8]">
-                {rows.map(e => (
-                  <tr key={e.id} className={`hover:bg-gray-50 transition-colors ${e.payment_status === 'paid' ? 'opacity-60' : ''}`}>
-                    <td className="px-5 py-3 text-gray-600 whitespace-nowrap">{formatDate(e.start_at)}</td>
-                    <td className="px-5 py-3">
-                      <Link href={`/calendar/${e.id}`} className="font-semibold text-[#1A3666] hover:underline">
-                        {e.title}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3 text-gray-600">{e.payment_method}</td>
-                    <td className="px-5 py-3 text-right font-semibold text-[#1A3666]">
-                      ¥{e.payment_amount.toLocaleString()}
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      <PaymentStatusButton eventId={e.id} status={e.payment_status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* モバイル: カード */}
-            <div className="sm:hidden divide-y divide-[#EAE0A8]">
-              {rows.map(e => (
-                <div key={e.id} className={`px-4 py-4 ${e.payment_status === 'paid' ? 'opacity-60' : ''}`}>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="min-w-0">
-                      <Link href={`/calendar/${e.id}`} className="font-semibold text-[#1A3666] hover:underline block truncate">
-                        {e.title}
-                      </Link>
-                      <p className="text-xs text-gray-500 mt-0.5">{formatDate(e.start_at)}</p>
-                    </div>
-                    <p className="text-base font-bold text-[#1A3666] shrink-0">
-                      ¥{e.payment_amount.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">{e.payment_method}</span>
-                    <PaymentStatusButton eventId={e.id} status={e.payment_status} />
-                  </div>
-                </div>
-              ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {MENU_ITEMS.map(item => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="bg-white rounded-xl border border-[#EAE0A8] p-5 flex items-center gap-4 hover:shadow-md hover:border-[#F5C800] transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-[#F5C800]/20 flex items-center justify-center shrink-0 text-[#1A3666] group-hover:bg-[#F5C800]/40 transition-colors">
+              {item.icon}
             </div>
-          </>
-        )}
+            <div className="min-w-0">
+              <p className="font-bold text-[#1A3666]">{item.label}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-300 shrink-0 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        ))}
       </div>
     </div>
   )

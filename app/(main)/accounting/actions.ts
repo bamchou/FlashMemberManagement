@@ -16,5 +16,5 @@ export async function togglePaymentStatus(eventId: string, currentStatus: string
   const adminSupabase = createAdminClient()
   await adminSupabase.from('events').update({ payment_status: nextStatus }).eq('id', eventId)
 
-  revalidatePath('/accounting')
+  revalidatePath('/accounting/gym')
 }
