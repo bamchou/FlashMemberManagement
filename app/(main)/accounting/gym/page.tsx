@@ -112,16 +112,25 @@ export default async function GymFeesPage({
         </div>
       </div>
 
-      {/* サマリーカード（確定分合計のみ） */}
-      {confirmedRows.length > 0 && (
-        <div className="mb-6">
-          <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center max-w-xs">
-            <p className="text-xs font-semibold text-gray-400 mb-1">確定分 合計</p>
-            <p className="text-lg font-bold text-[#1A3666]">¥{totalAmount.toLocaleString()}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{confirmedRows.length} 件</p>
-          </div>
+      {/* サマリーカード */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
+          <p className="text-xs font-semibold text-gray-400 mb-1">全件数</p>
+          <p className="text-lg font-bold text-[#1A3666]">{rows.length}<span className="text-sm font-normal ml-0.5">件</span></p>
         </div>
-      )}
+        <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
+          <p className="text-xs font-semibold text-gray-400 mb-1">仮登録</p>
+          <p className="text-lg font-bold text-orange-500">{rows.filter(e => e.status !== 'confirmed').length}<span className="text-sm font-normal ml-0.5">件</span></p>
+        </div>
+        <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
+          <p className="text-xs font-semibold text-gray-400 mb-1">確定</p>
+          <p className="text-lg font-bold text-green-600">{confirmedRows.length}<span className="text-sm font-normal ml-0.5">件</span></p>
+        </div>
+        <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
+          <p className="text-xs font-semibold text-gray-400 mb-1">合計金額</p>
+          <p className="text-lg font-bold text-[#1A3666]">¥{totalAmount.toLocaleString()}</p>
+        </div>
+      </div>
 
       {/* 一覧テーブル */}
       <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
