@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import PaymentStatusButton from '../_components/PaymentStatusButton'
 
 function formatDate(isoStr: string): string {
   return new Date(isoStr).toLocaleDateString('ja-JP', {
@@ -113,23 +112,13 @@ export default async function GymFeesPage({
         </div>
       </div>
 
-      {/* サマリーカード（確定分のみ） */}
+      {/* サマリーカード（確定分合計のみ） */}
       {confirmedRows.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
+        <div className="mb-6">
+          <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center max-w-xs">
             <p className="text-xs font-semibold text-gray-400 mb-1">確定分 合計</p>
             <p className="text-lg font-bold text-[#1A3666]">¥{totalAmount.toLocaleString()}</p>
             <p className="text-xs text-gray-400 mt-0.5">{confirmedRows.length} 件</p>
-          </div>
-          <div className="bg-white rounded-xl border border-orange-200 p-4 text-center">
-            <p className="text-xs font-semibold text-orange-500 mb-1">未払い</p>
-            <p className="text-lg font-bold text-orange-600">¥{unpaidAmount.toLocaleString()}</p>
-            <p className="text-xs text-orange-400 mt-0.5">{unpaidCount} 件</p>
-          </div>
-          <div className="bg-white rounded-xl border border-green-200 p-4 text-center">
-            <p className="text-xs font-semibold text-green-600 mb-1">支払い済み</p>
-            <p className="text-lg font-bold text-green-700">¥{paidAmount.toLocaleString()}</p>
-            <p className="text-xs text-green-500 mt-0.5">{confirmedRows.length - unpaidCount} 件</p>
           </div>
         </div>
       )}
@@ -158,7 +147,6 @@ export default async function GymFeesPage({
                     <th className="text-center px-4 py-3 font-semibold text-gray-500 text-xs whitespace-nowrap">確定 / 仮</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-500 text-xs whitespace-nowrap">決済方法</th>
                     <th className="text-right px-4 py-3 font-semibold text-gray-500 text-xs whitespace-nowrap">金額</th>
-                    <th className="text-center px-4 py-3 font-semibold text-gray-500 text-xs whitespace-nowrap">支払状態</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EAE0A8]">
@@ -185,13 +173,6 @@ export default async function GymFeesPage({
                       <td className="px-4 py-3 text-gray-600 text-xs">{e.payment_method ?? '—'}</td>
                       <td className="px-4 py-3 text-right font-semibold text-[#1A3666]">
                         {e.payment_amount != null ? `¥${e.payment_amount.toLocaleString()}` : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {e.status === 'confirmed' && e.payment_method ? (
-                          <PaymentStatusButton eventId={e.id} status={e.payment_status} />
-                        ) : (
-                          <span className="text-xs text-gray-300">—</span>
-                        )}
                       </td>
                     </tr>
                   ))}
@@ -226,9 +207,6 @@ export default async function GymFeesPage({
                     <span className="font-semibold text-[#1A3666]">
                       {e.payment_amount != null ? `¥${e.payment_amount.toLocaleString()}` : '—'}
                     </span>
-                    {e.status === 'confirmed' && e.payment_method ? (
-                      <PaymentStatusButton eventId={e.id} status={e.payment_status} />
-                    ) : null}
                   </div>
                 </div>
               ))}
