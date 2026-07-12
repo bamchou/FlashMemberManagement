@@ -209,11 +209,11 @@ export default async function GymFeesPage({
                       {e.status === 'confirmed' ? '確定' : '仮'}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-700">
-                    <span>{e.payment_method ?? '—'}</span>
-                  </div>
                   <p className="text-sm font-bold text-[#1A3666]">
                     {e.payment_amount != null ? `¥${e.payment_amount.toLocaleString()}` : '—'}
+                    {e.payment_method && (
+                      <span className="text-xs font-normal text-gray-700 ml-1">（{e.payment_method}）</span>
+                    )}
                   </p>
                 </div>
               ))}
