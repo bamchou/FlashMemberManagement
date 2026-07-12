@@ -5,6 +5,15 @@ import Link from 'next/link'
 import { updateEvent } from '../../actions'
 import type { CalendarEvent } from '@/lib/types'
 
+const PAYMENT_METHODS = [
+  '口座振替',
+  'クレジットカード',
+  'コンビニ支払',
+  'ATM支払',
+  'ネットバンク',
+  '電子マネー',
+]
+
 const EVENT_TYPES = [
   { value: 'practice',   label: '練習' },
   { value: 'tournament', label: '大会' },
@@ -41,9 +50,15 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
   const [startAt, setStartAt] = useState(isoToJSTDatetimeLocal(event.start_at))
   const [endAt, setEndAt] = useState(isoToJSTDatetimeLocal(event.end_at))
   const [description, setDescription] = useState(event.description ?? '')
+  const [paymentMethod, setPaymentMethod] = useState(event.payment_method ?? '')
+  const [paymentAmount, setPaymentAmount] = useState(event.payment_amount?.toString() ?? '')
+
+  const showPayment = eventType === 'practice' && status === 'confirmed'
 
   function handleSubmit() {
     if (!title.trim()) { setError('タイトルを入力してください'); return }
+    if (showPayment && !paymentMethod) { setError('決済方法を選択してください'); return }
+    if (showPayment && !paymentAmount) { setError('支払い金額を入力してください'); return }
     setError(null)
     const fd = new FormData()
     fd.set('title', title)
@@ -53,6 +68,10 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
     fd.set('start_at', startAt)
     fd.set('end_at', endAt)
     fd.set('description', description)
+    if (showPayment) {
+      fd.set('payment_method', paymentMethod)
+      fd.set('payment_amount', paymentAmount)
+    }
     startTransition(async () => {
       const result = await updateEvent(event.id, fd)
       if (result && 'error' in result) setError(result.error)
@@ -133,6 +152,43 @@ export default function EditEventForm({ event, role }: { event: CalendarEvent; r
                 {s === 'provisional' ? '仮登録' : '確定'}
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {showPayment && (
+        <div className="space-y-4 bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4">
+          <p className="text-xs font-bold text-[#1A3666]">決済情報</p>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+              決済方法 <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={paymentMethod}
+              onChange={e => setPaymentMethod(e.target.value)}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+            >
+              <option value="">選択してください</option>
+              {PAYMENT_METHODS.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+              支払い金額 <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                min="1"
+                value={paymentAmount}
+                onChange={e => setPaymentAmount(e.target.value)}
+                placeholder="0"
+                className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+            </div>
           </div>
         </div>
       )}

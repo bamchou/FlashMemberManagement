@@ -94,6 +94,8 @@ export type CalendarEvent = {
   end_at: string
   status: 'provisional' | 'confirmed'
   is_visible: boolean
+  payment_method: string | null
+  payment_amount: number | null
   created_by: string | null
   created_at: string
   updated_at: string

@@ -88,6 +88,17 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     ? status_raw
     : 'confirmed'
 
+  const payment_method = (formData.get('payment_method') as string | null) || null
+  const payment_amount_raw = formData.get('payment_amount') as string | null
+  const payment_amount = payment_amount_raw ? parseInt(payment_amount_raw, 10) : null
+
+  // 練習の確定時は決済情報が必須
+  if (event_type === 'practice' && status === 'confirmed') {
+    if (!payment_method) return { error: '決済方法を選択してください' }
+    if (!payment_amount_raw || isNaN(payment_amount!)) return { error: '支払い金額を入力してください' }
+    if (payment_amount! <= 0) return { error: '支払い金額は1円以上で入力してください' }
+  }
+
   const { error } = await supabase.from('events').update({
     title,
     description,
@@ -96,6 +107,8 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     start_at,
     end_at,
     status,
+    payment_method: status === 'confirmed' ? payment_method : null,
+    payment_amount: status === 'confirmed' ? payment_amount : null,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 
