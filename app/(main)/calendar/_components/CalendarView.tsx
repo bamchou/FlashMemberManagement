@@ -199,7 +199,7 @@ export default function CalendarView({
                         className={`block text-[10px] font-semibold px-1 py-0.5 rounded truncate leading-tight ${bg} ${isHidden ? 'opacity-40' : ''}`}
                         title={`${label} ${formatTime(e.start_at)} ${e.title}${e.created_by && creatorMap[e.created_by] ? ` (${creatorMap[e.created_by]})` : ''}`}
                       >
-                        {isHidden && '🚫 '}{isProvisional && '仮 '}{formatTime(e.start_at)} {e.title}{e.created_by && creatorMap[e.created_by] ? ` ・${creatorMap[e.created_by]}` : ''}
+                        {isHidden && '🚫 '}{isProvisional && '仮 '}<span className="hidden sm:inline">{formatTime(e.start_at)} </span>{e.title}{e.created_by && creatorMap[e.created_by] ? ` ・${creatorMap[e.created_by]}` : ''}
                       </Link>
                     )
                   })}
