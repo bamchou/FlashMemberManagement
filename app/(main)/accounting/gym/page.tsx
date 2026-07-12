@@ -190,14 +190,12 @@ export default async function GymFeesPage({
             {/* モバイル */}
             <div className="sm:hidden divide-y divide-[#EAE0A8]">
               {rows.map(e => (
-                <div key={e.id} className="px-4 py-4 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <Link href={`/calendar/${e.id}`} className="font-semibold text-[#1A3666] hover:underline block">
-                        {e.title}
-                      </Link>
-                      <p className="text-xs text-gray-500 mt-0.5">{formatDate(e.start_at)}</p>
-                    </div>
+                <div key={e.id} className="px-4 py-4 space-y-1.5">
+                  <p className="text-xs font-semibold text-[#1A3666]">{formatDate(e.start_at)}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <Link href={`/calendar/${e.id}`} className="font-bold text-[#1A3666] hover:underline truncate">
+                      {e.title}
+                    </Link>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
                       e.status === 'confirmed'
                         ? 'bg-green-100 text-green-700'
@@ -206,15 +204,13 @@ export default async function GymFeesPage({
                       {e.status === 'confirmed' ? '確定' : '仮'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-gray-700">
                     <span>予約者: {e.created_by ? (creatorMap[e.created_by] ?? '—') : '—'}</span>
-                    <span>{e.payment_method ?? '決済方法未設定'}</span>
+                    <span>{e.payment_method ?? '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#1A3666]">
-                      {e.payment_amount != null ? `¥${e.payment_amount.toLocaleString()}` : '—'}
-                    </span>
-                  </div>
+                  <p className="text-sm font-bold text-[#1A3666]">
+                    {e.payment_amount != null ? `¥${e.payment_amount.toLocaleString()}` : '—'}
+                  </p>
                 </div>
               ))}
             </div>
