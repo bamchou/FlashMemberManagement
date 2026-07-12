@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateGrade, formatDate, calculateExperience } from '@/lib/utils/grade'
 import type { Role, TournamentResult, PrefecturalReinforcement } from '@/lib/types'
 import MemberEventSection from './_components/MemberEventSection'
+import DeleteMemberButton from './_components/DeleteMemberButton'
 
 export default async function MemberDetailPage({
   params,
@@ -121,13 +122,14 @@ export default async function MemberDetailPage({
         )}
 
         {isAdmin && (
-          <div className="mt-5 pt-5 border-t border-[#EAE0A8] flex gap-3">
+          <div className="mt-5 pt-5 border-t border-[#EAE0A8] flex gap-3 flex-wrap">
             <Link
               href={`/members/${id}/edit`}
               className="text-sm font-semibold text-[#1A3666] border border-[#1A3666] px-4 py-2 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
             >
               メンバー情報を編集
             </Link>
+            <DeleteMemberButton id={id} name={member.full_name} />
           </div>
         )}
       </div>
