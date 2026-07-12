@@ -79,15 +79,18 @@ function FilterPills<T extends string>({
 
 export default function MemberList({
   members,
+  myMembers = [],
   role,
   totalCount,
 }: {
   members: Member[]
+  myMembers?: Member[]
   role: Role
   totalCount: number
 }) {
   const isAdmin = role === 'admin'
   const isAdminOrCoach = role === 'admin' || role === 'coach'
+  const myMemberIds = new Set(myMembers.map(m => m.id))
 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [keyword, setKeyword] = useState('')
@@ -96,7 +99,9 @@ export default function MemberList({
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>(isAdmin ? 'visible' : '')
 
   const filtered = useMemo(() => {
+    // 自分の子は先頭固定表示するため除外
     return members.filter(m => {
+      if (myMemberIds.has(m.id)) return false
       if (keyword.trim() && !m.full_name.toLowerCase().includes(keyword.trim().toLowerCase())) return false
       if (gradeFilter && getGradeCategory(m.birth_date) !== gradeFilter) return false
       if (genderFilter && m.gender !== genderFilter) return false
@@ -104,7 +109,7 @@ export default function MemberList({
       if (visibilityFilter === 'hidden' && m.is_visible) return false
       return true
     })
-  }, [members, keyword, gradeFilter, genderFilter, visibilityFilter])
+  }, [members, myMemberIds, keyword, gradeFilter, genderFilter, visibilityFilter])
 
   const hasFilter = keyword || gradeFilter || genderFilter || visibilityFilter
 
@@ -187,6 +192,36 @@ export default function MemberList({
           )}
         </p>
       </div>
+
+      {/* 保護者: 自分の子を先頭にネイビー太枠で表示 */}
+      {myMembers.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          {myMembers.map(member => (
+            <div
+              key={member.id}
+              className="relative bg-white rounded-xl border-2 border-[#1A3666] p-5 flex items-center gap-4 hover:shadow-md transition-all"
+            >
+              <Link href={`/members/${member.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-14 h-14 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
+                  {member.photo_url
+                    ? <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover" />
+                    : <span className="text-2xl">👤</span>}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
+                  <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
+                  <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
+                </div>
+              </Link>
+              {member.approval_status === 'pending' && (
+                <span className="absolute top-2 right-2 text-[10px] font-bold bg-orange-100 text-orange-600 border border-orange-300 px-1.5 py-0.5 rounded-full">
+                  承認待ち
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* メンバーカード一覧 */}
       {filtered.length > 0 ? (

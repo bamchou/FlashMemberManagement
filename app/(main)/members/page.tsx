@@ -105,35 +105,6 @@ export default async function MembersPage() {
         </div>
       )}
 
-      {/* 保護者: 自分のメンバー一覧 */}
-      {isGuardian && myMembers.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-base font-bold text-[#1A3666] mb-3">登録中のメンバー</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {myMembers.map((m: Member) => (
-              <div key={m.id} className={`bg-white rounded-xl border p-4 flex items-center gap-3 ${
-                m.approval_status === 'pending' ? 'border-orange-300' : 'border-[#EAE0A8]'
-              }`}>
-                <div className="w-12 h-12 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
-                  {m.photo_url
-                    ? <img src={m.photo_url} alt={m.full_name} className="w-full h-full object-cover" />
-                    : <span className="text-xl">👤</span>}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-[#1A3666] truncate">{m.full_name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{calculateGrade(m.birth_date)}</p>
-                </div>
-                {m.approval_status === 'pending' && (
-                  <span className="text-xs font-bold bg-orange-100 text-orange-600 border border-orange-300 px-2 py-0.5 rounded-full shrink-0">
-                    承認待ち
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* メンバー一覧ヘッダー */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-[#1A3666]">メンバー一覧</h1>
@@ -142,13 +113,14 @@ export default async function MembersPage() {
             href="/members/new"
             className="bg-[#1A3666] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#2A52A0] transition-colors"
           >
-            ＋ メンバー登録
+            {isGuardian ? '＋ お子様の登録' : '＋ メンバー登録'}
           </Link>
         )}
       </div>
 
       <MemberList
         members={approvedVisibleMembers}
+        myMembers={isGuardian ? myMembers : []}
         role={role}
         totalCount={approvedVisibleMembers.length}
       />
