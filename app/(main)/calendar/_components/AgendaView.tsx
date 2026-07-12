@@ -179,7 +179,9 @@ export default function AgendaView({
                             )}
                           </div>
                           <p className="text-xs text-black mt-0.5">
-                            {formatTime(e.start_at)} 〜 {formatTime(e.end_at)}
+                            {e.is_all_day
+                              ? '終日'
+                              : `${formatTime(e.start_at)} 〜 ${formatTime(e.end_at)}`}
                             {e.created_by && creatorMap[e.created_by] && (
                               <span className="ml-2">({creatorMap[e.created_by]})</span>
                             )}
