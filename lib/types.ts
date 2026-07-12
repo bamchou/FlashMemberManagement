@@ -94,10 +94,23 @@ export type CalendarEvent = {
   end_at: string
   status: 'provisional' | 'confirmed'
   is_visible: boolean
+  is_all_day: boolean
   payment_method: string | null
   payment_amount: number | null
   payment_status: 'unpaid' | 'paid'
+  singles_fee: number | null
+  doubles_fee: number | null
+  accompaniment_type: string | null
   created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type AccompanimentFeeSetting = {
+  id: string
+  area_type: string
+  label: string
+  amount_per_person: number
   created_at: string
   updated_at: string
 }

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { createEvent } from '../actions'
+import type { AccompanimentFeeSetting } from '@/lib/types'
 
 const EVENT_TYPES = [
   { value: 'practice',   label: '練習' },
@@ -32,19 +33,30 @@ function toLocalDatetimeStr(d: Date): string {
   return `${y}-${mo}-${day}T${h}:${min}`
 }
 
-function makeDefaults(dateStr?: string): { start: string; end: string } {
+function toLocalDateStr(d: Date): string {
+  return toLocalDatetimeStr(d).slice(0, 10)
+}
+
+function makeDefaults(dateStr?: string): { start: string; end: string; date: string } {
   const base = dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
     ? dateStr
     : toLocalDatetimeStr(new Date()).slice(0, 10)
-  return {
-    start: `${base}T19:30`,
-    end:   `${base}T21:30`,
-  }
+  return { start: `${base}T19:30`, end: `${base}T21:30`, date: base }
 }
 
-export default function EventForm({ role, defaultDate }: { role: string; defaultDate?: string }) {
+type FeeMode = 'none' | 'amount'
+
+export default function EventForm({
+  role,
+  defaultDate,
+  accompanimentFees,
+}: {
+  role: string
+  defaultDate?: string
+  accompanimentFees: AccompanimentFeeSetting[]
+}) {
   const targets = role === 'admin' || role === 'coach' ? ALL_TARGETS : MEMBER_TARGETS
-  const { start: initStart, end: initEnd } = makeDefaults(defaultDate)
+  const { start: initStart, end: initEnd, date: initDate } = makeDefaults(defaultDate)
 
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -52,25 +64,66 @@ export default function EventForm({ role, defaultDate }: { role: string; default
   const [title, setTitle] = useState('')
   const [eventType, setEventType] = useState('practice')
   const [target, setTarget] = useState('all')
+  const [isAllDay, setIsAllDay] = useState(false)
   const [startAt, setStartAt] = useState(initStart)
   const [endAt, setEndAt] = useState(initEnd)
+  const [startDate, setStartDate] = useState(initDate)
+  const [endDate, setEndDate] = useState(initDate)
   const [description, setDescription] = useState('')
+
+  // 大会参加費
+  const [singlesMode, setSinglesMode] = useState<FeeMode>('none')
+  const [singlesAmount, setSinglesAmount] = useState('')
+  const [doublesMode, setDoublesMode] = useState<FeeMode>('none')
+  const [doublesAmount, setDoublesAmount] = useState('')
+  const [accompType, setAccompType] = useState('')
+
+  function toggleAllDay(val: boolean) {
+    if (val) {
+      setStartDate(startAt.slice(0, 10))
+      setEndDate(endAt.slice(0, 10))
+    } else {
+      setStartAt(`${startDate}T19:30`)
+      setEndAt(`${endDate}T21:30`)
+    }
+    setIsAllDay(val)
+  }
 
   function handleSubmit() {
     if (!title.trim()) { setError('タイトルを入力してください'); return }
+    if (isAllDay && endDate < startDate) { setError('終了日は開始日以降にしてください'); return }
+    if (singlesMode === 'amount' && (!singlesAmount || parseInt(singlesAmount, 10) <= 0)) {
+      setError('シングルス参加費の金額を入力してください'); return
+    }
+    if (doublesMode === 'amount' && (!doublesAmount || parseInt(doublesAmount, 10) <= 0)) {
+      setError('ダブルス参加費の金額を入力してください'); return
+    }
     setError(null)
+
     const fd = new FormData()
     fd.set('title', title)
     fd.set('event_type', eventType)
     fd.set('target', target)
-    fd.set('start_at', startAt)
-    fd.set('end_at', endAt)
+    fd.set('is_all_day', String(isAllDay))
+    fd.set('start_at', isAllDay ? startDate : startAt)
+    fd.set('end_at', isAllDay ? endDate : endAt)
     fd.set('description', description)
+
+    if (eventType === 'tournament') {
+      fd.set('singles_fee_mode', singlesMode)
+      if (singlesMode === 'amount') fd.set('singles_fee', singlesAmount)
+      fd.set('doubles_fee_mode', doublesMode)
+      if (doublesMode === 'amount') fd.set('doubles_fee', doublesAmount)
+      fd.set('accompaniment_type', accompType)
+    }
+
     startTransition(async () => {
       const result = await createEvent(fd)
       if (result && 'error' in result) setError(result.error)
     })
   }
+
+  const isTournament = eventType === 'tournament'
 
   return (
     <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 space-y-5">
@@ -91,7 +144,6 @@ export default function EventForm({ role, defaultDate }: { role: string; default
           lang="ja"
           placeholder="例）第10回市民大会"
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
-          required
         />
       </div>
 
@@ -127,32 +179,123 @@ export default function EventForm({ role, defaultDate }: { role: string; default
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
-            開始日時 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="datetime-local"
-            value={startAt}
-            onChange={e => setStartAt(e.target.value)}
-            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
-            終了日時 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="datetime-local"
-            value={endAt}
-            onChange={e => setEndAt(e.target.value)}
-            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
-            required
-          />
-        </div>
+      {/* 終日トグル */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => toggleAllDay(!isAllDay)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            isAllDay ? 'bg-[#1A3666]' : 'bg-gray-200'
+          }`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            isAllDay ? 'translate-x-6' : 'translate-x-1'
+          }`} />
+        </button>
+        <span className="text-sm font-semibold text-[#1A3666]">終日</span>
       </div>
+
+      {isAllDay ? (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+              開始日 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+              終了日 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+              min={startDate}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+              開始日時 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={startAt}
+              onChange={e => setStartAt(e.target.value)}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+              終了日時 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={endAt}
+              onChange={e => setEndAt(e.target.value)}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 大会参加費 */}
+      {isTournament && (
+        <div className="space-y-4 bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4">
+          <p className="text-xs font-bold text-[#1A3666]">参加費・帯同費</p>
+
+          <FeeField
+            label="シングルス参加費"
+            mode={singlesMode}
+            amount={singlesAmount}
+            onModeChange={setSinglesMode}
+            onAmountChange={setSinglesAmount}
+          />
+          <FeeField
+            label="ダブルス参加費"
+            mode={doublesMode}
+            amount={doublesAmount}
+            onModeChange={setDoublesMode}
+            onAmountChange={setDoublesAmount}
+          />
+
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-2">帯同費</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setAccompType('')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-colors ${
+                  accompType === '' ? 'bg-[#1A3666] border-[#1A3666] text-white' : 'bg-white border-gray-200 text-gray-500'
+                }`}
+              >
+                なし
+              </button>
+              {accompanimentFees.map(f => (
+                <button
+                  key={f.area_type}
+                  type="button"
+                  onClick={() => setAccompType(f.area_type)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-colors ${
+                    accompType === f.area_type ? 'bg-[#1A3666] border-[#1A3666] text-white' : 'bg-white border-gray-200 text-gray-500'
+                  }`}
+                >
+                  {f.label}（{f.amount_per_person.toLocaleString()}円/人）
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">メモ</label>
@@ -181,6 +324,59 @@ export default function EventForm({ role, defaultDate }: { role: string; default
         >
           {isPending ? '登録中...' : '登録する'}
         </button>
+      </div>
+    </div>
+  )
+}
+
+function FeeField({
+  label,
+  mode,
+  amount,
+  onModeChange,
+  onAmountChange,
+}: {
+  label: string
+  mode: FeeMode
+  amount: string
+  onModeChange: (m: FeeMode) => void
+  onAmountChange: (v: string) => void
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#1A3666] mb-2">{label}</label>
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={() => onModeChange('none')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-colors ${
+            mode === 'none' ? 'bg-[#1A3666] border-[#1A3666] text-white' : 'bg-white border-gray-200 text-gray-500'
+          }`}
+        >
+          不要
+        </button>
+        <button
+          type="button"
+          onClick={() => onModeChange('amount')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-colors ${
+            mode === 'amount' ? 'bg-[#1A3666] border-[#1A3666] text-white' : 'bg-white border-gray-200 text-gray-500'
+          }`}
+        >
+          金額を入力
+        </button>
+        {mode === 'amount' && (
+          <div className="relative flex-1 min-w-[120px]">
+            <input
+              type="number"
+              min="1"
+              value={amount}
+              onChange={e => onAmountChange(e.target.value)}
+              placeholder="0"
+              className="w-full px-3 py-1.5 pr-7 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+            />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-500">円</span>
+          </div>
+        )}
       </div>
     </div>
   )
