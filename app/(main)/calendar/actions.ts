@@ -187,7 +187,11 @@ export async function deleteEvent(id: string): Promise<void> {
   redirect('/calendar')
 }
 
-export async function addParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
+export async function addParticipant(
+  eventId: string,
+  memberId: string,
+  category?: string,
+): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラー' }
@@ -198,11 +202,18 @@ export async function addParticipant(eventId: string, memberId: string): Promise
     .select('event_type')
     .eq('id', eventId)
     .single()
-  const approval_status = event?.event_type === 'tournament' ? 'pending' : 'approved'
+  const isTournament = event?.event_type === 'tournament'
+  const approval_status = isTournament ? 'pending' : 'approved'
 
   const { error } = await supabase
     .from('event_participants')
-    .insert({ event_id: eventId, member_id: memberId, registered_by: user.id, approval_status })
+    .insert({
+      event_id: eventId,
+      member_id: memberId,
+      registered_by: user.id,
+      approval_status,
+      participation_category: isTournament ? (category ?? 'singles') : null,
+    })
 
   if (error) return { error: '参加登録に失敗しました' }
   revalidatePath(`/calendar/${eventId}`)

@@ -29,12 +29,15 @@ export type Member = {
   updated_at: string
 }
 
+export type ParticipationCategory = 'singles' | 'doubles' | 'both'
+
 export type EventParticipant = {
   id: string
   event_id: string
   member_id: string
   registered_by: string | null
   approval_status: 'approved' | 'pending'
+  participation_category: ParticipationCategory | null
   created_at: string
   members?: { full_name: string; photo_url: string | null } | null
 }
