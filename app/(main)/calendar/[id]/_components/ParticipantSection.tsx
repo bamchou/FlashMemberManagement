@@ -26,9 +26,9 @@ const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
 ]
 
 const CATEGORY_LABEL: Record<string, string> = {
-  singles: 'S',
-  doubles: 'D',
-  both:    'S+D',
+  singles: 'シングルス',
+  doubles: 'ダブルス',
+  both:    'シングルス+ダブルス',
 }
 
 function MemberAvatar({ photoUrl, name }: { photoUrl: string | null; name: string }) {
