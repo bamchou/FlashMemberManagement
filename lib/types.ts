@@ -96,6 +96,7 @@ export type CalendarEvent = {
   is_visible: boolean
   payment_method: string | null
   payment_amount: number | null
+  payment_status: 'unpaid' | 'paid'
   created_by: string | null
   created_at: string
   updated_at: string
