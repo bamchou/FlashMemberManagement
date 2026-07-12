@@ -1,0 +1,238 @@
+'use client'
+
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
+import { calculateGrade, formatDate } from '@/lib/utils/grade'
+import type { Role, Member } from '@/lib/types'
+import VisibilityToggle from './VisibilityToggle'
+
+type GradeCategory = '' | 'elementary' | 'middle' | 'high' | 'graduated'
+type VisibilityFilter = '' | 'visible' | 'hidden'
+type GenderFilter = '' | '男' | '女'
+
+function getGradeCategory(birthDateStr: string): GradeCategory {
+  const birth = new Date(birthDateStr)
+  const today = new Date()
+  const currentSchoolYear = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1
+  const month = birth.getMonth() + 1
+  const day = birth.getDate()
+  const birthCohortYear = month > 4 || (month === 4 && day >= 2) ? birth.getFullYear() + 1 : birth.getFullYear()
+  const gradeNum = currentSchoolYear - birthCohortYear - 5
+  if (gradeNum <= 0) return 'elementary'
+  if (gradeNum <= 6) return 'elementary'
+  if (gradeNum <= 9) return 'middle'
+  if (gradeNum <= 12) return 'high'
+  return 'graduated'
+}
+
+const GRADE_FILTERS: { value: GradeCategory; label: string }[] = [
+  { value: '',           label: 'すべて' },
+  { value: 'elementary', label: '小学生' },
+  { value: 'middle',     label: '中学生' },
+  { value: 'high',       label: '高校生' },
+  { value: 'graduated',  label: '高校卒業' },
+]
+
+const GENDER_FILTERS: { value: GenderFilter; label: string }[] = [
+  { value: '',  label: 'すべて' },
+  { value: '男', label: '男' },
+  { value: '女', label: '女' },
+]
+
+const VISIBILITY_FILTERS: { value: VisibilityFilter; label: string }[] = [
+  { value: '',        label: 'すべて' },
+  { value: 'visible', label: '表示中' },
+  { value: 'hidden',  label: '非表示' },
+]
+
+function FilterPills<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string
+  options: { value: T; label: string }[]
+  value: T
+  onChange: (v: T) => void
+}) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-xs font-semibold text-gray-500 shrink-0">{label}:</span>
+      {options.map(o => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className={`text-xs font-semibold px-3 py-1 rounded-full border transition-colors ${
+            value === o.value
+              ? 'bg-[#1A3666] text-white border-[#1A3666]'
+              : 'bg-white text-gray-500 border-gray-300 hover:border-[#1A3666] hover:text-[#1A3666]'
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export default function MemberList({
+  members,
+  role,
+  totalCount,
+}: {
+  members: Member[]
+  role: Role
+  totalCount: number
+}) {
+  const isAdmin = role === 'admin'
+  const isAdminOrCoach = role === 'admin' || role === 'coach'
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [keyword, setKeyword] = useState('')
+  const [gradeFilter, setGradeFilter] = useState<GradeCategory>('')
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>('')
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>(isAdmin ? 'visible' : '')
+
+  const filtered = useMemo(() => {
+    return members.filter(m => {
+      if (keyword.trim() && !m.full_name.toLowerCase().includes(keyword.trim().toLowerCase())) return false
+      if (gradeFilter && getGradeCategory(m.birth_date) !== gradeFilter) return false
+      if (genderFilter && m.gender !== genderFilter) return false
+      if (visibilityFilter === 'visible' && !m.is_visible) return false
+      if (visibilityFilter === 'hidden' && m.is_visible) return false
+      return true
+    })
+  }, [members, keyword, gradeFilter, genderFilter, visibilityFilter])
+
+  const hasFilter = keyword || gradeFilter || genderFilter || visibilityFilter
+
+  function resetFilters() {
+    setKeyword('')
+    setGradeFilter('')
+    setGenderFilter('')
+    setVisibilityFilter('')
+  }
+
+  return (
+    <div>
+      {/* フィルタエリア */}
+      <div className="bg-white rounded-xl border border-[#EAE0A8] mb-4">
+        {/* モバイル: 折り畳みトグル */}
+        <button
+          type="button"
+          onClick={() => setIsFilterOpen(v => !v)}
+          className="sm:hidden w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-[#1A3666]"
+        >
+          <span className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M6 8h12M9 12h6" />
+            </svg>
+            フィルタ
+            {hasFilter && <span className="w-2 h-2 rounded-full bg-[#F5C800] inline-block" />}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <div className={`space-y-3 p-4 sm:block ${isFilterOpen ? 'block' : 'hidden'} sm:border-t-0 border-t border-[#EAE0A8] sm:border-transparent`}>
+        {/* キーワード検索 */}
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            value={keyword}
+            onChange={e => setKeyword(e.target.value)}
+            placeholder="名前で検索"
+            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+          />
+          {keyword && (
+            <button type="button" onClick={() => setKeyword('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* 学年カテゴリ */}
+        <FilterPills label="学年" options={GRADE_FILTERS} value={gradeFilter} onChange={setGradeFilter} />
+
+        {/* 性別 */}
+        <FilterPills label="性別" options={GENDER_FILTERS} value={genderFilter} onChange={setGenderFilter} />
+
+        {/* 表示状態（管理者のみ） */}
+        {isAdmin && (
+          <FilterPills label="表示状態" options={VISIBILITY_FILTERS} value={visibilityFilter} onChange={setVisibilityFilter} />
+        )}
+        </div>
+      </div>
+
+      {/* 件数 */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-gray-500">
+          {hasFilter ? (
+            <>
+              {filtered.length} 名表示
+              <button type="button" onClick={resetFilters} className="ml-2 text-[#1A3666] underline hover:no-underline text-xs">
+                フィルタをリセット
+              </button>
+            </>
+          ) : (
+            <>{totalCount} 名登録</>
+          )}
+        </p>
+      </div>
+
+      {/* メンバーカード一覧 */}
+      {filtered.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(member => (
+            <div
+              key={member.id}
+              className={`relative bg-white rounded-xl border p-5 flex items-center gap-4 transition-all ${
+                member.is_visible
+                  ? 'border-[#EAE0A8] hover:shadow-md hover:border-[#F5C800]'
+                  : 'border-gray-200 opacity-50'
+              }`}
+            >
+              <Link href={`/members/${member.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-14 h-14 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
+                  {member.photo_url
+                    ? <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover" />
+                    : <span className="text-2xl">👤</span>
+                  }
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
+                  <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
+                  <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
+                  {isAdminOrCoach && (
+                    <p className="text-xs text-gray-900 mt-0.5 font-mono">
+                      登録番号: {member.registration_number ?? '登録なし'}
+                    </p>
+                  )}
+                </div>
+              </Link>
+              {isAdmin && (
+                <div className="shrink-0">
+                  <VisibilityToggle id={member.id} isVisible={member.is_visible} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-[#EAE0A8] py-16 text-center">
+          <p className="text-gray-400 text-sm">
+            {hasFilter ? '条件に一致するメンバーがいません' : 'メンバーがまだ登録されていません'}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}

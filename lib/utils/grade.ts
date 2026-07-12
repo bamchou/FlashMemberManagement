@@ -18,7 +18,7 @@ export function calculateGrade(birthDateStr: string): string {
   if (gradeNum <= 6) return `小学${gradeNum}年生`
   if (gradeNum <= 9) return `中学${gradeNum - 6}年生`
   if (gradeNum <= 12) return `高校${gradeNum - 9}年生`
-  return '卒業'
+  return '高校卒業'
 }
 
 export function formatDate(dateStr: string): string {
