@@ -108,12 +108,12 @@ export default async function MembersPage() {
       {/* メンバー一覧ヘッダー */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-[#1A3666]">メンバー一覧</h1>
-        {(isAdmin || isGuardian) && (
+        {isGuardian && (
           <Link
             href="/members/new"
             className="bg-[#1A3666] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#2A52A0] transition-colors"
           >
-            {isGuardian ? '＋ お子様の登録' : '＋ メンバー登録'}
+            ＋ お子様の登録
           </Link>
         )}
       </div>
