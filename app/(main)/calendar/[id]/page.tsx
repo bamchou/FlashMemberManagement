@@ -22,6 +22,13 @@ function formatDateTime(isoStr: string): string {
   })
 }
 
+function formatDateOnly(isoStr: string): string {
+  return new Date(isoStr).toLocaleDateString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
+  })
+}
+
 export default async function EventDetailPage({
   params,
 }: {
@@ -145,10 +152,22 @@ export default async function EventDetailPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </span>
-            <div className="text-sm text-[#1A3666]">
-              <p>{formatDateTime(e.start_at)}</p>
-              <p className="text-gray-400 text-xs mt-0.5">〜 {formatDateTime(e.end_at)}</p>
-            </div>
+            {e.is_all_day ? (
+              <div className="text-sm text-[#1A3666]">
+                <div className="flex items-center gap-2">
+                  <p>{formatDateOnly(e.start_at)}</p>
+                  <span className="text-xs font-bold bg-[#1A3666] text-white px-2 py-0.5 rounded-full">終日</span>
+                </div>
+                {formatDateOnly(e.start_at) !== formatDateOnly(e.end_at) && (
+                  <p className="text-gray-400 text-xs mt-0.5">〜 {formatDateOnly(e.end_at)}</p>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-[#1A3666]">
+                <p>{formatDateTime(e.start_at)}</p>
+                <p className="text-gray-400 text-xs mt-0.5">〜 {formatDateTime(e.end_at)}</p>
+              </div>
+            )}
           </div>
           {e.venue && (
             <div className="flex items-start gap-3">
