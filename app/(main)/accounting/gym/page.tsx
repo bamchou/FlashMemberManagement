@@ -75,12 +75,10 @@ export default async function GymFeesPage({
     )
   }
 
-  // サマリー（確定イベントのみ集計）
-  const confirmedRows = rows.filter(e => e.status === 'confirmed' && e.payment_amount != null)
-  const totalAmount  = confirmedRows.reduce((s, e) => s + (e.payment_amount ?? 0), 0)
-  const paidAmount   = confirmedRows.filter(e => e.payment_status === 'paid').reduce((s, e) => s + (e.payment_amount ?? 0), 0)
-  const unpaidAmount = totalAmount - paidAmount
-  const unpaidCount  = confirmedRows.filter(e => e.payment_status !== 'paid').length
+  // サマリー
+  const confirmedRows = rows.filter(e => e.status === 'confirmed')
+  const totalAmount   = rows.filter(e => e.status === 'confirmed' && e.payment_amount != null)
+                            .reduce((s, e) => s + (e.payment_amount ?? 0), 0)
 
   return (
     <div className="max-w-4xl">
