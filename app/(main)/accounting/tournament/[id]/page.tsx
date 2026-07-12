@@ -20,15 +20,14 @@ function calcFee(
   category: string | null,
   singlesFee: number | null,
   doublesFee: number | null,
+  accompFeePerPerson: number,
 ): number | null {
   if (!category) return null
-  if (category === 'singles') return singlesFee
-  if (category === 'doubles') return doublesFee
-  if (category === 'both') {
-    if (singlesFee == null && doublesFee == null) return null
-    return (singlesFee ?? 0) + (doublesFee ?? 0)
-  }
-  return null
+  let entryFee = 0
+  if (category === 'singles') entryFee = singlesFee ?? 0
+  else if (category === 'doubles') entryFee = doublesFee ?? 0
+  else if (category === 'both') entryFee = (singlesFee ?? 0) + (doublesFee ?? 0)
+  return entryFee + accompFeePerPerson
 }
 
 export default async function TournamentDetailPage({
@@ -52,7 +51,7 @@ export default async function TournamentDetailPage({
       .single(),
     adminSupabase
       .from('event_participants')
-      .select('member_id, approval_status, participation_category')
+      .select('member_id, participation_category')
       .eq('event_id', id)
       .order('created_at', { ascending: true }),
   ])
@@ -75,6 +74,7 @@ export default async function TournamentDetailPage({
 
   // 帯同費設定を取得
   let accompFeeLabel = ''
+  let accompFeePerPerson = 0
   if (event.accompaniment_type) {
     const { data: feeSettings } = await adminSupabase
       .from('accompaniment_fee_settings')
@@ -82,22 +82,18 @@ export default async function TournamentDetailPage({
       .eq('area_type', event.accompaniment_type)
       .single()
     if (feeSettings) {
+      accompFeePerPerson = feeSettings.amount_per_person
       accompFeeLabel = `${feeSettings.label}（${feeSettings.amount_per_person.toLocaleString()}円/人）`
     }
   }
 
   const rows = (participantRows ?? []) as {
     member_id: string
-    approval_status: string
     participation_category: string | null
   }[]
 
-  const approvedRows = rows.filter(r => r.approval_status === 'approved')
-  const pendingRows  = rows.filter(r => r.approval_status === 'pending')
-
-  const totalFee = approvedRows.reduce((sum, r) => {
-    const fee = calcFee(r.participation_category, event.singles_fee, event.doubles_fee)
-    return sum + (fee ?? 0)
+  const totalFee = rows.reduce((sum, r) => {
+    return sum + (calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson) ?? 0)
   }, 0)
 
   return (
@@ -141,14 +137,10 @@ export default async function TournamentDetailPage({
       </div>
 
       {/* サマリーカード */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
-          <p className="text-xs font-semibold text-gray-400 mb-1">参加確定</p>
-          <p className="text-lg font-bold text-green-600">{approvedRows.length}<span className="text-sm font-normal ml-0.5">名</span></p>
-        </div>
-        <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
-          <p className="text-xs font-semibold text-gray-400 mb-1">承認待ち</p>
-          <p className="text-lg font-bold text-orange-500">{pendingRows.length}<span className="text-sm font-normal ml-0.5">名</span></p>
+          <p className="text-xs font-semibold text-gray-400 mb-1">参加人数</p>
+          <p className="text-lg font-bold text-[#1A3666]">{rows.length}<span className="text-sm font-normal ml-0.5">名</span></p>
         </div>
         <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
           <p className="text-xs font-semibold text-gray-400 mb-1">参加費合計</p>
@@ -175,13 +167,12 @@ export default async function TournamentDetailPage({
                   <tr>
                     <th className="text-left px-4 py-3 font-semibold text-gray-500 text-xs">名前</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-500 text-xs">参加種目</th>
-                    <th className="text-center px-4 py-3 font-semibold text-gray-500 text-xs">状態</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-500 text-xs">参加費</th>
+                    <th className="text-right px-4 py-3 font-semibold text-gray-500 text-xs">参加費（帯同費含む）</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EAE0A8]">
                   {rows.map(r => {
-                    const fee = calcFee(r.participation_category, event.singles_fee, event.doubles_fee)
+                    const fee = calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson)
                     return (
                       <tr key={r.member_id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3 font-semibold text-[#1A3666]">
@@ -190,17 +181,8 @@ export default async function TournamentDetailPage({
                         <td className="px-4 py-3 text-gray-700 text-xs">
                           {r.participation_category ? (CATEGORY_LABEL[r.participation_category] ?? '—') : '—'}
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                            r.approval_status === 'approved'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-orange-100 text-orange-600'
-                          }`}>
-                            {r.approval_status === 'approved' ? '参加確定' : '承認待ち'}
-                          </span>
-                        </td>
                         <td className="px-4 py-3 text-right font-semibold text-[#1A3666]">
-                          {fee != null ? `¥${fee.toLocaleString()}` : '不要'}
+                          {fee != null ? `¥${fee.toLocaleString()}` : '—'}
                         </td>
                       </tr>
                     )
@@ -212,10 +194,10 @@ export default async function TournamentDetailPage({
             {/* モバイル */}
             <div className="sm:hidden divide-y divide-[#EAE0A8]">
               {rows.map(r => {
-                const fee = calcFee(r.participation_category, event.singles_fee, event.doubles_fee)
+                const fee = calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson)
                 return (
-                  <div key={r.member_id} className="px-4 py-3 flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
+                  <div key={r.member_id} className="px-4 py-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
                       <p className="font-semibold text-[#1A3666] text-sm">
                         {memberMap[r.member_id]?.full_name ?? '—'}
                       </p>
@@ -223,18 +205,9 @@ export default async function TournamentDetailPage({
                         {r.participation_category ? (CATEGORY_LABEL[r.participation_category] ?? '—') : '—'}
                       </p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-[#1A3666]">
-                        {fee != null ? `¥${fee.toLocaleString()}` : '不要'}
-                      </p>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        r.approval_status === 'approved'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-orange-100 text-orange-600'
-                      }`}>
-                        {r.approval_status === 'approved' ? '参加確定' : '承認待ち'}
-                      </span>
-                    </div>
+                    <p className="text-sm font-bold text-[#1A3666] shrink-0">
+                      {fee != null ? `¥${fee.toLocaleString()}` : '—'}
+                    </p>
                   </div>
                 )
               })}
