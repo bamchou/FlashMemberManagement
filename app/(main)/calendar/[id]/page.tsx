@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Role, CalendarEvent } from '@/lib/types'
 import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
 import DeleteEventButton from './_components/DeleteEventButton'
 import ToggleEventVisibilityButton from './_components/ToggleEventVisibilityButton'
+import ParticipantSection from './_components/ParticipantSection'
 
 const TARGET_LABEL: Record<string, string> = {
   all:    '全員',
@@ -15,13 +17,8 @@ const TARGET_LABEL: Record<string, string> = {
 function formatDateTime(isoStr: string): string {
   return new Date(isoStr).toLocaleString('ja-JP', {
     timeZone: 'Asia/Tokyo',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
+    year: 'numeric', month: 'long', day: 'numeric',
+    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
   })
 }
 
@@ -42,11 +39,41 @@ export default async function EventDetailPage({
   if (!event) notFound()
 
   const role = (profile?.role ?? 'member') as Role
+  const isAdmin = role === 'admin'
   const isAdminOrCoach = role === 'admin' || role === 'coach'
+  const isGuardian = role === 'member'
   const isOwner = event.created_by === user!.id
   const canEdit = isOwner || isAdminOrCoach
   const e = event as CalendarEvent
   const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
+
+  // 参加者一覧を取得
+  const adminSupabase = createAdminClient()
+  const { data: participants } = await adminSupabase
+    .from('event_participants')
+    .select('member_id, members(full_name, photo_url)')
+    .eq('event_id', id)
+    .order('created_at', { ascending: true })
+
+  // 参加登録できるメンバー取得
+  let myMembers: { id: string; full_name: string; photo_url: string | null }[] = []
+  if (isAdmin) {
+    // 管理者: 承認済み全メンバー
+    const { data } = await adminSupabase
+      .from('members')
+      .select('id, full_name, photo_url')
+      .eq('approval_status', 'approved')
+      .order('full_name', { ascending: true })
+    myMembers = (data ?? []) as typeof myMembers
+  } else if (isGuardian) {
+    // 保護者: 自分の承認済みメンバー
+    const { data } = await supabase
+      .from('members')
+      .select('id, full_name, photo_url')
+      .eq('guardian_id', user!.id)
+      .eq('approval_status', 'approved')
+    myMembers = (data ?? []) as typeof myMembers
+  }
 
   return (
     <div className="max-w-2xl">
@@ -54,7 +81,7 @@ export default async function EventDetailPage({
         ← カレンダーに戻る
       </Link>
 
-      <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
+      <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
         <div className="mb-5">
           <div className="flex items-center gap-2 flex-wrap mb-2">
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${bg}`}>{label}</span>
@@ -91,7 +118,6 @@ export default async function EventDetailPage({
               <p className="text-gray-400 text-xs mt-0.5">〜 {formatDateTime(e.end_at)}</p>
             </div>
           </div>
-
           {e.description && (
             <div className="flex items-start gap-3">
               <span className="text-gray-400 w-5 mt-0.5 shrink-0">
@@ -119,6 +145,14 @@ export default async function EventDetailPage({
           </div>
         )}
       </div>
+
+      {/* 参加メンバーセクション */}
+      <ParticipantSection
+        eventId={id}
+        participants={(participants ?? []) as unknown as { member_id: string; members: { full_name: string; photo_url: string | null } | null }[]}
+        myMembers={myMembers}
+        role={role}
+      />
     </div>
   )
 }

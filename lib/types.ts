@@ -23,8 +23,19 @@ export type Member = {
   photo_url: string | null
   registration_number: string | null
   is_visible: boolean
+  guardian_id: string | null
+  approval_status: 'pending' | 'approved' | 'rejected'
   created_at: string
   updated_at: string
+}
+
+export type EventParticipant = {
+  id: string
+  event_id: string
+  member_id: string
+  registered_by: string | null
+  created_at: string
+  members?: { full_name: string; photo_url: string | null } | null
 }
 
 export type TournamentResult = {

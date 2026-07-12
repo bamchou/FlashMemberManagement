@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export type MemberFormState = { error: string } | undefined
 
@@ -35,15 +36,18 @@ export async function createMember(
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') return { error: '権限がありません' }
+  const role = profile?.role
+  if (role !== 'admin' && role !== 'member') return { error: '権限がありません' }
+
+  const isAdmin = role === 'admin'
 
   const fullName = (formData.get('full_name') as string).trim()
   const gender = formData.get('gender') as string
   const birthDate = formData.get('birth_date') as string
   const joinDate = formData.get('join_date') as string
   const badmintonStartDate = formData.get('badminton_start_date') as string
-  const playStyle = (formData.get('play_style') as string).trim()
-  const registrationNumber = (formData.get('registration_number') as string).trim()
+  const playStyle = (formData.get('play_style') as string | null)?.trim() ?? ''
+  const registrationNumber = isAdmin ? (formData.get('registration_number') as string | null)?.trim() ?? '' : ''
   const photo = formData.get('photo') as File | null
 
   if (!fullName || !birthDate || !joinDate) {
@@ -53,7 +57,10 @@ export async function createMember(
     return { error: '登録番号は数字10桁で入力してください' }
   }
 
-  const { data: member, error } = await supabase
+  // adminClient で RLS をバイパスして INSERT（保護者の場合 RLS INSERT を通すためにも使う）
+  const adminSupabase = createAdminClient()
+
+  const { data: member, error } = await adminSupabase
     .from('members')
     .insert({
       full_name: fullName,
@@ -62,7 +69,10 @@ export async function createMember(
       join_date: joinDate,
       badminton_start_date: badmintonStartDate || null,
       play_style: playStyle || null,
-      registration_number: registrationNumber || null,
+      registration_number: isAdmin ? (registrationNumber || null) : null,
+      guardian_id: isAdmin ? null : user.id,
+      approval_status: isAdmin ? 'approved' : 'pending',
+      is_visible: isAdmin ? true : false,
     })
     .select('id')
     .single()
@@ -72,11 +82,47 @@ export async function createMember(
   if (photo && photo.size > 0) {
     const result = await uploadPhoto(supabase, member.id, photo)
     if ('error' in result) return { error: result.error }
-    await supabase.from('members').update({ photo_url: result.url }).eq('id', member.id)
+    await adminSupabase.from('members').update({ photo_url: result.url }).eq('id', member.id)
   }
 
   revalidatePath('/members')
   redirect('/members')
+}
+
+export async function approveMember(id: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return
+
+  const adminSupabase = createAdminClient()
+  await adminSupabase
+    .from('members')
+    .update({ approval_status: 'approved', is_visible: true })
+    .eq('id', id)
+
+  revalidatePath('/members')
+}
+
+export async function rejectMember(id: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return
+
+  const adminSupabase = createAdminClient()
+  const { data: member } = await adminSupabase.from('members').select('photo_url').eq('id', id).single()
+  if (member?.photo_url) {
+    const path = member.photo_url.split('/member-photos/')[1]
+    if (path) await supabase.storage.from('member-photos').remove([path])
+  }
+  await adminSupabase.from('members').delete().eq('id', id)
+
+  revalidatePath('/members')
 }
 
 export async function updateMember(
@@ -169,7 +215,6 @@ export async function deleteMember(id: string): Promise<void> {
 
   if (profile?.role !== 'admin') return
 
-  // 写真も削除
   const { data: member } = await supabase.from('members').select('photo_url').eq('id', id).single()
   if (member?.photo_url) {
     const path = member.photo_url.split('/member-photos/')[1]

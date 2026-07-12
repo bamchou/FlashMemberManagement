@@ -115,6 +115,36 @@ export async function deleteEvent(id: string): Promise<void> {
   redirect('/calendar')
 }
 
+export async function addParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const { error } = await supabase
+    .from('event_participants')
+    .insert({ event_id: eventId, member_id: memberId, registered_by: user.id })
+
+  if (error) return { error: '参加登録に失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
+export async function removeParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const { error } = await supabase
+    .from('event_participants')
+    .delete()
+    .eq('event_id', eventId)
+    .eq('member_id', memberId)
+
+  if (error) return { error: '参加取り消しに失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
 export async function toggleEventVisibility(id: string, isVisible: boolean): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
