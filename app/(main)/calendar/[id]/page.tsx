@@ -47,18 +47,39 @@ export default async function EventDetailPage({
   const e = event as CalendarEvent
   const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
 
-  // 参加者一覧を取得
   const adminSupabase = createAdminClient()
-  const { data: participants } = await adminSupabase
+
+  // 参加者 member_id 一覧を取得
+  const { data: participantRows } = await adminSupabase
     .from('event_participants')
-    .select('member_id, members(full_name, photo_url)')
+    .select('member_id')
     .eq('event_id', id)
     .order('created_at', { ascending: true })
+
+  const participantMemberIds = (participantRows ?? []).map((p: { member_id: string }) => p.member_id)
+
+  // 参加者のメンバー情報を別途取得
+  const { data: participantMemberDetails } = participantMemberIds.length > 0
+    ? await adminSupabase
+        .from('members')
+        .select('id, full_name, photo_url')
+        .in('id', participantMemberIds)
+    : { data: [] }
+
+  const memberDetailMap = Object.fromEntries(
+    (participantMemberDetails ?? []).map((m: { id: string; full_name: string; photo_url: string | null }) => [
+      m.id, { full_name: m.full_name, photo_url: m.photo_url }
+    ])
+  )
+
+  const participants = participantMemberIds.map(memberId => ({
+    member_id: memberId,
+    members: memberDetailMap[memberId] ?? null,
+  }))
 
   // 参加登録できるメンバー取得
   let myMembers: { id: string; full_name: string; photo_url: string | null }[] = []
   if (isAdmin) {
-    // 管理者: 承認済み全メンバー
     const { data } = await adminSupabase
       .from('members')
       .select('id, full_name, photo_url')
@@ -66,8 +87,8 @@ export default async function EventDetailPage({
       .order('full_name', { ascending: true })
     myMembers = (data ?? []) as typeof myMembers
   } else if (isGuardian) {
-    // 保護者: 自分の承認済みメンバー
-    const { data } = await supabase
+    // adminClient で確実に取得（RLS バイパス）
+    const { data } = await adminSupabase
       .from('members')
       .select('id, full_name, photo_url')
       .eq('guardian_id', user!.id)
@@ -149,7 +170,7 @@ export default async function EventDetailPage({
       {/* 参加メンバーセクション */}
       <ParticipantSection
         eventId={id}
-        participants={(participants ?? []) as unknown as { member_id: string; members: { full_name: string; photo_url: string | null } | null }[]}
+        participants={participants}
         myMembers={myMembers}
         role={role}
       />
