@@ -49,14 +49,17 @@ export default async function EventDetailPage({
 
   const adminSupabase = createAdminClient()
 
-  // 参加者 member_id 一覧を取得
+  // 参加者 member_id + approval_status 一覧を取得
   const { data: participantRows } = await adminSupabase
     .from('event_participants')
-    .select('member_id')
+    .select('member_id, approval_status')
     .eq('event_id', id)
     .order('created_at', { ascending: true })
 
   const participantMemberIds = (participantRows ?? []).map((p: { member_id: string }) => p.member_id)
+  const participantStatusMap = Object.fromEntries(
+    (participantRows ?? []).map((p: { member_id: string; approval_status: string }) => [p.member_id, p.approval_status])
+  )
 
   // 参加者のメンバー情報を別途取得
   const { data: participantMemberDetails } = participantMemberIds.length > 0
@@ -75,6 +78,7 @@ export default async function EventDetailPage({
   const participants = participantMemberIds.map(memberId => ({
     member_id: memberId,
     members: memberDetailMap[memberId] ?? null,
+    approval_status: (participantStatusMap[memberId] ?? 'approved') as 'approved' | 'pending',
   }))
 
   // 参加登録できるメンバー取得（保護者のみ）
@@ -162,6 +166,7 @@ export default async function EventDetailPage({
       {/* 参加メンバーセクション */}
       <ParticipantSection
         eventId={id}
+        eventType={e.event_type}
         participants={participants}
         myMembers={myMembers}
         role={role}

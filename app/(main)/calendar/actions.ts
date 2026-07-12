@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { EventType } from '@/lib/types'
 
 const VALID_EVENT_TYPES = ['practice', 'tournament', 'event', 'social', 'other']
@@ -120,11 +121,39 @@ export async function addParticipant(eventId: string, memberId: string): Promise
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラー' }
 
+  // 大会は承認待ち、それ以外は即承認
+  const { data: event } = await supabase
+    .from('events')
+    .select('event_type')
+    .eq('id', eventId)
+    .single()
+  const approval_status = event?.event_type === 'tournament' ? 'pending' : 'approved'
+
   const { error } = await supabase
     .from('event_participants')
-    .insert({ event_id: eventId, member_id: memberId, registered_by: user.id })
+    .insert({ event_id: eventId, member_id: memberId, registered_by: user.id, approval_status })
 
   if (error) return { error: '参加登録に失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
+export async function approveParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin' && profile?.role !== 'coach') return { error: '権限がありません' }
+
+  const adminSupabase = createAdminClient()
+  const { error } = await adminSupabase
+    .from('event_participants')
+    .update({ approval_status: 'approved' })
+    .eq('event_id', eventId)
+    .eq('member_id', memberId)
+
+  if (error) return { error: '承認に失敗しました' }
   revalidatePath(`/calendar/${eventId}`)
   return {}
 }

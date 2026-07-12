@@ -34,6 +34,7 @@ export type EventParticipant = {
   event_id: string
   member_id: string
   registered_by: string | null
+  approval_status: 'approved' | 'pending'
   created_at: string
   members?: { full_name: string; photo_url: string | null } | null
 }

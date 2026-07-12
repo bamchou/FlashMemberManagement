@@ -30,28 +30,36 @@ export default async function MemberDetailPage({
   const isGuardian = role === 'member'
   const isMyMember = member.guardian_id === user!.id
 
-  // 参加登録できる場合: 管理者、または自分の子
-  const canRegisterEvents = isAdmin || (isGuardian && isMyMember)
+  // 保護者が自分の子を見ている場合のみ参加登録セクションを表示
+  const showEventSection = isGuardian && isMyMember
 
-  // 今後の予定を取得（参加登録セクション用）
+  // 今後の予定を取得（保護者のみ）
   const adminSupabase = createAdminClient()
-  const now = new Date().toISOString()
-  const { data: upcomingEvents } = await adminSupabase
-    .from('events')
-    .select('id, title, event_type, start_at, end_at, status, target')
-    .gte('start_at', now)
-    .in('target', isAdmin ? ['all', 'coach', 'member'] : ['all', 'member'])
-    .eq('is_visible', true)
-    .order('start_at', { ascending: true })
-    .limit(20)
+  let upcomingEvents: { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string }[] = []
+  let participationStatusMap = new Map<string, 'approved' | 'pending'>()
 
-  // このメンバーが参加登録している予定ID一覧
-  const { data: participations } = await adminSupabase
-    .from('event_participants')
-    .select('event_id')
-    .eq('member_id', id)
+  if (showEventSection) {
+    const now = new Date().toISOString()
+    const { data: eventsData } = await adminSupabase
+      .from('events')
+      .select('id, title, event_type, start_at, end_at, status, target')
+      .gte('start_at', now)
+      .in('target', ['all', 'member'])
+      .eq('is_visible', true)
+      .order('start_at', { ascending: true })
+      .limit(20)
+    upcomingEvents = eventsData ?? []
 
-  const participatingEventIds = new Set((participations ?? []).map((p: { event_id: string }) => p.event_id))
+    const { data: participations } = await adminSupabase
+      .from('event_participants')
+      .select('event_id, approval_status')
+      .eq('member_id', id)
+    participationStatusMap = new Map(
+      (participations ?? []).map((p: { event_id: string; approval_status: string }) => [
+        p.event_id, p.approval_status as 'approved' | 'pending'
+      ])
+    )
+  }
 
   return (
     <div className="max-w-2xl">
@@ -171,15 +179,14 @@ export default async function MemberDetailPage({
         )}
       </div>
 
-      {/* 参加予定・参加登録 */}
-      {(canRegisterEvents || isAdminOrCoach) && (
+      {/* 参加予定・参加登録（保護者が自分の子を見るときのみ） */}
+      {showEventSection && (
         <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
           <h2 className="text-base font-bold text-[#1A3666] mb-4">今後の予定・参加登録</h2>
           <MemberEventSection
             memberId={id}
-            events={(upcomingEvents ?? []) as { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string }[]}
-            participatingEventIds={participatingEventIds}
-            canRegister={canRegisterEvents}
+            events={upcomingEvents}
+            participationStatusMap={participationStatusMap}
           />
         </div>
       )}

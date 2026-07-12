@@ -25,17 +25,17 @@ function formatDate(isoStr: string): string {
 function EventRow({
   event,
   memberId,
-  isJoining,
-  canRegister,
+  approvalStatus,
 }: {
   event: EventRow
   memberId: string
-  isJoining: boolean
-  canRegister: boolean
+  approvalStatus: 'approved' | 'pending' | null
 }) {
   const [isPending, startTransition] = useTransition()
   const { bg, label } = EVENT_TYPE_STYLE[event.event_type] ?? EVENT_TYPE_STYLE.other
   const isProvisional = event.event_type === 'practice' && event.status === 'provisional'
+  const isTournament = event.event_type === 'tournament'
+  const isJoining = approvalStatus !== null
 
   function toggle() {
     startTransition(async () => {
@@ -47,9 +47,23 @@ function EventRow({
     })
   }
 
+  const buttonLabel = isPending
+    ? '...'
+    : isJoining
+      ? isTournament && approvalStatus === 'pending' ? '承認待ち（取消）' : '参加予定（取消）'
+      : '参加登録'
+
+  const buttonClass = isJoining
+    ? isTournament && approvalStatus === 'pending'
+      ? 'bg-orange-500 text-white hover:bg-orange-600'
+      : 'bg-green-600 text-white hover:bg-green-700'
+    : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
+
   return (
     <div className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-      isJoining ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
+      isJoining
+        ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
+        : 'bg-white border-gray-200'
     }`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
@@ -63,23 +77,14 @@ function EventRow({
         </Link>
         <p className="text-xs text-gray-500 mt-0.5">{formatDate(event.start_at)}</p>
       </div>
-      {canRegister && (
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={toggle}
-          className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 ${
-            isJoining
-              ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
-          }`}
-        >
-          {isPending ? '...' : isJoining ? '参加予定' : '参加登録'}
-        </button>
-      )}
-      {!canRegister && isJoining && (
-        <span className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full bg-green-100 text-green-700">参加予定</span>
-      )}
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={toggle}
+        className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 ${buttonClass}`}
+      >
+        {buttonLabel}
+      </button>
     </div>
   )
 }
@@ -87,13 +92,11 @@ function EventRow({
 export default function MemberEventSection({
   memberId,
   events,
-  participatingEventIds,
-  canRegister,
+  participationStatusMap,
 }: {
   memberId: string
   events: EventRow[]
-  participatingEventIds: Set<string>
-  canRegister: boolean
+  participationStatusMap: Map<string, 'approved' | 'pending'>
 }) {
   if (events.length === 0) {
     return (
@@ -110,8 +113,7 @@ export default function MemberEventSection({
           key={e.id}
           event={e}
           memberId={memberId}
-          isJoining={participatingEventIds.has(e.id)}
-          canRegister={canRegister}
+          approvalStatus={participationStatusMap.get(e.id) ?? null}
         />
       ))}
     </div>
