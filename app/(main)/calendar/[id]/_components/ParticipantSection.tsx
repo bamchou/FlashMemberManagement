@@ -55,6 +55,26 @@ function MemberAvatar({ photoUrl, name }: { photoUrl: string | null; name: strin
   )
 }
 
+function getDefaultCategory(singlesFee?: number | null, doublesFee?: number | null): Category {
+  if (doublesFee != null && singlesFee == null) return 'doubles'
+  return 'singles'
+}
+
+function getAvailableOptions(
+  singlesFee?: number | null,
+  doublesFee?: number | null,
+): typeof CATEGORY_OPTIONS {
+  const hasSingles = singlesFee != null
+  const hasDoubles = doublesFee != null
+  if (!hasSingles && !hasDoubles) return CATEGORY_OPTIONS
+  return CATEGORY_OPTIONS.filter(opt => {
+    if (opt.value === 'singles') return hasSingles
+    if (opt.value === 'doubles') return hasDoubles
+    if (opt.value === 'both')    return hasSingles && hasDoubles
+    return false
+  })
+}
+
 function RegisterBlock({
   eventId, memberId, isTournament, isJoining, isPending: isApprovalPending,
   name, photoUrl, category, singlesFee, doublesFee, accompFeePerPerson,
@@ -65,7 +85,10 @@ function RegisterBlock({
   singlesFee?: number | null; doublesFee?: number | null; accompFeePerPerson?: number
 }) {
   const [isTransitioning, startTransition] = useTransition()
-  const [selectedCategory, setSelectedCategory] = useState<Category>('singles')
+  const [selectedCategory, setSelectedCategory] = useState<Category>(
+    () => getDefaultCategory(singlesFee, doublesFee)
+  )
+  const availableOptions = getAvailableOptions(singlesFee, doublesFee)
 
   function register() {
     startTransition(async () => {
@@ -128,9 +151,9 @@ function RegisterBlock({
         <MemberAvatar photoUrl={photoUrl} name={name} />
         <span className="text-sm font-semibold text-[#1A3666]">{name}</span>
       </div>
-      {isTournament && (
+      {isTournament && availableOptions.length > 1 && (
         <div className="flex items-center gap-1.5 pl-10">
-          {CATEGORY_OPTIONS.map(opt => (
+          {availableOptions.map(opt => (
             <button
               key={opt.value}
               type="button"
