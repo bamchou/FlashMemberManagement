@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateMember, deleteMember, type MemberFormState } from '../../actions'
+import { updateMember, type MemberFormState } from '../../actions'
 import type { Member } from '@/lib/types'
 
 function Field({
@@ -58,11 +58,6 @@ export default function EditMemberForm({ member }: { member: Member }) {
     const file = e.target.files?.[0]
     if (file) setPreview(URL.createObjectURL(file))
     else setPreview(null)
-  }
-
-  async function handleDelete() {
-    if (!confirm(`「${member.full_name}」を削除しますか？\nこの操作は元に戻せません。`)) return
-    await deleteMember(member.id)
   }
 
   const photoSrc = preview ?? member.photo_url
@@ -198,16 +193,6 @@ export default function EditMemberForm({ member }: { member: Member }) {
         </button>
       </div>
 
-      {/* 削除ボタン */}
-      <div className="pt-4 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="w-full text-sm text-red-500 hover:text-red-700 py-2 transition-colors"
-        >
-          このメンバーを削除する
-        </button>
-      </div>
     </form>
   )
 }
