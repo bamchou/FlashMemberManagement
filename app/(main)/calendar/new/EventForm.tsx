@@ -72,6 +72,7 @@ export default function EventForm({
   const [description, setDescription] = useState('')
 
   // 大会参加費
+  const [tournamentScope, setTournamentScope] = useState<'singles' | 'both'>('both')
   const [singlesMode, setSinglesMode] = useState<FeeMode>('amount')
   const [singlesAmount, setSinglesAmount] = useState('')
   const [doublesMode, setDoublesMode] = useState<FeeMode>('amount')
@@ -112,8 +113,13 @@ export default function EventForm({
     if (eventType === 'tournament') {
       fd.set('singles_fee_mode', singlesMode)
       if (singlesMode === 'amount') fd.set('singles_fee', singlesAmount)
-      fd.set('doubles_fee_mode', doublesMode)
-      if (doublesMode === 'amount') fd.set('doubles_fee', doublesAmount)
+      // シングルスのみの場合はダブルスを不要扱い
+      if (tournamentScope === 'both') {
+        fd.set('doubles_fee_mode', doublesMode)
+        if (doublesMode === 'amount') fd.set('doubles_fee', doublesAmount)
+      } else {
+        fd.set('doubles_fee_mode', 'none')
+      }
       fd.set('accompaniment_type', accompType)
     }
 
@@ -253,6 +259,30 @@ export default function EventForm({
         <div className="space-y-4 bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4">
           <p className="text-xs font-bold text-[#1A3666]">参加費・帯同費</p>
 
+          {/* 大会種別 */}
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-2">大会種別</label>
+            <div className="flex gap-2">
+              {([
+                { value: 'singles', label: 'シングルスのみ' },
+                { value: 'both',    label: 'シングルス＋ダブルス' },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setTournamentScope(opt.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-colors ${
+                    tournamentScope === opt.value
+                      ? 'bg-[#1A3666] border-[#1A3666] text-white'
+                      : 'bg-white border-gray-200 text-gray-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <FeeField
             label="シングルス参加費"
             mode={singlesMode}
@@ -260,13 +290,15 @@ export default function EventForm({
             onModeChange={setSinglesMode}
             onAmountChange={setSinglesAmount}
           />
-          <FeeField
-            label="ダブルス参加費"
-            mode={doublesMode}
-            amount={doublesAmount}
-            onModeChange={setDoublesMode}
-            onAmountChange={setDoublesAmount}
-          />
+          {tournamentScope === 'both' && (
+            <FeeField
+              label="ダブルス参加費"
+              mode={doublesMode}
+              amount={doublesAmount}
+              onModeChange={setDoublesMode}
+              onAmountChange={setDoublesAmount}
+            />
+          )}
 
           <div>
             <label className="block text-sm font-semibold text-[#1A3666] mb-2">帯同費</label>
