@@ -72,9 +72,9 @@ export default function EventForm({
   const [description, setDescription] = useState('')
 
   // 大会参加費
-  const [singlesMode, setSinglesMode] = useState<FeeMode>('none')
+  const [singlesMode, setSinglesMode] = useState<FeeMode>('amount')
   const [singlesAmount, setSinglesAmount] = useState('')
-  const [doublesMode, setDoublesMode] = useState<FeeMode>('none')
+  const [doublesMode, setDoublesMode] = useState<FeeMode>('amount')
   const [doublesAmount, setDoublesAmount] = useState('')
   const [accompType, setAccompType] = useState('')
 
