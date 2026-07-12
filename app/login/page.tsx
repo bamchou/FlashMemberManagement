@@ -28,12 +28,27 @@ export default async function LoginPage() {
   const adminSupabase = createAdminClient()
   const { data: todayEvents } = await adminSupabase
     .from('events')
-    .select('id, title, event_type, start_at, end_at, status')
+    .select('id, title, event_type, start_at, end_at, status, created_by')
     .gte('start_at', todayStartUTC)
     .lte('start_at', todayEndUTC)
     .eq('is_visible', true)
     .in('target', ['all'])
     .order('start_at', { ascending: true })
+
+  // 登録者名を取得
+  const creatorIds = [...new Set((todayEvents ?? []).map((e: { created_by: string }) => e.created_by).filter(Boolean))]
+  let creatorMap: Record<string, string> = {}
+  if (creatorIds.length > 0) {
+    const { data: profiles } = await adminSupabase
+      .from('profiles')
+      .select('id, display_name, username')
+      .in('id', creatorIds)
+    creatorMap = Object.fromEntries(
+      (profiles ?? []).map((p: { id: string; display_name: string | null; username: string }) => [
+        p.id, p.display_name ?? p.username
+      ])
+    )
+  }
 
   const [month, day] = [nowJST.getUTCMonth() + 1, nowJST.getUTCDate()]
 
@@ -59,8 +74,9 @@ export default async function LoginPage() {
               本日の予定（{month}/{day}）
             </p>
             <div className="space-y-2">
-              {todayEvents.map((e: { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string }) => {
+              {todayEvents.map((e: { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string; created_by: string }) => {
                 const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
+                const creator = creatorMap[e.created_by]
                 return (
                   <div key={e.id} className="flex items-center gap-2 bg-[#F5F8FF] rounded-lg px-3 py-2">
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${bg}`}>
@@ -69,7 +85,10 @@ export default async function LoginPage() {
                     <span className="text-xs text-gray-500 shrink-0">
                       {formatTime(e.start_at)}〜{formatTime(e.end_at)}
                     </span>
-                    <span className="text-xs font-semibold text-[#1A3666] truncate">{e.title}</span>
+                    <span className="text-xs font-semibold text-[#1A3666] truncate">
+                      {e.title}
+                      {creator && <span className="font-normal text-gray-500">（{creator}）</span>}
+                    </span>
                     {e.event_type === 'practice' && e.status === 'provisional' && (
                       <span className="text-[10px] font-bold text-orange-500 shrink-0">仮</span>
                     )}
