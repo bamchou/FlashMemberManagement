@@ -71,7 +71,8 @@ export default function EventForm({
   const [endDate, setEndDate] = useState(initDate)
   const [description, setDescription] = useState('')
 
-  // 大会参加費
+  // 大会固有
+  const [venue, setVenue] = useState('')
   const [tournamentScope, setTournamentScope] = useState<'singles' | 'both'>('both')
   const [singlesMode, setSinglesMode] = useState<FeeMode>('amount')
   const [singlesAmount, setSinglesAmount] = useState('')
@@ -111,6 +112,7 @@ export default function EventForm({
     fd.set('description', description)
 
     if (eventType === 'tournament') {
+      fd.set('venue', venue)
       fd.set('singles_fee_mode', singlesMode)
       if (singlesMode === 'amount') fd.set('singles_fee', singlesAmount)
       // シングルスのみの場合はダブルスを不要扱い
@@ -257,7 +259,20 @@ export default function EventForm({
       {/* 大会参加費 */}
       {isTournament && (
         <div className="space-y-4 bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4">
-          <p className="text-xs font-bold text-[#1A3666]">参加費・帯同費</p>
+          <p className="text-xs font-bold text-[#1A3666]">大会情報</p>
+
+          {/* 会場 */}
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">会場</label>
+            <input
+              type="text"
+              value={venue}
+              onChange={e => setVenue(e.target.value)}
+              lang="ja"
+              placeholder="例）○○市総合体育館"
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+            />
+          </div>
 
           {/* 大会種別 */}
           <div>

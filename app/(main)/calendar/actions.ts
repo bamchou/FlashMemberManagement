@@ -57,6 +57,11 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
   // 練習は仮登録スタート、その他は確定
   const status = event_type === 'practice' ? 'provisional' : 'confirmed'
 
+  // 大会固有フィールド
+  const venue = event_type === 'tournament'
+    ? ((formData.get('venue') as string)?.trim() || null)
+    : null
+
   // 大会参加費
   let singles_fee: number | null = null
   let doubles_fee: number | null = null
@@ -81,7 +86,7 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     title, description,
     event_type: event_type as EventType,
     target, start_at, end_at, status,
-    is_all_day, singles_fee, doubles_fee, accompaniment_type,
+    is_all_day, venue, singles_fee, doubles_fee, accompaniment_type,
     created_by: user.id,
   })
 
@@ -138,6 +143,11 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     if (payment_amount! <= 0) return { error: '支払い金額は1円以上で入力してください' }
   }
 
+  // 大会固有フィールド
+  const venue = event_type === 'tournament'
+    ? ((formData.get('venue') as string)?.trim() || null)
+    : null
+
   // 大会参加費
   let singles_fee: number | null = null
   let doubles_fee: number | null = null
@@ -164,9 +174,7 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     target, start_at, end_at, status, is_all_day,
     payment_method: event_type === 'practice' && status === 'confirmed' ? payment_method : null,
     payment_amount: event_type === 'practice' && status === 'confirmed' ? payment_amount : null,
-    singles_fee,
-    doubles_fee,
-    accompaniment_type,
+    venue, singles_fee, doubles_fee, accompaniment_type,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 

@@ -101,6 +101,7 @@ export type CalendarEvent = {
   payment_method: string | null
   payment_amount: number | null
   payment_status: 'unpaid' | 'paid'
+  venue: string | null
   singles_fee: number | null
   doubles_fee: number | null
   accompaniment_type: string | null
