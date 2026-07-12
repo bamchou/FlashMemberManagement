@@ -78,7 +78,7 @@ export default function ParticipantSection({
   role: Role
 }) {
   const participantIds = new Set(participants.map(p => p.member_id))
-  const canRegister = role === 'admin' || role === 'member'
+  const canRegister = role === 'member'
 
   return (
     <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">

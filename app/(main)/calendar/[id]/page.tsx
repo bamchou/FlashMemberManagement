@@ -77,17 +77,9 @@ export default async function EventDetailPage({
     members: memberDetailMap[memberId] ?? null,
   }))
 
-  // 参加登録できるメンバー取得
+  // 参加登録できるメンバー取得（保護者のみ）
   let myMembers: { id: string; full_name: string; photo_url: string | null }[] = []
-  if (isAdmin) {
-    const { data } = await adminSupabase
-      .from('members')
-      .select('id, full_name, photo_url')
-      .eq('approval_status', 'approved')
-      .order('full_name', { ascending: true })
-    myMembers = (data ?? []) as typeof myMembers
-  } else if (isGuardian) {
-    // adminClient で確実に取得（RLS バイパス）
+  if (isGuardian) {
     const { data } = await adminSupabase
       .from('members')
       .select('id, full_name, photo_url')
