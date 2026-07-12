@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Role, CalendarEvent } from '@/lib/types'
-import CalendarView from './_components/CalendarView'
-import AgendaView from './_components/AgendaView'
+import CalendarContainer from './_components/CalendarContainer'
 
 export default async function CalendarPage({
   searchParams,
@@ -63,26 +62,14 @@ export default async function CalendarPage({
 
   return (
     <div className="w-full">
-      <div className="hidden sm:block">
-        <CalendarView
-          year={year}
-          month={month}
-          events={(events ?? []) as CalendarEvent[]}
-          role={role}
-          currentUserId={user!.id}
-          creatorMap={creatorMap}
-        />
-      </div>
-      <div className="sm:hidden">
-        <AgendaView
-          year={year}
-          month={month}
-          events={(events ?? []) as CalendarEvent[]}
-          role={role}
-          currentUserId={user!.id}
-          creatorMap={creatorMap}
-        />
-      </div>
+      <CalendarContainer
+        year={year}
+        month={month}
+        events={(events ?? []) as CalendarEvent[]}
+        role={role}
+        currentUserId={user!.id}
+        creatorMap={creatorMap}
+      />
     </div>
   )
 }
