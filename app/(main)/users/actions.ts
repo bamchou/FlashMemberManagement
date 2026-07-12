@@ -191,10 +191,10 @@ export async function toggleUserVisibility(targetUserId: string, show: boolean):
   revalidatePath('/members')
 }
 
-export async function deleteUser(targetUserId: string): Promise<void> {
+export async function deleteUser(targetUserId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
+  if (!user) return { error: '認証エラーが発生しました' }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -202,10 +202,20 @@ export async function deleteUser(targetUserId: string): Promise<void> {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') return
-  if (targetUserId === user.id) return // 自分自身は削除不可
+  if (profile?.role !== 'admin') return { error: '権限がありません' }
+  if (targetUserId === user.id) return { error: '自分自身は削除できません' }
 
   const adminSupabase = createAdminClient()
-  await adminSupabase.auth.admin.deleteUser(targetUserId)
+
+  // 保護者として登録されているメンバーの guardian_id をクリア
+  await adminSupabase
+    .from('members')
+    .update({ guardian_id: null })
+    .eq('guardian_id', targetUserId)
+
+  const { error: deleteError } = await adminSupabase.auth.admin.deleteUser(targetUserId)
+  if (deleteError) return { error: `削除に失敗しました: ${deleteError.message}` }
+
   revalidatePath('/users')
+  return {}
 }
