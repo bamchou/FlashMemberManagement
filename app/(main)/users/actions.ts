@@ -138,9 +138,17 @@ export async function updateUser(
 
   if (existing) return { error: 'このユーザー名はすでに使用されています' }
 
+  const adminSupabase = createAdminClient()
+
   // 写真アップロード
   let photoUrl: string | undefined = undefined
   if (photo && photo.size > 0) {
+    // 旧写真を削除
+    const { data: currentProfile } = await adminSupabase.from('profiles').select('photo_url').eq('id', targetUserId).single()
+    if (currentProfile?.photo_url) {
+      const oldPath = currentProfile.photo_url.split('/member-photos/')[1]
+      if (oldPath) await supabase.storage.from('member-photos').remove([decodeURIComponent(oldPath)])
+    }
     const ext = photo.name.split('.').pop()?.toLowerCase() ?? 'jpg'
     const path = `profiles/${targetUserId}.${ext}`
     const arrayBuffer = await photo.arrayBuffer()
@@ -151,8 +159,6 @@ export async function updateUser(
     const { data: { publicUrl } } = supabase.storage.from('member-photos').getPublicUrl(path)
     photoUrl = publicUrl
   }
-
-  const adminSupabase = createAdminClient()
 
   const { error: profileError } = await adminSupabase
     .from('profiles')

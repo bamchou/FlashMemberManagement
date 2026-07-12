@@ -162,6 +162,12 @@ export async function updateMember(
 
   let photoUrl: string | undefined = undefined
   if (photo && photo.size > 0) {
+    // 旧写真を削除
+    const { data: current } = await supabase.from('members').select('photo_url').eq('id', id).single()
+    if (current?.photo_url) {
+      const oldPath = current.photo_url.split('/member-photos/')[1]
+      if (oldPath) await supabase.storage.from('member-photos').remove([decodeURIComponent(oldPath)])
+    }
     const result = await uploadPhoto(supabase, id, photo)
     if ('error' in result) return { error: result.error }
     photoUrl = result.url
