@@ -2,11 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-function urlBase64ToUint8Array(base64: string): Uint8Array {
+function urlBase64ToArrayBuffer(base64: string): ArrayBuffer {
   const padding = '='.repeat((4 - base64.length % 4) % 4)
   const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')
   const raw = window.atob(b64)
-  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+  const buffer = new ArrayBuffer(raw.length)
+  const view = new Uint8Array(buffer)
+  for (let i = 0; i < raw.length; i++) {
+    view[i] = raw.charCodeAt(i)
+  }
+  return buffer
 }
 
 export default function NotificationButton() {
@@ -60,7 +65,7 @@ export default function NotificationButton() {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+        applicationServerKey: urlBase64ToArrayBuffer(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
       })
       const res = await fetch('/api/push/subscribe', {
         method: 'POST',
