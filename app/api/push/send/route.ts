@@ -12,7 +12,8 @@ const CRON_WINDOW_MINUTES = 5
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
-  if (secret && req.headers.get('authorization') !== `Bearer ${secret}`) {
+  const token = req.nextUrl.searchParams.get('secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
+  if (secret && token !== secret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
