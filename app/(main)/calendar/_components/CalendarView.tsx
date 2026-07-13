@@ -162,7 +162,7 @@ export default function CalendarView({
               <div
                 key={dateStr}
                 className={`border-r border-b border-[#EAE0A8] min-h-[100px] p-1 ${
-                  isToday ? 'bg-[#F5C800]/10' : ''
+                  isToday ? 'bg-white' : ''
                 } ${!isThisMonth ? 'bg-gray-50/40' : ''}`}
               >
                 <div className="flex items-start justify-between mb-0.5">
