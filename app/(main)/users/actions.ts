@@ -217,14 +217,12 @@ export async function deleteUser(targetUserId: string): Promise<{ error?: string
 
   const adminSupabase = createAdminClient()
 
-  // 保護者として登録されているメンバーの guardian_id をクリア
-  await adminSupabase
-    .from('members')
-    .update({ guardian_id: null })
-    .eq('guardian_id', targetUserId)
+  // auth.users 削除前に public スキーマの関連データを明示的にクリア
+  await adminSupabase.from('push_subscriptions').delete().eq('user_id', targetUserId)
+  await adminSupabase.from('members').update({ guardian_id: null }).eq('guardian_id', targetUserId)
 
   const { error: deleteError } = await adminSupabase.auth.admin.deleteUser(targetUserId)
-  if (deleteError) return { error: `削除に失敗しました: ${deleteError.message}` }
+  if (deleteError) return { error: `削除に失敗しました: ${deleteError.message || deleteError.name || JSON.stringify(deleteError)}` }
 
   revalidatePath('/users')
   return {}
