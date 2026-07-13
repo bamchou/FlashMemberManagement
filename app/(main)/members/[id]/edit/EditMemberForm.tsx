@@ -68,9 +68,9 @@ export default function EditMemberForm({ member, isAdmin }: { member: Member; is
       <div>
         <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">写真</p>
         <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center overflow-hidden shrink-0">
+          <div className="w-16 h-24 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center overflow-hidden shrink-0">
             {photoSrc
-              ? <img src={photoSrc} alt={member.full_name} className="w-full h-full object-cover" />
+              ? <img src={photoSrc} alt={member.full_name} className="w-full h-full object-cover object-top" />
               : <span className="text-3xl">👤</span>
             }
           </div>

@@ -55,9 +55,9 @@ export default async function MembersPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {coaches.map((coach: Partial<Profile>) => (
               <div key={coach.id} className="bg-white rounded-xl border-2 border-[#1A3666] p-5 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#1A3666]/10 border-2 border-[#1A3666] flex items-center justify-center shrink-0 overflow-hidden">
+                <div className="w-12 h-16 rounded-xl bg-[#1A3666]/10 border-2 border-[#1A3666] flex items-center justify-center shrink-0 overflow-hidden">
                   {coach.photo_url
-                    ? <img src={coach.photo_url} alt={coach.display_name ?? ''} className="w-full h-full object-cover" />
+                    ? <img src={coach.photo_url} alt={coach.display_name ?? ''} className="w-full h-full object-cover object-top" />
                     : <span className="text-2xl">👤</span>}
                 </div>
                 <div className="min-w-0">
@@ -89,9 +89,9 @@ export default async function MembersPage() {
             {pendingMembers.map((m: Member) => (
               <div key={m.id} className="bg-white rounded-xl border-2 border-orange-300 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-10 h-14 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
                     {m.photo_url
-                      ? <img src={m.photo_url} alt={m.full_name} className="w-full h-full object-cover" />
+                      ? <img src={m.photo_url} alt={m.full_name} className="w-full h-full object-cover object-top" />
                       : <span className="text-xl">👤</span>}
                   </div>
                   <div className="min-w-0 flex-1">

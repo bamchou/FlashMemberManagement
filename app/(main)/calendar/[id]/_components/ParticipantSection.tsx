@@ -47,9 +47,9 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 function MemberAvatar({ photoUrl, name }: { photoUrl: string | null; name: string }) {
   return (
-    <div className="w-8 h-8 rounded-full bg-[#F5C800]/20 border border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
+    <div className="w-8 h-10 rounded-lg bg-[#F5C800]/20 border border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
       {photoUrl
-        ? <img src={photoUrl} alt={name} className="w-full h-full object-cover" />
+        ? <img src={photoUrl} alt={name} className="w-full h-full object-cover object-top" />
         : <span className="text-sm">👤</span>}
     </div>
   )

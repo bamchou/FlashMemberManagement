@@ -84,9 +84,9 @@ export default async function MemberDetailPage({
         )}
 
         <div className="flex items-center gap-5 mb-5">
-          <div className="w-20 h-20 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-16 h-24 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
             {member.photo_url ? (
-              <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover" />
+              <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover object-top" />
             ) : (
               <span className="text-4xl">👤</span>
             )}
