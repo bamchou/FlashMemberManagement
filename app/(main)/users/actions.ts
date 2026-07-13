@@ -217,12 +217,29 @@ export async function deleteUser(targetUserId: string): Promise<{ error?: string
 
   const adminSupabase = createAdminClient()
 
-  // auth.users 削除前に public スキーマの関連データを明示的にクリア
+  // push_notification_log → push_subscriptions → その他の順で削除
+  const { data: subs } = await adminSupabase
+    .from('push_subscriptions')
+    .select('id')
+    .eq('user_id', targetUserId)
+  const subIds = (subs ?? []).map(s => s.id)
+  if (subIds.length > 0) {
+    await adminSupabase.from('push_notification_log').delete().in('subscription_id', subIds)
+  }
   await adminSupabase.from('push_subscriptions').delete().eq('user_id', targetUserId)
   await adminSupabase.from('members').update({ guardian_id: null }).eq('guardian_id', targetUserId)
+  await adminSupabase.from('event_participants').update({ registered_by: null }).eq('registered_by', targetUserId)
+  await adminSupabase.from('announcement_comments').delete().eq('user_id', targetUserId)
+  await adminSupabase.from('events').update({ created_by: null }).eq('created_by', targetUserId)
+  await adminSupabase.from('announcements').update({ created_by: null }).eq('created_by', targetUserId)
+  await adminSupabase.from('coach_notes').update({ created_by: null }).eq('created_by', targetUserId)
 
   const { error: deleteError } = await adminSupabase.auth.admin.deleteUser(targetUserId)
-  if (deleteError) return { error: `削除に失敗しました: ${deleteError.message || deleteError.name || JSON.stringify(deleteError)}` }
+  if (deleteError) {
+    const msg = deleteError.message || deleteError.name || deleteError.status?.toString() || JSON.stringify(deleteError)
+    console.error('[deleteUser] auth.admin.deleteUser failed:', deleteError)
+    return { error: `削除に失敗しました: ${msg}` }
+  }
 
   revalidatePath('/users')
   return {}
