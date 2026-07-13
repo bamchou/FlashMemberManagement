@@ -52,6 +52,15 @@ export default async function EventDetailPage({
   const isOwner = event.created_by === user!.id
   const canEdit = isOwner || isAdminOrCoach
   const e = event as CalendarEvent
+
+  // 予定の終了判定（JST基準・全種別共通）
+  const now = new Date()
+  const isPast = e.is_all_day
+    ? now > new Date(`${new Date(e.end_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })}T23:59:00+09:00`)
+    : now > new Date(e.end_at)
+  // 終了後: 編集不可（全員）、削除は管理者・指導者のみ可
+  const canEditEvent = canEdit && !isPast
+  const canDeleteEvent = isPast ? isAdminOrCoach : canEdit
   const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
 
   const adminSupabase = createAdminClient()
@@ -237,17 +246,22 @@ export default async function EventDetailPage({
           )}
         </div>
 
-        {canEdit && (
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              href={`/calendar/${id}/edit`}
-              className="text-sm font-semibold text-[#1A3666] border border-[#1A3666] px-4 py-2 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
-            >
-              編集
-            </Link>
-            <DeleteEventButton id={id} />
+        {(canEditEvent || canDeleteEvent || isAdminOrCoach) && (
+          <div className="mt-5 flex flex-wrap gap-3 items-center">
+            {canEditEvent && (
+              <Link
+                href={`/calendar/${id}/edit`}
+                className="text-sm font-semibold text-[#1A3666] border border-[#1A3666] px-4 py-2 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
+              >
+                編集
+              </Link>
+            )}
+            {canDeleteEvent && <DeleteEventButton id={id} />}
             {isAdminOrCoach && (
               <ToggleEventVisibilityButton id={id} isVisible={e.is_visible} />
+            )}
+            {isPast && isAdminOrCoach && (
+              <p className="text-xs text-gray-400 w-full mt-1">※ 終了した予定のため編集はできません</p>
             )}
           </div>
         )}

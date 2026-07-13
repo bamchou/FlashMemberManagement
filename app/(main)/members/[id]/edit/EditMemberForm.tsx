@@ -44,7 +44,7 @@ function Field({
   )
 }
 
-export default function EditMemberForm({ member }: { member: Member }) {
+export default function EditMemberForm({ member, isAdmin }: { member: Member; isAdmin: boolean }) {
   const boundUpdate = updateMember.bind(null, member.id)
   const [state, action, pending] = useActionState<MemberFormState, FormData>(
     boundUpdate,
@@ -124,21 +124,57 @@ export default function EditMemberForm({ member }: { member: Member }) {
         defaultValue={member.badminton_start_date ?? ''} max={today}
       />
 
+      {isAdmin && (
+        <div>
+          <label htmlFor="registration_number" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+            協会登録番号
+          </label>
+          <input
+            id="registration_number"
+            name="registration_number"
+            type="text"
+            inputMode="numeric"
+            maxLength={10}
+            defaultValue={member.registration_number ?? ''}
+            placeholder="数字10桁"
+            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white"
+          />
+          <p className="text-xs text-gray-400 mt-1">数字10桁で入力してください</p>
+        </div>
+      )}
+
+      {/* 練習頻度 */}
       <div>
-        <label htmlFor="registration_number" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
-          協会登録番号
+        <label htmlFor="practice_frequency" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          練習頻度
         </label>
-        <input
-          id="registration_number"
-          name="registration_number"
-          type="text"
-          inputMode="numeric"
-          maxLength={10}
-          defaultValue={member.registration_number ?? ''}
-          placeholder="数字10桁"
-          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent transition-shadow bg-white"
-        />
-        <p className="text-xs text-gray-400 mt-1">数字10桁で入力してください</p>
+        <select
+          id="practice_frequency" name="practice_frequency"
+          defaultValue={member.practice_frequency ?? ''}
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        >
+          <option value="">選択してください</option>
+          {[1, 2, 3, 4, 5].map(n => (
+            <option key={n} value={n}>週{n}回</option>
+          ))}
+        </select>
+      </div>
+
+      {/* 参加曜日 */}
+      <div>
+        <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">主な参加曜日</p>
+        <div className="flex gap-4 flex-wrap">
+          {['月', '火', '水', '木', '金', '土', '日'].map(day => (
+            <label key={day} className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox" name="practice_days" value={day}
+                defaultChecked={member.practice_days?.includes(day) ?? false}
+                className="w-4 h-4 rounded border-gray-300 text-[#1A3666] focus:ring-[#1A3666]"
+              />
+              <span className="text-sm text-gray-700">{day}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div>
@@ -156,19 +192,21 @@ export default function EditMemberForm({ member }: { member: Member }) {
         />
       </div>
 
-      {/* 表示/非表示 */}
-      <div className="flex items-center gap-3 bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-4 py-3">
-        <input
-          id="is_visible"
-          name="is_visible"
-          type="checkbox"
-          defaultChecked={member.is_visible}
-          className="w-4 h-4 rounded border-gray-300 text-[#1A3666] focus:ring-[#1A3666] cursor-pointer"
-        />
-        <label htmlFor="is_visible" className="text-sm font-semibold text-[#1A3666] cursor-pointer">
-          メンバー一覧に表示する
-        </label>
-      </div>
+      {/* 表示/非表示（管理者のみ） */}
+      {isAdmin && (
+        <div className="flex items-center gap-3 bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-4 py-3">
+          <input
+            id="is_visible"
+            name="is_visible"
+            type="checkbox"
+            defaultChecked={member.is_visible}
+            className="w-4 h-4 rounded border-gray-300 text-[#1A3666] focus:ring-[#1A3666] cursor-pointer"
+          />
+          <label htmlFor="is_visible" className="text-sm font-semibold text-[#1A3666] cursor-pointer">
+            メンバー一覧に表示する
+          </label>
+        </div>
+      )}
 
       {state?.error && (
         <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3.5 py-2.5">

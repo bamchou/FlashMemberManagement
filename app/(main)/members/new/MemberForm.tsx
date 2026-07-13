@@ -91,6 +91,38 @@ export default function MemberForm({ isAdmin }: { isAdmin: boolean }) {
         </div>
       )}
 
+      {/* 練習頻度 */}
+      <div>
+        <label htmlFor="practice_frequency" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          練習頻度
+        </label>
+        <select
+          id="practice_frequency" name="practice_frequency"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        >
+          <option value="">選択してください</option>
+          {[1, 2, 3, 4, 5].map(n => (
+            <option key={n} value={n}>週{n}回</option>
+          ))}
+        </select>
+      </div>
+
+      {/* 参加曜日 */}
+      <div>
+        <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">主な参加曜日</p>
+        <div className="flex gap-4 flex-wrap">
+          {['月', '火', '水', '木', '金', '土', '日'].map(day => (
+            <label key={day} className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox" name="practice_days" value={day}
+                className="w-4 h-4 rounded border-gray-300 text-[#1A3666] focus:ring-[#1A3666]"
+              />
+              <span className="text-sm text-gray-700">{day}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label htmlFor="play_style" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
           プレイスタイル・強み

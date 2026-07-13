@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useTransition, useState } from 'react'
 import Link from 'next/link'
 import { addParticipant, removeParticipant } from '@/app/(main)/calendar/actions'
 import { EVENT_TYPE_STYLE } from '@/app/(main)/calendar/_utils/eventTypeStyle'
@@ -89,6 +89,21 @@ function EventRow({
   )
 }
 
+function getMonthKey(isoStr: string): string {
+  const d = new Date(new Date(isoStr).toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
+  return `${d.getFullYear()}年${d.getMonth() + 1}月`
+}
+
+function groupByMonth(events: EventRow[]): [string, EventRow[]][] {
+  const map = new Map<string, EventRow[]>()
+  for (const e of events) {
+    const key = getMonthKey(e.start_at)
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(e)
+  }
+  return Array.from(map.entries())
+}
+
 export default function MemberEventSection({
   memberId,
   events,
@@ -106,16 +121,47 @@ export default function MemberEventSection({
     )
   }
 
+  const groups = groupByMonth(events)
+  const [index, setIndex] = useState(0)
+  const [month, monthEvents] = groups[index]
+
   return (
-    <div className="space-y-2">
-      {events.map(e => (
-        <EventRow
-          key={e.id}
-          event={e}
-          memberId={memberId}
-          approvalStatus={participationStatusMap.get(e.id) ?? null}
-        />
-      ))}
+    <div>
+      {/* 月ナビゲーション */}
+      <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => setIndex(i => i - 1)}
+          disabled={index === 0}
+          className="w-8 h-8 flex items-center justify-center rounded-full border border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          ‹
+        </button>
+        <p className="text-sm font-bold text-[#1A3666]">{month}</p>
+        <button
+          type="button"
+          onClick={() => setIndex(i => i + 1)}
+          disabled={index === groups.length - 1}
+          className="w-8 h-8 flex items-center justify-center rounded-full border border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          ›
+        </button>
+      </div>
+
+      {/* 当月の予定 */}
+      <div className="space-y-2">
+        {monthEvents.map(e => (
+          <EventRow
+            key={e.id}
+            event={e}
+            memberId={memberId}
+            approvalStatus={participationStatusMap.get(e.id) ?? null}
+          />
+        ))}
+      </div>
+
+      {/* ページ表示 */}
+      <p className="text-center text-xs text-gray-400 mt-3">{index + 1} / {groups.length} ヶ月</p>
     </div>
   )
 }

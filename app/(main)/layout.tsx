@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Nav from './_components/Nav'
 import LogoutButton from './_components/LogoutButton'
+import NotificationButton from './_components/NotificationButton'
 import type { Role } from '@/lib/types'
 
 export default async function MainLayout({
@@ -54,6 +55,7 @@ export default async function MainLayout({
                 {roleLabel[profile.role as Role]}
               </p>
             </div>
+            <NotificationButton />
             <LogoutButton />
           </div>
         </div>

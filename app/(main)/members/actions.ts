@@ -49,6 +49,9 @@ export async function createMember(
   const playStyle = (formData.get('play_style') as string | null)?.trim() ?? ''
   const registrationNumber = isAdmin ? (formData.get('registration_number') as string | null)?.trim() ?? '' : ''
   const photo = formData.get('photo') as File | null
+  const practiceFrequency = formData.get('practice_frequency') ? Number(formData.get('practice_frequency')) : null
+  const practiceDaysRaw = formData.getAll('practice_days') as string[]
+  const practiceDays = practiceDaysRaw.length > 0 ? practiceDaysRaw : null
 
   if (!fullName || !birthDate || !joinDate) {
     return { error: '氏名・生年月日・加入年月日は必須です' }
@@ -73,6 +76,8 @@ export async function createMember(
       guardian_id: isAdmin ? null : user.id,
       approval_status: isAdmin ? 'approved' : 'pending',
       is_visible: isAdmin ? true : false,
+      practice_frequency: practiceFrequency,
+      practice_days: practiceDays,
     })
     .select('id')
     .single()
@@ -143,7 +148,13 @@ export async function updateMember(
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') return { error: '権限がありません' }
+  const isAdmin = profile?.role === 'admin'
+
+  if (!isAdmin) {
+    // 保護者は自分の子供のみ編集可
+    const { data: target } = await supabase.from('members').select('guardian_id').eq('id', id).single()
+    if (profile?.role !== 'member' || target?.guardian_id !== user.id) return { error: '権限がありません' }
+  }
 
   const fullName = (formData.get('full_name') as string).trim()
   const gender = formData.get('gender') as string
@@ -151,9 +162,12 @@ export async function updateMember(
   const joinDate = formData.get('join_date') as string
   const badmintonStartDate = formData.get('badminton_start_date') as string
   const playStyle = (formData.get('play_style') as string).trim()
-  const registrationNumber = (formData.get('registration_number') as string).trim()
-  const isVisible = formData.get('is_visible') === 'on'
+  const registrationNumber = isAdmin ? (formData.get('registration_number') as string).trim() : ''
+  const isVisible = isAdmin ? formData.get('is_visible') === 'on' : undefined
   const photo = formData.get('photo') as File | null
+  const practiceFrequency = formData.get('practice_frequency') ? Number(formData.get('practice_frequency')) : null
+  const practiceDaysRaw = formData.getAll('practice_days') as string[]
+  const practiceDays = practiceDaysRaw.length > 0 ? practiceDaysRaw : null
 
   if (!fullName || !birthDate || !joinDate) {
     return { error: '氏名・生年月日・加入年月日は必須です' }
@@ -175,7 +189,8 @@ export async function updateMember(
     photoUrl = result.url
   }
 
-  const { error } = await supabase
+  const adminSupabase = createAdminClient()
+  const { error } = await adminSupabase
     .from('members')
     .update({
       full_name: fullName,
@@ -184,8 +199,10 @@ export async function updateMember(
       join_date: joinDate,
       badminton_start_date: badmintonStartDate || null,
       play_style: playStyle || null,
-      registration_number: registrationNumber || null,
-      is_visible: isVisible,
+      practice_frequency: practiceFrequency,
+      practice_days: practiceDays,
+      ...(isAdmin && { registration_number: registrationNumber || null }),
+      ...(isAdmin && { is_visible: isVisible }),
       ...(photoUrl !== undefined && { photo_url: photoUrl }),
     })
     .eq('id', id)

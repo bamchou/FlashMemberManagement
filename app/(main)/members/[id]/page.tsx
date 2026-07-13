@@ -53,7 +53,7 @@ export default async function MemberDetailPage({
       .in('target', ['all', 'member'])
       .eq('is_visible', true)
       .order('start_at', { ascending: true })
-      .limit(20)
+      .limit(200)
     upcomingEvents = eventsData ?? []
 
     const { data: participations } = await adminSupabase
@@ -124,6 +124,18 @@ export default async function MemberDetailPage({
               <dd className="text-[#1A3666] font-medium font-mono">{member.registration_number}</dd>
             </div>
           )}
+          {member.practice_frequency && (
+            <div>
+              <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">練習頻度</dt>
+              <dd className="text-[#1A3666] font-medium">週{member.practice_frequency}回</dd>
+            </div>
+          )}
+          {member.practice_days && member.practice_days.length > 0 && (
+            <div>
+              <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">参加曜日</dt>
+              <dd className="text-[#1A3666] font-medium">{member.practice_days.join('・')}</dd>
+            </div>
+          )}
         </dl>
 
         {member.play_style && (
@@ -140,7 +152,7 @@ export default async function MemberDetailPage({
           </div>
         )}
 
-        {isAdmin && !isPending && (
+        {(isAdmin || (isGuardian && isMyMember)) && !isPending && (
           <div className="mt-5 pt-5 border-t border-[#EAE0A8] flex gap-3 flex-wrap">
             <Link
               href={`/members/${id}/edit`}
@@ -148,7 +160,7 @@ export default async function MemberDetailPage({
             >
               メンバー情報を編集
             </Link>
-            <DeleteMemberButton id={id} name={member.full_name} />
+            {isAdmin && <DeleteMemberButton id={id} name={member.full_name} />}
           </div>
         )}
       </div>

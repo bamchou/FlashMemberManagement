@@ -26,8 +26,15 @@ export type Member = {
   is_visible: boolean
   guardian_id: string | null
   approval_status: 'pending' | 'approved' | 'rejected'
+  practice_frequency: number | null
+  practice_days: string[] | null
   created_at: string
   updated_at: string
+}
+
+export type PracticeFeeSetting = {
+  frequency: number
+  monthly_fee: number
 }
 
 export type ParticipationCategory = 'singles' | 'doubles' | 'both'

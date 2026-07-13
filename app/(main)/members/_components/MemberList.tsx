@@ -211,6 +211,9 @@ export default function MemberList({
                   <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
                   <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
+                  {member.practice_days && member.practice_days.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-0.5">参加予定曜日: {member.practice_days.join('・')}</p>
+                  )}
                 </div>
               </Link>
               {member.approval_status === 'pending' && (
@@ -246,6 +249,9 @@ export default function MemberList({
                   <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
                   <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
+                  {member.practice_days && member.practice_days.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-0.5">参加予定曜日: {member.practice_days.join('・')}</p>
+                  )}
                   {isAdminOrCoach && (
                     <p className="text-xs text-gray-900 mt-0.5 font-mono">
                       登録番号: {member.registration_number ?? '登録なし'}

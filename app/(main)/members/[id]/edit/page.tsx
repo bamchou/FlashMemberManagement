@@ -16,8 +16,12 @@ export default async function EditMemberPage({
     supabase.from('members').select('*').eq('id', id).single(),
   ])
 
-  if (profile?.role !== 'admin') redirect(`/members/${id}`)
   if (!member) notFound()
+
+  const isAdmin = profile?.role === 'admin'
+  const isGuardianOfMember = profile?.role === 'member' && member.guardian_id === user!.id
+
+  if (!isAdmin && !isGuardianOfMember) redirect(`/members/${id}`)
 
   return (
     <div className="max-w-lg">
@@ -27,7 +31,7 @@ export default async function EditMemberPage({
       </div>
 
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
-        <EditMemberForm member={member} />
+        <EditMemberForm member={member} isAdmin={isAdmin} />
       </div>
     </div>
   )

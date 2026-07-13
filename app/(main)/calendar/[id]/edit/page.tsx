@@ -24,7 +24,14 @@ export default async function EditEventPage({
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const isOwner = event.created_by === user!.id
 
-  if (!isOwner && !isAdminOrCoach) redirect('/calendar')
+  if (!isOwner && !isAdminOrCoach) redirect(`/calendar/${id}`)
+
+  // 終了後の予定は編集不可（全種別・全ユーザー共通）
+  const now = new Date()
+  const isPast = event.is_all_day
+    ? now > new Date(`${new Date(event.end_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })}T23:59:00+09:00`)
+    : now > new Date(event.end_at)
+  if (isPast) redirect(`/calendar/${id}`)
 
   return (
     <div className="max-w-2xl">
