@@ -94,11 +94,13 @@ export default function EventForm({
   function handleSubmit() {
     if (!title.trim()) { setError('タイトルを入力してください'); return }
     if (isAllDay && endDate < startDate) { setError('終了日は開始日以降にしてください'); return }
-    if (singlesMode === 'amount' && (!singlesAmount || parseInt(singlesAmount, 10) <= 0)) {
-      setError('シングルス参加費の金額を入力してください'); return
-    }
-    if (doublesMode === 'amount' && (!doublesAmount || parseInt(doublesAmount, 10) <= 0)) {
-      setError('ダブルス参加費の金額を入力してください'); return
+    if (eventType === 'tournament') {
+      if (singlesMode === 'amount' && (!singlesAmount || parseInt(singlesAmount, 10) <= 0)) {
+        setError('シングルス参加費の金額を入力してください'); return
+      }
+      if (tournamentScope === 'both' && doublesMode === 'amount' && (!doublesAmount || parseInt(doublesAmount, 10) <= 0)) {
+        setError('ダブルス参加費の金額を入力してください'); return
+      }
     }
     setError(null)
 
