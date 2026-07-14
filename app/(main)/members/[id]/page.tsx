@@ -33,6 +33,9 @@ export default async function MemberDetailPage({
   const isGuardian = role === 'member'
   const isMyMember = member.guardian_id === user!.id
   const isPending = member.approval_status === 'pending'
+  const oneMonthAgo = new Date()
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+  const isNew = new Date(member.join_date) >= oneMonthAgo
 
   // 承認待ちメンバーは管理者のみ閲覧可
   if (isPending && !isAdmin) notFound()
@@ -92,7 +95,12 @@ export default async function MemberDetailPage({
             )}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3666]">{member.full_name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-[#1A3666]">{member.full_name}</h1>
+              {isNew && (
+                <span className="text-xs font-bold bg-green-100 text-green-700 border border-green-300 px-2 py-0.5 rounded-full">NEW</span>
+              )}
+            </div>
             <p className="text-gray-500 mt-1">{calculateGrade(member.birth_date)}</p>
           </div>
         </div>

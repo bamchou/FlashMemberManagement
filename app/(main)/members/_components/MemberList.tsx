@@ -10,6 +10,12 @@ type GradeCategory = '' | 'elementary' | 'middle' | 'high' | 'graduated'
 type VisibilityFilter = '' | 'visible' | 'hidden'
 type GenderFilter = '' | '男' | '女'
 
+function isNewMember(joinDateStr: string): boolean {
+  const oneMonthAgo = new Date()
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+  return new Date(joinDateStr) >= oneMonthAgo
+}
+
 function getGradeCategory(birthDateStr: string): GradeCategory {
   const birth = new Date(birthDateStr)
   const today = new Date()
@@ -208,7 +214,12 @@ export default function MemberList({
                     : <span className="text-2xl">👤</span>}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
+                    {isNewMember(member.join_date) && (
+                      <span className="text-[10px] font-bold bg-green-100 text-green-700 border border-green-300 px-1.5 py-0.5 rounded-full shrink-0">NEW</span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
                   <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
                   {member.practice_days && member.practice_days.length > 0 && (
@@ -246,7 +257,12 @@ export default function MemberList({
                   }
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
+                    {isNewMember(member.join_date) && (
+                      <span className="text-[10px] font-bold bg-green-100 text-green-700 border border-green-300 px-1.5 py-0.5 rounded-full shrink-0">NEW</span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
                   <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
                   {member.practice_days && member.practice_days.length > 0 && (

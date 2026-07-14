@@ -82,11 +82,23 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     accompaniment_type = (formData.get('accompaniment_type') as string) || null
   }
 
+  // 帯同費をマスタから取得してスナップショット保存
+  let accompaniment_fee_per_person: number | null = null
+  if (accompaniment_type) {
+    const { data: feeRow } = await supabase
+      .from('accompaniment_fee_settings')
+      .select('amount_per_person')
+      .eq('area_type', accompaniment_type)
+      .single()
+    accompaniment_fee_per_person = feeRow?.amount_per_person ?? null
+  }
+
   const { error } = await supabase.from('events').insert({
     title, description,
     event_type: event_type as EventType,
     target, start_at, end_at, status,
-    is_all_day, venue, singles_fee, doubles_fee, accompaniment_type,
+    is_all_day, venue, singles_fee, doubles_fee,
+    accompaniment_type, accompaniment_fee_per_person,
     created_by: user.id,
   })
 
@@ -168,13 +180,25 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     accompaniment_type = (formData.get('accompaniment_type') as string) || null
   }
 
+  // 帯同費をマスタから取得してスナップショット保存
+  let accompaniment_fee_per_person: number | null = null
+  if (event_type === 'tournament' && accompaniment_type) {
+    const { data: feeRow } = await supabase
+      .from('accompaniment_fee_settings')
+      .select('amount_per_person')
+      .eq('area_type', accompaniment_type)
+      .single()
+    accompaniment_fee_per_person = feeRow?.amount_per_person ?? null
+  }
+
   const { error } = await supabase.from('events').update({
     title, description,
     event_type: event_type as EventType,
     target, start_at, end_at, status, is_all_day,
     payment_method: event_type === 'practice' && status === 'confirmed' ? payment_method : null,
     payment_amount: event_type === 'practice' && status === 'confirmed' ? payment_amount : null,
-    venue, singles_fee, doubles_fee, accompaniment_type,
+    venue, singles_fee, doubles_fee,
+    accompaniment_type, accompaniment_fee_per_person,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 

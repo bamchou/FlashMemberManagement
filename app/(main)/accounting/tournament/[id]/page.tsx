@@ -46,7 +46,7 @@ export default async function TournamentDetailPage({
   const [{ data: event }, { data: participantRows }] = await Promise.all([
     adminSupabase
       .from('events')
-      .select('id, title, start_at, singles_fee, doubles_fee, accompaniment_type, is_all_day')
+      .select('id, title, start_at, singles_fee, doubles_fee, accompaniment_type, accompaniment_fee_per_person, is_all_day')
       .eq('id', id)
       .single(),
     adminSupabase
@@ -72,9 +72,9 @@ export default async function TournamentDetailPage({
     )
   }
 
-  // 帯同費設定を取得
+  // 帯同費：スナップショット値を優先、未設定の旧イベントはマスタから補完
   let accompFeeLabel = ''
-  let accompFeePerPerson = 0
+  let accompFeePerPerson: number = event.accompaniment_fee_per_person ?? 0
   if (event.accompaniment_type) {
     const { data: feeSettings } = await adminSupabase
       .from('accompaniment_fee_settings')
@@ -82,8 +82,8 @@ export default async function TournamentDetailPage({
       .eq('area_type', event.accompaniment_type)
       .single()
     if (feeSettings) {
-      accompFeePerPerson = feeSettings.amount_per_person
-      accompFeeLabel = `${feeSettings.label}（${feeSettings.amount_per_person.toLocaleString()}円/人）`
+      if (accompFeePerPerson === 0) accompFeePerPerson = feeSettings.amount_per_person
+      accompFeeLabel = `${feeSettings.label}（${accompFeePerPerson.toLocaleString()}円/人）`
     }
   }
 
@@ -128,9 +128,13 @@ export default async function TournamentDetailPage({
               ダブルス 不要
             </span>
           )}
-          {accompFeeLabel && (
+          {accompFeeLabel ? (
             <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
               帯同費 {accompFeeLabel}
+            </span>
+          ) : (
+            <span className="text-xs font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
+              帯同費 なし
             </span>
           )}
         </div>
