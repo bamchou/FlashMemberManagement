@@ -33,6 +33,9 @@ export async function createUser(
   if (!username || !role) {
     return { error: 'ユーザー名・役割は必須です' }
   }
+  if (username.length < 2 || username.length > 20) {
+    return { error: 'ユーザー名は2文字以上20文字以内で入力してください' }
+  }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
     return { error: 'ユーザー名は英数字とアンダースコアのみ使用できます' }
   }
@@ -131,6 +134,9 @@ export async function updateUser(
   const photo = formData.get('photo') as File | null
 
   if (!username || !role) return { error: 'ユーザー名・役割は必須です' }
+  if (username.length < 2 || username.length > 20) {
+    return { error: 'ユーザー名は2文字以上20文字以内で入力してください' }
+  }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
     return { error: 'ユーザー名は英数字とアンダースコアのみ使用できます' }
   }

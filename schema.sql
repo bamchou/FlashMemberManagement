@@ -103,6 +103,7 @@ CREATE TABLE public.event_participants (
   registered_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
   approval_status text NOT NULL DEFAULT 'approved' CHECK (approval_status IN ('approved', 'pending')),
   participation_category text CHECK (participation_category IN ('singles', 'doubles', 'both')),
+  fee_snapshot integer,
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (event_id, member_id)
 );

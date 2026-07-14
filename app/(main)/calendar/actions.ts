@@ -219,6 +219,8 @@ export async function deleteEvent(id: string): Promise<void> {
   redirect('/calendar')
 }
 
+const VALID_PARTICIPATION_CATEGORIES = ['singles', 'doubles', 'both']
+
 export async function addParticipant(
   eventId: string,
   memberId: string,
@@ -231,11 +233,26 @@ export async function addParticipant(
   // 大会は承認待ち、それ以外は即承認
   const { data: event } = await supabase
     .from('events')
-    .select('event_type')
+    .select('event_type, singles_fee, doubles_fee, accompaniment_fee_per_person')
     .eq('id', eventId)
     .single()
   const isTournament = event?.event_type === 'tournament'
   const approval_status = isTournament ? 'pending' : 'approved'
+
+  const effectiveCategory = isTournament ? (category ?? 'singles') : null
+  if (isTournament && effectiveCategory && !VALID_PARTICIPATION_CATEGORIES.includes(effectiveCategory)) {
+    return { error: '参加種目の値が無効です' }
+  }
+
+  // 大会の場合は参加費スナップショットを計算して保存
+  let fee_snapshot: number | null = null
+  if (isTournament && effectiveCategory && event) {
+    let entryFee = 0
+    if (effectiveCategory === 'singles') entryFee = event.singles_fee ?? 0
+    else if (effectiveCategory === 'doubles') entryFee = event.doubles_fee ?? 0
+    else if (effectiveCategory === 'both') entryFee = (event.singles_fee ?? 0) + (event.doubles_fee ?? 0)
+    fee_snapshot = entryFee + (event.accompaniment_fee_per_person ?? 0)
+  }
 
   const { error } = await supabase
     .from('event_participants')
@@ -244,7 +261,8 @@ export async function addParticipant(
       member_id: memberId,
       registered_by: user.id,
       approval_status,
-      participation_category: isTournament ? (category ?? 'singles') : null,
+      participation_category: effectiveCategory,
+      fee_snapshot,
     })
 
   if (error) return { error: '参加登録に失敗しました' }

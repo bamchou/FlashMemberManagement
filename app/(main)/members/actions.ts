@@ -57,8 +57,18 @@ export async function createMember(
   if (!fullName || !birthDate || !joinDate) {
     return { error: '氏名・生年月日・加入年月日は必須です' }
   }
+  if (new Date(birthDate) > new Date()) {
+    return { error: '生年月日に未来の日付は入力できません' }
+  }
   if (registrationNumber && !/^\d{10}$/.test(registrationNumber)) {
     return { error: '登録番号は数字10桁で入力してください' }
+  }
+  if (practiceFrequency !== null && (practiceFrequency < 1 || !Number.isInteger(practiceFrequency))) {
+    return { error: '練習頻度は1以上の整数で入力してください' }
+  }
+  const VALID_DAYS = ['月', '火', '水', '木', '金', '土', '日']
+  if (practiceDays && practiceDays.some(d => !VALID_DAYS.includes(d))) {
+    return { error: '参加予定曜日に無効な値が含まれています' }
   }
 
   // adminClient で RLS をバイパスして INSERT（保護者の場合 RLS INSERT を通すためにも使う）
@@ -175,8 +185,18 @@ export async function updateMember(
   if (!fullName || !birthDate || !joinDate) {
     return { error: '氏名・生年月日・加入年月日は必須です' }
   }
+  if (new Date(birthDate) > new Date()) {
+    return { error: '生年月日に未来の日付は入力できません' }
+  }
   if (registrationNumber && !/^\d{10}$/.test(registrationNumber)) {
     return { error: '登録番号は数字10桁で入力してください' }
+  }
+  if (practiceFrequency !== null && (practiceFrequency < 1 || !Number.isInteger(practiceFrequency))) {
+    return { error: '練習頻度は1以上の整数で入力してください' }
+  }
+  const VALID_DAYS = ['月', '火', '水', '木', '金', '土', '日']
+  if (practiceDays && practiceDays.some(d => !VALID_DAYS.includes(d))) {
+    return { error: '参加予定曜日に無効な値が含まれています' }
   }
 
   let photoUrl: string | undefined = undefined

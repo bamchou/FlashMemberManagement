@@ -51,7 +51,7 @@ export default async function TournamentDetailPage({
       .single(),
     adminSupabase
       .from('event_participants')
-      .select('member_id, participation_category')
+      .select('member_id, participation_category, fee_snapshot')
       .eq('event_id', id)
       .order('created_at', { ascending: true }),
   ])
@@ -90,10 +90,13 @@ export default async function TournamentDetailPage({
   const rows = (participantRows ?? []) as {
     member_id: string
     participation_category: string | null
+    fee_snapshot: number | null
   }[]
 
   const totalFee = rows.reduce((sum, r) => {
-    return sum + (calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson) ?? 0)
+    // fee_snapshot があれば登録時点の確定額を使う（イベント費用変更の影響を受けない）
+    const fee = r.fee_snapshot ?? calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson) ?? 0
+    return sum + fee
   }, 0)
 
   return (
@@ -176,7 +179,7 @@ export default async function TournamentDetailPage({
                 </thead>
                 <tbody className="divide-y divide-[#EAE0A8]">
                   {rows.map(r => {
-                    const fee = calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson)
+                    const fee = r.fee_snapshot ?? calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson)
                     return (
                       <tr key={r.member_id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3 font-semibold text-[#1A3666]">
@@ -198,7 +201,7 @@ export default async function TournamentDetailPage({
             {/* モバイル */}
             <div className="sm:hidden divide-y divide-[#EAE0A8]">
               {rows.map(r => {
-                const fee = calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson)
+                const fee = r.fee_snapshot ?? calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson)
                 return (
                   <div key={r.member_id} className="px-4 py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">

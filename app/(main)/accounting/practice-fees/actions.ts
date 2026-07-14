@@ -15,6 +15,8 @@ export async function updatePracticeFee(
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { error: '権限がありません' }
 
+  if (!monthlyFee || monthlyFee <= 0) return { error: '金額は1円以上で入力してください' }
+
   const adminSupabase = createAdminClient()
   const { error } = await adminSupabase
     .from('practice_fee_settings')

@@ -48,6 +48,7 @@ export type EventParticipant = {
   registered_by: string | null
   approval_status: 'approved' | 'pending'
   participation_category: ParticipationCategory | null
+  fee_snapshot: number | null
   created_at: string
   members?: { full_name: string; photo_url: string | null } | null
 }
