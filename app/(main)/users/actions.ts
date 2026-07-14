@@ -24,10 +24,10 @@ export async function createUser(
 
   if (profile?.role !== 'admin') return { error: '権限がありません' }
 
-  const username = (formData.get('username') as string).trim()
-  const displayName = (formData.get('display_name') as string).trim()
+  const username = ((formData.get('username') as string | null) ?? '').trim()
+  const displayName = ((formData.get('display_name') as string | null) ?? '').trim()
   const displayNameKana = (formData.get('display_name_kana') as string | null)?.trim() || null
-  const role = formData.get('role') as string
+  const role = (formData.get('role') as string | null) ?? ''
   const qualifications = (formData.get('qualifications') as string | null)?.trim() || null
 
   if (!username || !role) {

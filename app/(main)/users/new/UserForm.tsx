@@ -30,11 +30,18 @@ export default function UserForm() {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
-      const result = await createUser(undefined, formData)
-      if (result && 'error' in result) {
-        setError(result.error)
-      } else if (result && 'password' in result) {
-        setGeneratedPassword(result.password)
+      try {
+        const result = await createUser(undefined, formData)
+        if (result && 'error' in result) {
+          setError(result.error)
+        } else if (result && 'password' in result) {
+          setGeneratedPassword(result.password)
+        } else {
+          setError('予期しないエラーが発生しました。もう一度お試しください。')
+        }
+      } catch (err) {
+        console.error('[createUser]', err)
+        setError('通信エラーが発生しました。もう一度お試しください。')
       }
     })
   }
