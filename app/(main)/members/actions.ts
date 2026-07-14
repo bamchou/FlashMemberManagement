@@ -42,6 +42,7 @@ export async function createMember(
   const isAdmin = role === 'admin'
 
   const fullName = (formData.get('full_name') as string).trim()
+  const fullNameKana = (formData.get('full_name_kana') as string | null)?.trim() || null
   const gender = formData.get('gender') as string
   const birthDate = formData.get('birth_date') as string
   const joinDate = formData.get('join_date') as string
@@ -67,6 +68,7 @@ export async function createMember(
     .from('members')
     .insert({
       full_name: fullName,
+      full_name_kana: fullNameKana,
       gender: gender || null,
       birth_date: birthDate,
       join_date: joinDate,
@@ -155,6 +157,7 @@ export async function updateMember(
   }
 
   const fullName = (formData.get('full_name') as string).trim()
+  const fullNameKana = (formData.get('full_name_kana') as string | null)?.trim() || null
   const gender = formData.get('gender') as string
   const birthDate = formData.get('birth_date') as string
   const joinDate = formData.get('join_date') as string
@@ -192,6 +195,7 @@ export async function updateMember(
     .from('members')
     .update({
       full_name: fullName,
+      full_name_kana: fullNameKana,
       gender: gender || null,
       birth_date: birthDate,
       join_date: joinDate,

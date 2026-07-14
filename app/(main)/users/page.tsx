@@ -25,7 +25,7 @@ export default async function UsersPage() {
 
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, username, display_name, role, show_on_members_page')
+    .select('id, username, display_name, display_name_kana, role, show_on_members_page')
     .order('created_at', { ascending: true })
 
   return (
@@ -60,6 +60,9 @@ export default async function UsersPage() {
                       </div>
                       {p.display_name && (
                         <p className="text-xs text-gray-500 mt-0.5">{p.display_name}</p>
+                      )}
+                      {p.display_name_kana && (
+                        <p className="text-xs text-gray-400">{p.display_name_kana}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -97,7 +100,12 @@ export default async function UsersPage() {
                   return (
                     <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-medium text-[#1A3666]">{p.username ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.display_name ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        <span>{p.display_name ?? '—'}</span>
+                        {p.display_name_kana && (
+                          <span className="block text-xs text-gray-400">{p.display_name_kana}</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${roleInfo.className}`}>
                           {roleInfo.label}

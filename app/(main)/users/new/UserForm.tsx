@@ -113,6 +113,17 @@ export default function UserForm() {
       </div>
 
       <div>
+        <label htmlFor="display_name_kana" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          表示名（読み仮名）
+        </label>
+        <input
+          id="display_name_kana" name="display_name_kana" type="text"
+          placeholder="例: ヤマダ タロウ"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        />
+      </div>
+
+      <div>
         <label htmlFor="role" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
           役割<span className="text-red-500 ml-1">*</span>
         </label>

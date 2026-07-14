@@ -13,7 +13,7 @@ export default async function EditUserPage({
 
   const [{ data: profile }, { data: target }, { count: adminCount }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
-    supabase.from('profiles').select('id, username, display_name, role, photo_url, birth_date, badminton_start_date, show_on_members_page, qualifications, temp_password').eq('id', id).single(),
+    supabase.from('profiles').select('id, username, display_name, display_name_kana, role, photo_url, birth_date, badminton_start_date, show_on_members_page, qualifications, temp_password').eq('id', id).single(),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'admin'),
   ])
 
@@ -34,6 +34,7 @@ export default async function EditUserPage({
           userId={target.id}
           initialUsername={target.username ?? ''}
           initialDisplayName={target.display_name ?? ''}
+          initialDisplayNameKana={target.display_name_kana ?? null}
           initialRole={target.role}
           initialPhotoUrl={target.photo_url ?? null}
           initialBirthDate={target.birth_date ?? ''}

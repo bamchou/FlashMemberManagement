@@ -14,6 +14,7 @@ type Props = {
   userId: string
   initialUsername: string
   initialDisplayName: string
+  initialDisplayNameKana: string | null
   initialRole: string
   initialPhotoUrl: string | null
   initialBirthDate: string
@@ -28,6 +29,7 @@ export default function EditUserForm({
   userId,
   initialUsername,
   initialDisplayName,
+  initialDisplayNameKana,
   initialRole,
   initialPhotoUrl,
   initialBirthDate,
@@ -135,6 +137,17 @@ export default function EditUserForm({
           id="display_name" name="display_name" type="text"
           value={fields.display_name} onChange={handleChange}
           placeholder="例: 山田 太郎"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        />
+      </div>
+
+      {/* 表示名（読み仮名） */}
+      <div>
+        <label htmlFor="display_name_kana" className="block text-sm font-semibold text-[#1A3666] mb-1.5">表示名（読み仮名）</label>
+        <input
+          id="display_name_kana" name="display_name_kana" type="text"
+          defaultValue={initialDisplayNameKana ?? ''}
+          placeholder="例: ヤマダ タロウ"
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
         />
       </div>

@@ -26,6 +26,7 @@ export async function createUser(
 
   const username = (formData.get('username') as string).trim()
   const displayName = (formData.get('display_name') as string).trim()
+  const displayNameKana = (formData.get('display_name_kana') as string | null)?.trim() || null
   const role = formData.get('role') as string
   const qualifications = (formData.get('qualifications') as string | null)?.trim() || null
 
@@ -66,6 +67,7 @@ export async function createUser(
     .update({
       username,
       display_name: displayName || null,
+      display_name_kana: displayNameKana,
       role,
       temp_password: password,
       qualifications: (role === 'admin' || role === 'coach') ? qualifications : null,
@@ -120,6 +122,7 @@ export async function updateUser(
 
   const username = (formData.get('username') as string).trim()
   const displayName = (formData.get('display_name') as string).trim()
+  const displayNameKana = (formData.get('display_name_kana') as string | null)?.trim() || null
   const role = formData.get('role') as string
   const birthDate = formData.get('birth_date') as string
   const badmintonStartDate = formData.get('badminton_start_date') as string
@@ -168,6 +171,7 @@ export async function updateUser(
     .update({
       username,
       display_name: displayName || null,
+      display_name_kana: displayNameKana,
       role,
       birth_date: birthDate || null,
       badminton_start_date: badmintonStartDate || null,

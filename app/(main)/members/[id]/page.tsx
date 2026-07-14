@@ -101,6 +101,9 @@ export default async function MemberDetailPage({
                 <span className="text-xs font-bold bg-green-100 text-green-700 border border-green-300 px-2 py-0.5 rounded-full">NEW</span>
               )}
             </div>
+            {member.full_name_kana && (
+              <p className="text-sm text-gray-400 mt-0.5">{member.full_name_kana}</p>
+            )}
             <p className="text-gray-500 mt-1">{calculateGrade(member.birth_date)}</p>
           </div>
         </div>

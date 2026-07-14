@@ -4,6 +4,7 @@ export type Profile = {
   id: string
   role: Role
   display_name: string | null
+  display_name_kana: string | null
   username: string | null
   photo_url: string | null
   birth_date: string | null
@@ -16,6 +17,7 @@ export type Profile = {
 export type Member = {
   id: string
   full_name: string
+  full_name_kana: string | null
   gender: '男' | '女' | null
   birth_date: string
   join_date: string

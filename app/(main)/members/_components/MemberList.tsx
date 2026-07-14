@@ -220,6 +220,9 @@ export default function MemberList({
                       <span className="text-[10px] font-bold bg-green-100 text-green-700 border border-green-300 px-1.5 py-0.5 rounded-full shrink-0">NEW</span>
                     )}
                   </div>
+                  {member.full_name_kana && (
+                    <p className="text-[11px] text-gray-400">{member.full_name_kana}</p>
+                  )}
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
                   <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
                   {member.practice_days && member.practice_days.length > 0 && (
@@ -263,6 +266,9 @@ export default function MemberList({
                       <span className="text-[10px] font-bold bg-green-100 text-green-700 border border-green-300 px-1.5 py-0.5 rounded-full shrink-0">NEW</span>
                     )}
                   </div>
+                  {member.full_name_kana && (
+                    <p className="text-[11px] text-gray-400">{member.full_name_kana}</p>
+                  )}
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
                   <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
                   {member.practice_days && member.practice_days.length > 0 && (
