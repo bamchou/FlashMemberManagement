@@ -37,8 +37,8 @@ export default async function MemberDetailPage({
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
   const isNew = new Date(member.join_date) >= oneMonthAgo
 
-  // 承認待ちメンバーは管理者のみ閲覧可
-  if (isPending && !isAdmin) notFound()
+  // 承認待ちメンバーは管理者と担当保護者のみ閲覧可
+  if (isPending && !isAdmin && !isMyMember) notFound()
 
   // 保護者が自分の子を見ている場合のみ参加登録セクションを表示
   const showEventSection = isGuardian && isMyMember
