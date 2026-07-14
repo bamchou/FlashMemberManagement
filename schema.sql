@@ -31,6 +31,23 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
+-- username から email を引く RPC（ログイン用、未認証で呼び出し可能）
+CREATE OR REPLACE FUNCTION public.get_email_by_username(p_username text)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_email text;
+BEGIN
+  SELECT au.email INTO v_email
+  FROM auth.users au
+  JOIN public.profiles p ON p.id = au.id
+  WHERE p.username = p_username;
+  RETURN v_email;
+END;
+$$;
+
 -- members
 CREATE TABLE public.members (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
