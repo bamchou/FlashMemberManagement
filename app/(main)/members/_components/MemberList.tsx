@@ -108,7 +108,12 @@ export default function MemberList({
     // 自分の子は先頭固定表示するため除外
     return members.filter(m => {
       if (myMemberIds.has(m.id)) return false
-      if (keyword.trim() && !m.full_name.toLowerCase().includes(keyword.trim().toLowerCase())) return false
+      if (keyword.trim()) {
+        const kw = keyword.trim().toLowerCase()
+        const matchName = m.full_name.toLowerCase().includes(kw)
+        const matchKana = m.full_name_kana?.toLowerCase().includes(kw) ?? false
+        if (!matchName && !matchKana) return false
+      }
       if (gradeFilter && getGradeCategory(m.birth_date) !== gradeFilter) return false
       if (genderFilter && m.gender !== genderFilter) return false
       if (visibilityFilter === 'visible' && !m.is_visible) return false

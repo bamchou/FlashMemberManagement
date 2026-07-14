@@ -7,6 +7,7 @@ CREATE TABLE public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username text UNIQUE,
   display_name text,
+  display_name_kana text,
   role text NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'coach', 'member')),
   photo_url text,
   birth_date date,
@@ -52,6 +53,7 @@ $$;
 CREATE TABLE public.members (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   full_name text NOT NULL,
+  full_name_kana text,
   gender text CHECK (gender IN ('男', '女')),
   birth_date date NOT NULL,
   join_date date NOT NULL,

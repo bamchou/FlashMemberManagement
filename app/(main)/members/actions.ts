@@ -105,11 +105,12 @@ export async function approveMember(id: string): Promise<void> {
   if (profile?.role !== 'admin') return
 
   const adminSupabase = createAdminClient()
-  await adminSupabase
+  const { error } = await adminSupabase
     .from('members')
     .update({ approval_status: 'approved', is_visible: true })
     .eq('id', id)
 
+  if (error) throw new Error('承認に失敗しました: ' + error.message)
   revalidatePath('/members')
 }
 
@@ -127,7 +128,8 @@ export async function rejectMember(id: string): Promise<void> {
     const path = member.photo_url.split('/member-photos/')[1]
     if (path) await supabase.storage.from('member-photos').remove([path])
   }
-  await adminSupabase.from('members').delete().eq('id', id)
+  const { error: deleteError } = await adminSupabase.from('members').delete().eq('id', id)
+  if (deleteError) throw new Error('却下に失敗しました: ' + deleteError.message)
 
   revalidatePath('/members')
 }
