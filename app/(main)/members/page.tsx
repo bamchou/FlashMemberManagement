@@ -13,7 +13,7 @@ export default async function MembersPage() {
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('members').select('*').order('birth_date', { ascending: true }).order('join_date', { ascending: true }),
     supabase.from('profiles')
-      .select('id, display_name, username, role, photo_url, birth_date, badminton_start_date, qualifications')
+      .select('id, display_name, display_name_kana, username, role, photo_url, birth_date, badminton_start_date, qualifications')
       .eq('show_on_members_page', true)
       .in('role', ['admin', 'coach'])
       .order('created_at', { ascending: true }),
@@ -62,6 +62,9 @@ export default async function MembersPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-[#1A3666] truncate">{coach.display_name ?? coach.username}</p>
+                  {coach.display_name_kana && (
+                    <p className="text-[11px] text-gray-400">{coach.display_name_kana}</p>
+                  )}
                   {coach.birth_date && <p className="text-sm text-gray-900 mt-0.5">{calculateAge(coach.birth_date)}</p>}
                   {coach.badminton_start_date && (
                     <p className="text-xs text-gray-900 mt-0.5">バドミントン歴: {calculateExperience(coach.badminton_start_date)}</p>
