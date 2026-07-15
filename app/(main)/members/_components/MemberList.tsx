@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { calculateGrade, formatDate } from '@/lib/utils/grade'
+import { calculateGrade, formatYearMonth } from '@/lib/utils/grade'
 import type { Role, Member } from '@/lib/types'
 import VisibilityToggle from './VisibilityToggle'
 import TappablePhoto from './TappablePhoto'
@@ -230,7 +230,7 @@ export default function MemberList({
                     <p className="text-[11px] text-gray-400">{member.full_name_kana}</p>
                   )}
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
-                  <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
+                  <p className="text-xs text-gray-900 mt-0.5">加入: {formatYearMonth(member.join_date)}</p>
                   {member.practice_days && member.practice_days.length > 0 && (
                     <p className="text-xs text-gray-500 mt-0.5">参加予定曜日: {member.practice_days.join('・')}</p>
                   )}
@@ -275,7 +275,7 @@ export default function MemberList({
                     <p className="text-[11px] text-gray-400">{member.full_name_kana}</p>
                   )}
                   <p className="text-sm text-gray-900 mt-0.5">{calculateGrade(member.birth_date)}</p>
-                  <p className="text-xs text-gray-900 mt-0.5">加入: {formatDate(member.join_date)}</p>
+                  <p className="text-xs text-gray-900 mt-0.5">加入: {formatYearMonth(member.join_date)}</p>
                   {member.practice_days && member.practice_days.length > 0 && (
                     <p className="text-xs text-gray-500 mt-0.5">参加予定曜日: {member.practice_days.join('・')}</p>
                   )}

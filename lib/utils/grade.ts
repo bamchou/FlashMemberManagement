@@ -26,6 +26,11 @@ export function formatDate(dateStr: string): string {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
+export function formatYearMonth(dateStr: string): string {
+  const [year, month] = dateStr.split('-')
+  return `${year}年${parseInt(month, 10)}月`
+}
+
 export function calculateAge(birthDateStr: string): string {
   const birth = new Date(birthDateStr)
   const today = new Date()

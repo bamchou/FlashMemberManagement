@@ -28,6 +28,7 @@ export default function MemberForm({ isAdmin }: { isAdmin: boolean }) {
   const [state, action, pending] = useActionState<MemberFormState, FormData>(createMember, undefined)
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0]
+  const thisMonth = today.slice(0, 7)
   const [preview, setPreview] = useState<string | null>(null)
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -75,8 +76,8 @@ export default function MemberForm({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       <Field label="生年月日" name="birth_date" type="date" required max={today} />
-      <Field label="加入年月日" name="join_date" type="date" required max={today} />
-      <Field label="バドミントン開始年月日" name="badminton_start_date" type="date" max={today} />
+      <Field label="加入年月" name="join_date" type="month" required max={thisMonth} />
+      <Field label="バドミントン開始年月" name="badminton_start_date" type="month" max={thisMonth} />
 
       {isAdmin && (
         <div>

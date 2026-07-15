@@ -45,8 +45,10 @@ export async function createMember(
   const fullNameKana = (formData.get('full_name_kana') as string | null)?.trim() || null
   const gender = formData.get('gender') as string
   const birthDate = formData.get('birth_date') as string
-  const joinDate = formData.get('join_date') as string
-  const badmintonStartDate = formData.get('badminton_start_date') as string
+  const joinDateRaw = formData.get('join_date') as string       // YYYY-MM
+  const badmintonStartDateRaw = formData.get('badminton_start_date') as string  // YYYY-MM
+  const joinDate = joinDateRaw ? `${joinDateRaw}-01` : ''
+  const badmintonStartDate = badmintonStartDateRaw ? `${badmintonStartDateRaw}-01` : ''
   const playStyle = (formData.get('play_style') as string | null)?.trim() ?? ''
   const registrationNumber = isAdmin ? (formData.get('registration_number') as string | null)?.trim() ?? '' : ''
   const photo = formData.get('photo') as File | null
@@ -55,7 +57,7 @@ export async function createMember(
   const practiceDays = practiceDaysRaw.length > 0 ? practiceDaysRaw : null
 
   if (!fullName || !birthDate || !joinDate) {
-    return { error: '氏名・生年月日・加入年月日は必須です' }
+    return { error: '氏名・生年月日・加入年月は必須です' }
   }
   if (new Date(birthDate) > new Date()) {
     return { error: '生年月日に未来の日付は入力できません' }
@@ -172,8 +174,10 @@ export async function updateMember(
   const fullNameKana = (formData.get('full_name_kana') as string | null)?.trim() || null
   const gender = formData.get('gender') as string
   const birthDate = formData.get('birth_date') as string
-  const joinDate = formData.get('join_date') as string
-  const badmintonStartDate = formData.get('badminton_start_date') as string
+  const joinDateRaw = formData.get('join_date') as string       // YYYY-MM
+  const badmintonStartDateRaw = formData.get('badminton_start_date') as string  // YYYY-MM
+  const joinDate = joinDateRaw ? `${joinDateRaw}-01` : ''
+  const badmintonStartDate = badmintonStartDateRaw ? `${badmintonStartDateRaw}-01` : ''
   const playStyle = (formData.get('play_style') as string).trim()
   const registrationNumber = isAdmin ? (formData.get('registration_number') as string).trim() : ''
   const isVisible = isAdmin ? formData.get('is_visible') === 'on' : undefined
@@ -183,7 +187,7 @@ export async function updateMember(
   const practiceDays = practiceDaysRaw.length > 0 ? practiceDaysRaw : null
 
   if (!fullName || !birthDate || !joinDate) {
-    return { error: '氏名・生年月日・加入年月日は必須です' }
+    return { error: '氏名・生年月日・加入年月は必須です' }
   }
   if (new Date(birthDate) > new Date()) {
     return { error: '生年月日に未来の日付は入力できません' }

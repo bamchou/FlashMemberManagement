@@ -52,6 +52,7 @@ export default function EditMemberForm({ member, isAdmin }: { member: Member; is
   )
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0]
+  const thisMonth = today.slice(0, 7)
   const [preview, setPreview] = useState<string | null>(null)
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -120,12 +121,12 @@ export default function EditMemberForm({ member, isAdmin }: { member: Member; is
         defaultValue={member.birth_date} max={today}
       />
       <Field
-        label="加入年月日" name="join_date" type="date" required
-        defaultValue={member.join_date} max={today}
+        label="加入年月" name="join_date" type="month" required
+        defaultValue={member.join_date.slice(0, 7)} max={thisMonth}
       />
       <Field
-        label="バドミントン開始年月日" name="badminton_start_date" type="date"
-        defaultValue={member.badminton_start_date ?? ''} max={today}
+        label="バドミントン開始年月" name="badminton_start_date" type="month"
+        defaultValue={member.badminton_start_date?.slice(0, 7) ?? ''} max={thisMonth}
       />
 
       {isAdmin && (

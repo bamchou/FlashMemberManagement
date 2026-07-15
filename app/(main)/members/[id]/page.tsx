@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { calculateGrade, formatDate, calculateExperience } from '@/lib/utils/grade'
+import { calculateGrade, formatDate, formatYearMonth, calculateExperience } from '@/lib/utils/grade'
 import type { Role, TournamentResult, PrefecturalReinforcement } from '@/lib/types'
 import MemberEventSection from './_components/MemberEventSection'
 import TappablePhoto from '../_components/TappablePhoto'
@@ -118,14 +118,14 @@ export default async function MemberDetailPage({
             <dd className="text-[#1A3666] font-medium">{formatDate(member.birth_date)}</dd>
           </div>
           <div>
-            <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">加入年月日</dt>
-            <dd className="text-[#1A3666] font-medium">{formatDate(member.join_date)}</dd>
+            <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">加入年月</dt>
+            <dd className="text-[#1A3666] font-medium">{formatYearMonth(member.join_date)}</dd>
           </div>
           <div>
             <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">バドミントン歴</dt>
             <dd className="text-[#1A3666] font-medium">
               {member.badminton_start_date
-                ? `${calculateExperience(member.badminton_start_date)}（${formatDate(member.badminton_start_date)}〜）`
+                ? `${calculateExperience(member.badminton_start_date)}（${formatYearMonth(member.badminton_start_date)}〜）`
                 : '未設定'}
             </dd>
           </div>
