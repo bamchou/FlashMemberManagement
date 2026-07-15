@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { Role, CalendarEvent } from '@/lib/types'
+import type { Role, CalendarEvent, Attachment } from '@/lib/types'
 import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
 import DeleteEventButton from './_components/DeleteEventButton'
 import ToggleEventVisibilityButton from './_components/ToggleEventVisibilityButton'
@@ -38,9 +38,10 @@ export default async function EventDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: event }] = await Promise.all([
+  const [{ data: profile }, { data: event }, { data: attachments }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('events').select('*').eq('id', id).single(),
+    supabase.from('attachments').select('*').eq('entity_type', 'event').eq('entity_id', id).order('created_at', { ascending: true }),
   ])
 
   if (!event) notFound()
@@ -227,6 +228,37 @@ export default async function EventDetailPage({
                 </svg>
               </span>
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{e.description}</p>
+            </div>
+          )}
+          {attachments && attachments.length > 0 && (
+            <div className="flex items-start gap-3">
+              <span className="text-gray-400 w-5 mt-0.5 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </span>
+              <div className="flex-1 space-y-1.5">
+                {(attachments as Attachment[]).map(att => (
+                  <a
+                    key={att.id}
+                    href={att.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200 hover:border-[#1A3666] hover:bg-[#F5F8FF] transition-colors"
+                  >
+                    {att.file_name.endsWith('.pdf') ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                    <span className="text-sm text-[#1A3666] truncate">{att.file_name}</span>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
           {e.payment_method && (

@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { Role, CalendarEvent, AccompanimentFeeSetting } from '@/lib/types'
+import type { Role, CalendarEvent, AccompanimentFeeSetting, Attachment } from '@/lib/types'
 import EditEventForm from './EditEventForm'
 
 export default async function EditEventPage({
@@ -12,10 +12,11 @@ export default async function EditEventPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: event }, { data: fees }] = await Promise.all([
+  const [{ data: profile }, { data: event }, { data: fees }, { data: attachments }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('events').select('*').eq('id', id).single(),
     supabase.from('accompaniment_fee_settings').select('*').order('amount_per_person'),
+    supabase.from('attachments').select('*').eq('entity_type', 'event').eq('entity_id', id).order('created_at', { ascending: true }),
   ])
 
   if (!event) notFound()
@@ -40,6 +41,7 @@ export default async function EditEventPage({
         event={event as CalendarEvent}
         role={role}
         accompanimentFees={(fees ?? []) as AccompanimentFeeSetting[]}
+        attachments={(attachments ?? []) as Attachment[]}
       />
     </div>
   )

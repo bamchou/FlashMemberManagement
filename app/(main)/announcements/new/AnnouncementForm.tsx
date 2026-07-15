@@ -89,6 +89,19 @@ export default function AnnouncementForm() {
         </div>
       </div>
 
+      {/* 添付ファイル */}
+      <div>
+        <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">添付ファイル</label>
+        <input
+          type="file"
+          name="attachments"
+          multiple
+          accept="image/*,application/pdf"
+          className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1A3666] file:text-white hover:file:bg-[#2A52A0] file:cursor-pointer"
+        />
+        <p className="text-xs text-gray-400 mt-1">PDF・画像ファイルを添付できます（複数可）</p>
+      </div>
+
       {state?.error && (
         <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3.5 py-2.5">
           {state.error}

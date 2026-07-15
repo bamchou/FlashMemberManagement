@@ -3,9 +3,16 @@
 import { useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateAnnouncement, deleteAnnouncement, type AnnouncementFormState } from '../../actions'
-import type { Announcement } from '@/lib/types'
+import type { Announcement, Attachment } from '@/lib/types'
+import AttachmentList from '@/app/(main)/_components/AttachmentList'
 
-export default function EditAnnouncementForm({ announcement }: { announcement: Announcement }) {
+export default function EditAnnouncementForm({
+  announcement,
+  attachments,
+}: {
+  announcement: Announcement
+  attachments: Attachment[]
+}) {
   const boundUpdate = updateAnnouncement.bind(null, announcement.id)
   const [state, action, pending] = useActionState<AnnouncementFormState, FormData>(
     boundUpdate,
@@ -97,6 +104,29 @@ export default function EditAnnouncementForm({ announcement }: { announcement: A
             />
           </div>
         </div>
+      </div>
+
+      {/* 添付ファイル */}
+      <div>
+        <label className="block text-sm font-semibold text-[#1A3666] mb-2">添付ファイル</label>
+        {attachments.length > 0 && (
+          <div className="mb-2">
+            <AttachmentList
+              attachments={attachments}
+              canDelete={true}
+              entityType="announcement"
+              entityId={announcement.id}
+            />
+          </div>
+        )}
+        <input
+          type="file"
+          name="attachments"
+          multiple
+          accept="image/*,application/pdf"
+          className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1A3666] file:text-white hover:file:bg-[#2A52A0] file:cursor-pointer"
+        />
+        <p className="text-xs text-gray-400 mt-1">PDF・画像ファイルを添付できます（複数可）</p>
       </div>
 
       {state?.error && (

@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { formatDate } from '@/lib/utils/grade'
 import type { Role, AnnouncementComment } from '@/lib/types'
 import CommentSection from './_components/CommentSection'
+import type { Attachment } from '@/lib/types'
 
 const TARGET_LABEL: Record<string, { label: string; className: string }> = {
   coach:  { label: '指導者のみ', className: 'bg-[#1A3666] text-white' },
@@ -20,13 +21,14 @@ export default async function AnnouncementDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: announcement }, { data: rawComments }] = await Promise.all([
+  const [{ data: profile }, { data: announcement }, { data: rawComments }, { data: attachments }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('announcements').select('*').eq('id', id).single(),
     supabase.from('announcement_comments')
       .select('*')
       .eq('announcement_id', id)
       .order('created_at', { ascending: true }),
+    supabase.from('attachments').select('*').eq('entity_type', 'announcement').eq('entity_id', id).order('created_at', { ascending: true }),
   ])
 
   // adminクライアントでコメント投稿者のプロフィールを取得（RLS回避）
@@ -100,6 +102,34 @@ export default async function AnnouncementDetailPage({
         <div className="pt-5 border-t border-[#EAE0A8]">
           <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{announcement.content}</p>
         </div>
+
+        {attachments && attachments.length > 0 && (
+          <div className="mt-5 pt-5 border-t border-[#EAE0A8]">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">添付ファイル</p>
+            <div className="space-y-2">
+              {(attachments as Attachment[]).map(att => (
+                <a
+                  key={att.id}
+                  href={att.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-[#1A3666] hover:bg-[#F5F8FF] transition-colors"
+                >
+                  {att.file_name.endsWith('.pdf') ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                  <span className="text-sm text-[#1A3666] truncate">{att.file_name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {isAdmin && (
           <div className="mt-6 pt-5 border-t border-[#EAE0A8]">

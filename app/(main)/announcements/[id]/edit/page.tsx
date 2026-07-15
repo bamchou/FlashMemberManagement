@@ -11,9 +11,10 @@ export default async function EditAnnouncementPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: announcement }] = await Promise.all([
+  const [{ data: profile }, { data: announcement }, { data: attachments }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('announcements').select('*').eq('id', id).single(),
+    supabase.from('attachments').select('*').eq('entity_type', 'announcement').eq('entity_id', id).order('created_at', { ascending: true }),
   ])
 
   if (profile?.role !== 'admin') redirect(`/announcements/${id}`)
@@ -26,7 +27,7 @@ export default async function EditAnnouncementPage({
       </div>
 
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
-        <EditAnnouncementForm announcement={announcement} />
+        <EditAnnouncementForm announcement={announcement} attachments={(attachments ?? []) as import('@/lib/types').Attachment[]} />
       </div>
     </div>
   )

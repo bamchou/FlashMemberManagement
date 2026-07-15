@@ -131,6 +131,18 @@ export type AccompanimentFeeSetting = {
   updated_at: string
 }
 
+export type Attachment = {
+  id: string
+  entity_type: 'event' | 'announcement'
+  entity_id: string
+  file_name: string
+  storage_path: string
+  file_url: string
+  file_size: number | null
+  created_by: string | null
+  created_at: string
+}
+
 export type CoachNote = {
   id: string
   title: string

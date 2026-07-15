@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import Link from 'next/link'
 import { updateEvent } from '../../actions'
-import type { CalendarEvent, AccompanimentFeeSetting } from '@/lib/types'
+import type { CalendarEvent, AccompanimentFeeSetting, Attachment } from '@/lib/types'
+import AttachmentList from '@/app/(main)/_components/AttachmentList'
 
 const PAYMENT_METHODS = [
   '口座振替', 'クレジットカード', 'コンビニ支払', 'ATM支払', 'ネットバンク', '電子マネー',
@@ -44,14 +45,17 @@ export default function EditEventForm({
   event,
   role,
   accompanimentFees,
+  attachments,
 }: {
   event: CalendarEvent
   role: string
   accompanimentFees: AccompanimentFeeSetting[]
+  attachments: Attachment[]
 }) {
   const targets = role === 'admin' || role === 'coach' ? ALL_TARGETS : MEMBER_TARGETS
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState(event.title)
   const [eventType, setEventType] = useState(event.event_type as string)
@@ -134,6 +138,8 @@ export default function EditEventForm({
       }
       fd.set('accompaniment_type', accompType)
     }
+
+    Array.from(fileInputRef.current?.files ?? []).forEach(f => fd.append('attachments', f))
 
     startTransition(async () => {
       const result = await updateEvent(event.id, fd)
@@ -422,6 +428,28 @@ export default function EditEventForm({
           placeholder="場所・持ち物など"
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent resize-none"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-[#1A3666] mb-2">添付ファイル</label>
+        {attachments.length > 0 && (
+          <div className="mb-2">
+            <AttachmentList
+              attachments={attachments}
+              canDelete={true}
+              entityType="event"
+              entityId={event.id}
+            />
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,application/pdf"
+          className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1A3666] file:text-white hover:file:bg-[#2A52A0] file:cursor-pointer"
+        />
+        <p className="text-xs text-gray-400 mt-1">PDF・画像ファイルを添付できます（複数可）</p>
       </div>
 
       <div className="flex gap-3 pt-2">

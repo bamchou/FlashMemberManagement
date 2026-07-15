@@ -23,6 +23,49 @@ function jstDateToISO(dateStr: string, endOfDay = false): string {
 
 export type EventFormState = { error: string } | undefined
 
+async function uploadAttachmentFiles(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  entityType: 'event' | 'announcement',
+  entityId: string,
+  files: FormDataEntryValue[],
+  userId: string,
+): Promise<string | null> {
+  const validEntries = files.filter(e => typeof e !== 'string' && e.size > 0)
+  if (validEntries.length === 0) return null
+
+  const adminSupabase = createAdminClient()
+
+  for (const entry of validEntries) {
+    const file = entry as File
+    const fileName = file.name ?? 'attachment'
+    const ext = fileName.split('.').pop()?.toLowerCase() ?? 'bin'
+    const path = `${entityType}s/${entityId}/${Date.now()}.${ext}`
+    const arrayBuffer = await file.arrayBuffer()
+    const { error: uploadError } = await adminSupabase.storage
+      .from('attachments')
+      .upload(path, arrayBuffer, { contentType: file.type || 'application/octet-stream' })
+    if (uploadError) {
+      console.error('[uploadAttachmentFiles] storage upload error:', uploadError)
+      return `ファイル「${fileName}」のアップロードに失敗しました: ${uploadError.message}`
+    }
+    const { data: { publicUrl } } = adminSupabase.storage.from('attachments').getPublicUrl(path)
+    const { error: dbError } = await supabase.from('attachments').insert({
+      entity_type: entityType,
+      entity_id: entityId,
+      file_name: fileName,
+      storage_path: path,
+      file_url: publicUrl,
+      file_size: file.size,
+      created_by: userId,
+    })
+    if (dbError) {
+      console.error('[uploadAttachmentFiles] db insert error:', dbError)
+      return `添付ファイルの保存に失敗しました: ${dbError.message}`
+    }
+  }
+  return null
+}
+
 export async function createEvent(formData: FormData): Promise<EventFormState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -93,16 +136,20 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     accompaniment_fee_per_person = feeRow?.amount_per_person ?? null
   }
 
-  const { error } = await supabase.from('events').insert({
+  const { data: newEvent, error } = await supabase.from('events').insert({
     title, description,
     event_type: event_type as EventType,
     target, start_at, end_at, status,
     is_all_day, venue, singles_fee, doubles_fee,
     accompaniment_type, accompaniment_fee_per_person,
     created_by: user.id,
-  })
+  }).select('id').single()
 
-  if (error) return { error: '予定の登録に失敗しました' }
+  if (error || !newEvent) return { error: '予定の登録に失敗しました' }
+
+  const files = formData.getAll('attachments')
+  const uploadErr = await uploadAttachmentFiles(supabase, 'event', newEvent.id, files, user.id)
+  if (uploadErr) return { error: uploadErr }
 
   revalidatePath('/calendar')
   redirect('/calendar')
@@ -204,6 +251,10 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
 
   if (error) return { error: '予定の更新に失敗しました' }
 
+  const files = formData.getAll('attachments')
+  const uploadErr = await uploadAttachmentFiles(supabase, 'event', id, files, user.id)
+  if (uploadErr) return { error: uploadErr }
+
   revalidatePath('/calendar')
   revalidatePath(`/calendar/${id}`)
   redirect('/calendar')
@@ -213,6 +264,17 @@ export async function deleteEvent(id: string): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
+
+  const adminForDelete = createAdminClient()
+  const { data: atts } = await supabase
+    .from('attachments')
+    .select('storage_path')
+    .eq('entity_type', 'event')
+    .eq('entity_id', id)
+  if (atts && atts.length > 0) {
+    await adminForDelete.storage.from('attachments').remove(atts.map((a: { storage_path: string }) => a.storage_path))
+    await supabase.from('attachments').delete().eq('entity_type', 'event').eq('entity_id', id)
+  }
 
   await supabase.from('events').delete().eq('id', id)
   revalidatePath('/calendar')
