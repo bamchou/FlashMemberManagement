@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { calculateGrade, formatDate } from '@/lib/utils/grade'
 import type { Role, Member } from '@/lib/types'
 import VisibilityToggle from './VisibilityToggle'
+import TappablePhoto from './TappablePhoto'
 
 type GradeCategory = '' | 'elementary' | 'middle' | 'high' | 'graduated'
 type VisibilityFilter = '' | 'visible' | 'hidden'
@@ -213,11 +214,11 @@ export default function MemberList({
               className="relative bg-white rounded-xl border-2 border-[#1A3666] p-5 flex items-center gap-4 hover:shadow-md transition-all"
             >
               <Link href={`/members/${member.id}`} className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
-                  {member.photo_url
-                    ? <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover object-top" />
-                    : <span className="text-2xl">👤</span>}
-                </div>
+                <TappablePhoto
+                  src={member.photo_url}
+                  alt={member.full_name}
+                  containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
@@ -258,12 +259,11 @@ export default function MemberList({
               }`}
             >
               <Link href={`/members/${member.id}`} className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
-                  {member.photo_url
-                    ? <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover object-top" />
-                    : <span className="text-2xl">👤</span>
-                  }
-                </div>
+                <TappablePhoto
+                  src={member.photo_url}
+                  alt={member.full_name}
+                  containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
+                />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>

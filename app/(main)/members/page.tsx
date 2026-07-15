@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateAge, calculateExperience, calculateGrade, formatDate } from '@/lib/utils/grade'
 import type { Role, Member, Profile } from '@/lib/types'
 import MemberList from './_components/MemberList'
+import TappablePhoto from './_components/TappablePhoto'
 
 export default async function MembersPage() {
   const supabase = await createClient()
@@ -55,11 +56,11 @@ export default async function MembersPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {coaches.map((coach: Partial<Profile>) => (
               <div key={coach.id} className="bg-white rounded-xl border-2 border-[#1A3666] p-5 flex items-center gap-4">
-                <div className="w-12 h-16 rounded-xl bg-[#1A3666]/10 border-2 border-[#1A3666] flex items-center justify-center shrink-0 overflow-hidden">
-                  {coach.photo_url
-                    ? <img src={coach.photo_url} alt={coach.display_name ?? ''} className="w-full h-full object-cover object-top" />
-                    : <span className="text-2xl">👤</span>}
-                </div>
+                <TappablePhoto
+                  src={coach.photo_url}
+                  alt={coach.display_name ?? ''}
+                  containerClassName="w-12 h-16 rounded-xl bg-[#1A3666]/10 border-2 border-[#1A3666] flex items-center justify-center shrink-0 overflow-hidden"
+                />
                 <div className="min-w-0">
                   <p className="font-bold text-[#1A3666] truncate">{coach.display_name ?? coach.username}</p>
                   {coach.display_name_kana && (
@@ -92,11 +93,12 @@ export default async function MembersPage() {
             {pendingMembers.map((m: Member) => (
               <div key={m.id} className="bg-white rounded-xl border-2 border-orange-300 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-14 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
-                    {m.photo_url
-                      ? <img src={m.photo_url} alt={m.full_name} className="w-full h-full object-cover object-top" />
-                      : <span className="text-xl">👤</span>}
-                  </div>
+                  <TappablePhoto
+                    src={m.photo_url}
+                    alt={m.full_name}
+                    containerClassName="w-10 h-14 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
+                    fallbackSize="text-xl"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-[#1A3666] truncate">{m.full_name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{calculateGrade(m.birth_date)}</p>

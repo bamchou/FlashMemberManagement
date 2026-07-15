@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateGrade, formatDate, calculateExperience } from '@/lib/utils/grade'
 import type { Role, TournamentResult, PrefecturalReinforcement } from '@/lib/types'
 import MemberEventSection from './_components/MemberEventSection'
+import TappablePhoto from '../_components/TappablePhoto'
 import DeleteMemberButton from './_components/DeleteMemberButton'
 import ApprovalButtons from '../_components/ApprovalButtons'
 
@@ -87,13 +88,12 @@ export default async function MemberDetailPage({
         )}
 
         <div className="flex items-center gap-5 mb-5">
-          <div className="w-16 h-24 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden">
-            {member.photo_url ? (
-              <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover object-top" />
-            ) : (
-              <span className="text-4xl">👤</span>
-            )}
-          </div>
+          <TappablePhoto
+            src={member.photo_url}
+            alt={member.full_name}
+            containerClassName="w-16 h-24 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
+            fallbackSize="text-4xl"
+          />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold text-[#1A3666]">{member.full_name}</h1>
