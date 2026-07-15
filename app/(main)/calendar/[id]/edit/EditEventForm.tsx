@@ -71,6 +71,7 @@ export default function EditEventForm({
   const [paymentAmount, setPaymentAmount] = useState(event.payment_amount?.toString() ?? '')
 
   const [venue, setVenue] = useState(event.venue ?? '')
+  const [entryDeadline, setEntryDeadline] = useState(event.entry_deadline ?? '')
   const initSinglesMode: FeeMode = event.singles_fee != null ? 'amount' : 'none'
   const initDoublesMode: FeeMode = event.doubles_fee != null ? 'amount' : 'none'
   const [tournamentScope, setTournamentScope] = useState<'singles' | 'both'>(
@@ -128,6 +129,7 @@ export default function EditEventForm({
 
     if (isTournament) {
       fd.set('venue', venue)
+      fd.set('entry_deadline', entryDeadline)
       fd.set('singles_fee_mode', singlesMode)
       if (singlesMode === 'amount') fd.set('singles_fee', singlesAmount)
       if (tournamentScope === 'both') {
@@ -414,6 +416,17 @@ export default function EditEventForm({
                 なし
               </button>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">申込締切日</label>
+            <input
+              type="date"
+              value={entryDeadline}
+              onChange={e => setEntryDeadline(e.target.value)}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+            />
+            <p className="text-xs text-gray-400 mt-1">この日を過ぎると保護者は参加登録できなくなります</p>
           </div>
         </div>
       )}

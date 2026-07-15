@@ -104,6 +104,9 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
   const venue = event_type === 'tournament'
     ? ((formData.get('venue') as string)?.trim() || null)
     : null
+  const entry_deadline = event_type === 'tournament'
+    ? ((formData.get('entry_deadline') as string)?.trim() || null)
+    : null
 
   // 大会参加費
   let singles_fee: number | null = null
@@ -142,6 +145,7 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     target, start_at, end_at, status,
     is_all_day, venue, singles_fee, doubles_fee,
     accompaniment_type, accompaniment_fee_per_person,
+    entry_deadline,
     created_by: user.id,
   }).select('id').single()
 
@@ -206,6 +210,9 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
   const venue = event_type === 'tournament'
     ? ((formData.get('venue') as string)?.trim() || null)
     : null
+  const entry_deadline = event_type === 'tournament'
+    ? ((formData.get('entry_deadline') as string)?.trim() || null)
+    : null
 
   // 大会参加費
   let singles_fee: number | null = null
@@ -246,6 +253,7 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     payment_amount: event_type === 'practice' && status === 'confirmed' ? payment_amount : null,
     venue, singles_fee, doubles_fee,
     accompaniment_type, accompaniment_fee_per_person,
+    entry_deadline,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 
@@ -295,10 +303,22 @@ export async function addParticipant(
   // 大会は承認待ち、それ以外は即承認
   const { data: event } = await supabase
     .from('events')
-    .select('event_type, singles_fee, doubles_fee, accompaniment_fee_per_person')
+    .select('event_type, singles_fee, doubles_fee, accompaniment_fee_per_person, entry_deadline')
     .eq('id', eventId)
     .single()
   const isTournament = event?.event_type === 'tournament'
+
+  // 申込締切日チェック（管理者・指導者は除外）
+  if (isTournament && event?.entry_deadline) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (profile?.role !== 'admin' && profile?.role !== 'coach') {
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })
+      if (today > event.entry_deadline) {
+        return { error: '申込締切日を過ぎているため、参加登録できません' }
+      }
+    }
+  }
+
   const approval_status = isTournament ? 'pending' : 'approved'
 
   const effectiveCategory = isTournament ? (category ?? 'singles') : null

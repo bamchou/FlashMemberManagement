@@ -200,7 +200,7 @@ function ApproveButton({ eventId, memberId }: { eventId: string; memberId: strin
 
 export default function ParticipantSection({
   eventId, eventType, participants, myMembers, role,
-  singlesFee, doublesFee, accompFeePerPerson,
+  singlesFee, doublesFee, accompFeePerPerson, deadlinePassed = false,
 }: {
   eventId: string
   eventType: string
@@ -210,6 +210,7 @@ export default function ParticipantSection({
   singlesFee?: number | null
   doublesFee?: number | null
   accompFeePerPerson?: number
+  deadlinePassed?: boolean
 }) {
   const participantMap = new Map(participants.map(p => [p.member_id, p]))
   const canRegister = role === 'member'
@@ -234,7 +235,11 @@ export default function ParticipantSection({
       {canRegister && (
         <div className="mb-5">
           <p className="text-xs font-semibold text-gray-500 mb-2">参加するお子様を選択</p>
-          {myMembers.length > 0 ? (
+          {isTournament && deadlinePassed ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600 font-semibold">
+              申込締切日を過ぎているため、参加登録できません
+            </div>
+          ) : myMembers.length > 0 ? (
             <div className="space-y-2">
               {myMembers.map(m => {
                 const entry = participantMap.get(m.id)
@@ -261,7 +266,7 @@ export default function ParticipantSection({
               メンバーを登録して管理者に承認されると、参加登録ができます。
             </p>
           )}
-          {isTournament && myMembers.length > 0 && (
+          {isTournament && !deadlinePassed && myMembers.length > 0 && (
             <p className="text-xs text-orange-500 mt-2">※ 大会参加は管理者・指導者の承認後に確定します</p>
           )}
         </div>

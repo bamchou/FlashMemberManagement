@@ -117,6 +117,7 @@ export type CalendarEvent = {
   doubles_fee: number | null
   accompaniment_type: string | null
   accompaniment_fee_per_person: number | null
+  entry_deadline: string | null
   created_by: string | null
   created_at: string
   updated_at: string

@@ -59,6 +59,9 @@ export default async function EventDetailPage({
   const isPast = e.is_all_day
     ? now > new Date(`${new Date(e.end_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })}T23:59:00+09:00`)
     : now > new Date(e.end_at)
+  // 申込締切日判定（JST基準）
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })
+  const deadlinePassed = e.event_type === 'tournament' && !!e.entry_deadline && today > e.entry_deadline
   // 終了後: 編集不可（全員）、削除は管理者・指導者のみ可
   const canEditEvent = canEdit && !isPast
   const canDeleteEvent = isPast ? isAdminOrCoach : canEdit
@@ -194,6 +197,23 @@ export default async function EventDetailPage({
               <p className="text-sm text-[#1A3666]">{e.venue}</p>
             </div>
           )}
+          {e.event_type === 'tournament' && e.entry_deadline && (
+            <div className="flex items-start gap-3">
+              <span className="text-gray-400 w-5 mt-0.5 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-[#1A3666]">
+                  申込締切日：{new Date(e.entry_deadline + 'T00:00:00+09:00').toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+                </span>
+                {deadlinePassed && (
+                  <span className="text-xs font-bold text-red-500 border border-red-300 px-2 py-0.5 rounded-full">締切済み</span>
+                )}
+              </div>
+            </div>
+          )}
           {e.event_type === 'tournament' && (e.singles_fee != null || e.doubles_fee != null || accompFeeLabel) && (
             <div className="flex items-start gap-3">
               <span className="text-gray-400 w-5 mt-0.5 shrink-0">
@@ -309,6 +329,7 @@ export default async function EventDetailPage({
         singlesFee={e.singles_fee}
         doublesFee={e.doubles_fee}
         accompFeePerPerson={accompFeePerPerson}
+        deadlinePassed={deadlinePassed}
       />
     </div>
   )
