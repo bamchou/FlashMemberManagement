@@ -357,16 +357,6 @@ export default async function TournamentAccountingPage({
                           </tr>
                         ))}
                     </tbody>
-                    {summary.participations.length > 1 && (
-                      <tfoot className="border-t-2 border-[#EAE0A8] bg-[#FFFDF0]">
-                        <tr>
-                          <td colSpan={3} className="px-4 py-2.5 text-xs font-bold text-gray-500 text-right">合計</td>
-                          <td className="px-4 py-2.5 text-right font-bold text-[#1A3666]">
-                            ¥{summary.totalFee.toLocaleString()}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    )}
                   </table>
                 </div>
 
@@ -393,12 +383,6 @@ export default async function TournamentAccountingPage({
                         </p>
                       </div>
                     ))}
-                  {summary.participations.length > 1 && (
-                    <div className="px-4 py-3 bg-[#FFFDF0] flex items-center justify-between">
-                      <p className="text-xs font-bold text-gray-500">合計</p>
-                      <p className="font-bold text-[#1A3666]">¥{summary.totalFee.toLocaleString()}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             ))
