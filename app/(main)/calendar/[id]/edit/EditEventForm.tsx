@@ -67,9 +67,7 @@ export default function EditEventForm({
   const [startDate, setStartDate] = useState(isoToJSTDate(event.start_at))
   const [endDate, setEndDate] = useState(isoToJSTDate(event.end_at))
   const [description, setDescription] = useState(event.description ?? '')
-  const [paymentMode, setPaymentMode] = useState<'none' | 'amount'>(
-    event.payment_amount != null || event.payment_method ? 'amount' : 'none'
-  )
+  const [paymentMode, setPaymentMode] = useState<'none' | 'amount'>('amount')
   const [paymentMethod, setPaymentMethod] = useState(event.payment_method ?? '')
   const [paymentAmount, setPaymentAmount] = useState(event.payment_amount?.toString() ?? '')
 
