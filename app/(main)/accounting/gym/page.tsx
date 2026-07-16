@@ -362,16 +362,6 @@ export default async function GymFeesPage({
                         </tr>
                       ))}
                     </tbody>
-                    {summary.confirmedCount > 0 && (
-                      <tfoot className="border-t-2 border-[#EAE0A8] bg-[#FFFDF0]">
-                        <tr>
-                          <td colSpan={4} className="px-4 py-2.5 text-xs font-bold text-gray-500 text-right">確定分合計</td>
-                          <td className="px-4 py-2.5 text-right font-bold text-[#1A3666]">
-                            ¥{summary.totalAmount.toLocaleString()}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    )}
                   </table>
                 </div>
 
@@ -399,12 +389,6 @@ export default async function GymFeesPage({
                       </div>
                     </div>
                   ))}
-                  {summary.confirmedCount > 0 && (
-                    <div className="px-4 py-3 bg-[#FFFDF0] flex items-center justify-between">
-                      <p className="text-xs font-bold text-gray-500">確定分合計</p>
-                      <p className="font-bold text-[#1A3666]">¥{summary.totalAmount.toLocaleString()}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             ))
