@@ -82,13 +82,33 @@ export default function EventForm({
   const [doublesAmount, setDoublesAmount] = useState('')
   const [accompType, setAccompType] = useState('local')
 
+  function handleEventTypeChange(newType: string) {
+    setEventType(newType)
+    if (!isAllDay) {
+      const date = startAt.slice(0, 10)
+      if (newType === 'tournament') {
+        setStartAt(`${date}T08:00`)
+        setEndAt(`${date}T16:00`)
+      } else if (eventType === 'tournament') {
+        setStartAt(`${date}T19:30`)
+        setEndAt(`${date}T21:30`)
+      }
+    }
+  }
+
   function toggleAllDay(val: boolean) {
     if (val) {
       setStartDate(startAt.slice(0, 10))
       setEndDate(endAt.slice(0, 10))
     } else {
-      setStartAt(`${startDate}T19:30`)
-      setEndAt(`${endDate}T21:30`)
+      const date = startDate
+      if (eventType === 'tournament') {
+        setStartAt(`${date}T08:00`)
+        setEndAt(`${date}T16:00`)
+      } else {
+        setStartAt(`${date}T19:30`)
+        setEndAt(`${date}T21:30`)
+      }
     }
     setIsAllDay(val)
   }
@@ -169,7 +189,7 @@ export default function EventForm({
           </label>
           <select
             value={eventType}
-            onChange={e => setEventType(e.target.value)}
+            onChange={e => handleEventTypeChange(e.target.value)}
             className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
           >
             {EVENT_TYPES.map(t => (
