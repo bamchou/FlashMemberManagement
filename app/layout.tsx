@@ -1,9 +1,18 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'バドミントンクラブ メンバー管理システム',
-  description: 'バドミントンクラブのメンバー情報・戦績・連絡事項を管理するシステム',
+  title: 'BC FLASH メンバー管理',
+  description: 'バドミントンクラブ FLASH メンバー管理システム',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'BC FLASH',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#1A3666',
 }
 
 export default function RootLayout({
