@@ -1,3 +1,4 @@
+import { ViewTransition } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Nav from './_components/Nav'
@@ -63,7 +64,9 @@ export default async function MainLayout({
 
       {/* メインコンテンツ */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 pb-28 sm:pb-8">
-        {children}
+        <ViewTransition>
+          {children}
+        </ViewTransition>
       </main>
     </div>
   )

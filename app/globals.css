@@ -10,6 +10,11 @@
   --color-foreground: var(--foreground);
 }
 
+html {
+  background-color: #FFFDF0;
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -18,4 +23,19 @@ body {
     "BIZ UDPGothic", "Meiryo", "Yu Gothic UI",
     sans-serif;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }
