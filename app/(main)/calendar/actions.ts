@@ -195,12 +195,13 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     ? status_raw
     : 'confirmed'
 
-  const payment_method = (formData.get('payment_method') as string | null) || null
-  const payment_amount_raw = formData.get('payment_amount') as string | null
+  const payment_has_amount = formData.get('payment_has_amount') === 'true'
+  const payment_method = payment_has_amount ? ((formData.get('payment_method') as string | null) || null) : null
+  const payment_amount_raw = payment_has_amount ? (formData.get('payment_amount') as string | null) : null
   const payment_amount = payment_amount_raw ? parseInt(payment_amount_raw, 10) : null
 
-  // 練習の確定時は決済情報が必須
-  if (event_type === 'practice' && status === 'confirmed') {
+  // 練習の確定かつ支払金額ありの場合のみ決済情報を検証
+  if (event_type === 'practice' && status === 'confirmed' && payment_has_amount) {
     if (!payment_method) return { error: '決済方法を選択してください' }
     if (!payment_amount_raw || isNaN(payment_amount!)) return { error: '支払い金額を入力してください' }
     if (payment_amount! <= 0) return { error: '支払い金額は1円以上で入力してください' }

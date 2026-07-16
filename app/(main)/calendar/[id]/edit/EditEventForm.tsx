@@ -67,6 +67,9 @@ export default function EditEventForm({
   const [startDate, setStartDate] = useState(isoToJSTDate(event.start_at))
   const [endDate, setEndDate] = useState(isoToJSTDate(event.end_at))
   const [description, setDescription] = useState(event.description ?? '')
+  const [paymentMode, setPaymentMode] = useState<'none' | 'amount'>(
+    event.payment_amount != null || event.payment_method ? 'amount' : 'none'
+  )
   const [paymentMethod, setPaymentMethod] = useState(event.payment_method ?? '')
   const [paymentAmount, setPaymentAmount] = useState(event.payment_amount?.toString() ?? '')
 
@@ -100,8 +103,8 @@ export default function EditEventForm({
   function handleSubmit() {
     if (!title.trim()) { setError('タイトルを入力してください'); return }
     if (isAllDay && endDate < startDate) { setError('終了日は開始日以降にしてください'); return }
-    if (showPayment && !paymentMethod) { setError('決済方法を選択してください'); return }
-    if (showPayment && !paymentAmount) { setError('支払い金額を入力してください'); return }
+    if (showPayment && paymentMode === 'amount' && !paymentMethod) { setError('決済方法を選択してください'); return }
+    if (showPayment && paymentMode === 'amount' && !paymentAmount) { setError('支払い金額を入力してください'); return }
     if (eventType === 'tournament') {
       if (singlesMode === 'amount' && (!singlesAmount || parseInt(singlesAmount, 10) <= 0)) {
         setError('シングルス参加費の金額を入力してください'); return
@@ -123,8 +126,11 @@ export default function EditEventForm({
     fd.set('description', description)
 
     if (showPayment) {
-      fd.set('payment_method', paymentMethod)
-      fd.set('payment_amount', paymentAmount)
+      fd.set('payment_has_amount', String(paymentMode === 'amount'))
+      if (paymentMode === 'amount') {
+        fd.set('payment_method', paymentMethod)
+        fd.set('payment_amount', paymentAmount)
+      }
     }
 
     if (isTournament) {
@@ -230,36 +236,59 @@ export default function EditEventForm({
         <div className="space-y-4 bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4">
           <p className="text-xs font-bold text-[#1A3666]">決済情報</p>
           <div>
-            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
-              決済方法 <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={paymentMethod}
-              onChange={e => setPaymentMethod(e.target.value)}
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-            >
-              <option value="">選択してください</option>
-              {PAYMENT_METHODS.map(m => (
-                <option key={m} value={m}>{m}</option>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-2">支払金額</label>
+            <div className="flex gap-2">
+              {(['none', 'amount'] as const).map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setPaymentMode(m)}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${
+                    paymentMode === m
+                      ? 'bg-[#1A3666] border-[#1A3666] text-white'
+                      : 'bg-white border-gray-200 text-gray-500'
+                  }`}
+                >
+                  {m === 'none' ? '支払金額なし' : '支払金額あり'}
+                </button>
               ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
-              支払い金額 <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                min="1"
-                value={paymentAmount}
-                onChange={e => setPaymentAmount(e.target.value)}
-                placeholder="0"
-                className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
             </div>
           </div>
+          {paymentMode === 'amount' && (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+                  決済方法 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={paymentMethod}
+                  onChange={e => setPaymentMethod(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+                >
+                  <option value="">選択してください</option>
+                  {PAYMENT_METHODS.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+                  支払い金額 <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    value={paymentAmount}
+                    onChange={e => setPaymentAmount(e.target.value)}
+                    placeholder="0"
+                    className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
