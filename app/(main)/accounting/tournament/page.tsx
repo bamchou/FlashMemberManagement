@@ -59,6 +59,24 @@ type UserSummary = {
   totalFee: number
 }
 
+type ChildSummary = {
+  memberId: string
+  memberName: string
+  participations: {
+    event: TournamentEvent
+    category: string | null
+    fee: number | null
+  }[]
+  childTotal: number
+}
+
+type GuardianSummary = {
+  guardianId: string
+  guardianName: string
+  children: ChildSummary[]
+  totalFee: number
+}
+
 export default async function TournamentAccountingPage({
   searchParams,
 }: {
@@ -73,7 +91,7 @@ export default async function TournamentAccountingPage({
   const nowJST = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
   const year  = parseInt(params.year  ?? String(nowJST.getUTCFullYear()), 10)
   const month = parseInt(params.month ?? String(nowJST.getUTCMonth() + 1), 10)
-  const view  = params.view === 'user' ? 'user' : 'tournament'
+  const view  = params.view === 'user' ? 'user' : params.view === 'guardian' ? 'guardian' : 'tournament'
 
   const monthStart = new Date(`${year}-${String(month).padStart(2, '0')}-01T00:00:00+09:00`).toISOString()
   const nextMonth  = month === 12 ? 1 : month + 1
@@ -82,10 +100,11 @@ export default async function TournamentAccountingPage({
 
   const prevMonth = month === 1 ? 12 : month - 1
   const prevYear  = month === 1 ? year - 1 : year
-  const prevHref        = `/accounting/tournament?year=${prevYear}&month=${prevMonth}&view=${view}`
-  const nextHref        = `/accounting/tournament?year=${nextYear}&month=${nextMonth}&view=${view}`
+  const prevHref          = `/accounting/tournament?year=${prevYear}&month=${prevMonth}&view=${view}`
+  const nextHref          = `/accounting/tournament?year=${nextYear}&month=${nextMonth}&view=${view}`
   const tournamentTabHref = `/accounting/tournament?year=${year}&month=${month}&view=tournament`
   const userTabHref       = `/accounting/tournament?year=${year}&month=${month}&view=user`
+  const guardianTabHref   = `/accounting/tournament?year=${year}&month=${month}&view=guardian`
 
   const adminSupabase = createAdminClient()
 
@@ -157,6 +176,71 @@ export default async function TournamentAccountingPage({
     })
   }
 
+  // 保護者別: メンバーの guardian_id で集計
+  let guardianSummaries: GuardianSummary[] = []
+  if (view === 'guardian' && allParticipants.length > 0) {
+    const memberIds = [...new Set(allParticipants.map(p => p.member_id))]
+    const { data: memberRows } = await adminSupabase
+      .from('members')
+      .select('id, full_name, guardian_id')
+      .in('id', memberIds)
+
+    type MemberRow = { id: string; full_name: string; guardian_id: string | null }
+    const memberInfoMap: Record<string, { name: string; guardianId: string | null }> = Object.fromEntries(
+      (memberRows ?? []).map((m: MemberRow) => [m.id, { name: m.full_name, guardianId: m.guardian_id }])
+    )
+
+    const guardianIds = [...new Set(
+      Object.values(memberInfoMap).map(m => m.guardianId).filter((id): id is string => id != null)
+    )]
+
+    let guardianNameMap: Record<string, string> = {}
+    if (guardianIds.length > 0) {
+      const { data: profileRows } = await adminSupabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', guardianIds)
+      guardianNameMap = Object.fromEntries(
+        (profileRows ?? []).map((p: { id: string; display_name: string | null }) => [p.id, p.display_name ?? '不明'])
+      )
+    }
+
+    const guardianMap: Record<string, GuardianSummary> = {}
+    const NO_GUARDIAN = '__none__'
+
+    for (const p of allParticipants) {
+      const event = eventMap[p.event_id]
+      if (!event) continue
+      const fee = p.fee_snapshot ?? calcFee(
+        p.participation_category,
+        event.singles_fee,
+        event.doubles_fee,
+        event.accompaniment_fee_per_person ?? 0,
+      )
+      const memberInfo = memberInfoMap[p.member_id]
+      const guardianId = memberInfo?.guardianId ?? NO_GUARDIAN
+      const guardianName = guardianId !== NO_GUARDIAN ? (guardianNameMap[guardianId] ?? '不明') : '保護者なし'
+
+      if (!guardianMap[guardianId]) {
+        guardianMap[guardianId] = { guardianId, guardianName, children: [], totalFee: 0 }
+      }
+
+      let child = guardianMap[guardianId].children.find(c => c.memberId === p.member_id)
+      if (!child) {
+        child = { memberId: p.member_id, memberName: memberInfo?.name ?? '不明', participations: [], childTotal: 0 }
+        guardianMap[guardianId].children.push(child)
+      }
+      child.participations.push({ event, category: p.participation_category, fee })
+      child.childTotal += fee ?? 0
+      guardianMap[guardianId].totalFee += fee ?? 0
+    }
+
+    guardianSummaries = Object.values(guardianMap).sort((a, b) => {
+      if (b.totalFee !== a.totalFee) return b.totalFee - a.totalFee
+      return a.guardianName.localeCompare(b.guardianName, 'ja')
+    })
+  }
+
   // サマリー数値（両ビュー共通）
   const totalParticipants = allParticipants.filter(p => p.approval_status === 'approved').length
   const totalFeeAll = allParticipants.reduce((sum, p) => {
@@ -208,26 +292,23 @@ export default async function TournamentAccountingPage({
 
       {/* ビュー切替タブ */}
       <div className="flex gap-1 mb-4 border-b border-[#EAE0A8]">
-        <Link
-          href={tournamentTabHref}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
-            view === 'tournament'
-              ? 'border-[#1A3666] text-[#1A3666]'
-              : 'border-transparent text-gray-400 hover:text-[#1A3666]'
-          }`}
-        >
-          大会別
-        </Link>
-        <Link
-          href={userTabHref}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
-            view === 'user'
-              ? 'border-[#1A3666] text-[#1A3666]'
-              : 'border-transparent text-gray-400 hover:text-[#1A3666]'
-          }`}
-        >
-          ユーザー別
-        </Link>
+        {([
+          { href: tournamentTabHref, label: '大会別',   key: 'tournament' },
+          { href: userTabHref,       label: 'メンバー別', key: 'user' },
+          { href: guardianTabHref,   label: '保護者別',  key: 'guardian' },
+        ] as const).map(tab => (
+          <Link
+            key={tab.key}
+            href={tab.href}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+              view === tab.key
+                ? 'border-[#1A3666] text-[#1A3666]'
+                : 'border-transparent text-gray-400 hover:text-[#1A3666]'
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
       </div>
 
       {/* ===== 大会別 ===== */}
@@ -290,7 +371,7 @@ export default async function TournamentAccountingPage({
         </div>
       )}
 
-      {/* ===== ユーザー別 ===== */}
+      {/* ===== メンバー別 ===== */}
       {view === 'user' && (
         <div className="space-y-4">
           {userSummaries.length === 0 ? (
@@ -300,13 +381,10 @@ export default async function TournamentAccountingPage({
           ) : (
             userSummaries.map(summary => (
               <div key={summary.memberId} className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
-                {/* ユーザーヘッダー */}
                 <div className="px-5 py-4 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#1A3666] flex items-center justify-center shrink-0">
-                      <span className="text-white text-xs font-bold">
-                        {summary.name.charAt(0)}
-                      </span>
+                      <span className="text-white text-xs font-bold">{summary.name.charAt(0)}</span>
                     </div>
                     <div>
                       <p className="font-bold text-[#1A3666]">{summary.name}</p>
@@ -315,13 +393,10 @@ export default async function TournamentAccountingPage({
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-400 font-semibold mb-0.5">参加費合計</p>
-                    <p className="text-xl font-bold text-[#1A3666]">
-                      ¥{summary.totalFee.toLocaleString()}
-                    </p>
+                    <p className="text-xl font-bold text-[#1A3666]">¥{summary.totalFee.toLocaleString()}</p>
                   </div>
                 </div>
 
-                {/* 明細テーブル（デスクトップ） */}
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 border-b border-[#EAE0A8]">
@@ -337,14 +412,9 @@ export default async function TournamentAccountingPage({
                         .sort((a, b) => new Date(a.event.start_at).getTime() - new Date(b.event.start_at).getTime())
                         .map(p => (
                           <tr key={p.event.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">
-                              {formatDate(p.event.start_at)}
-                            </td>
+                            <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{formatDate(p.event.start_at)}</td>
                             <td className="px-4 py-3">
-                              <Link
-                                href={`/accounting/tournament/${p.event.id}`}
-                                className="font-semibold text-[#1A3666] hover:underline"
-                              >
+                              <Link href={`/accounting/tournament/${p.event.id}`} className="font-semibold text-[#1A3666] hover:underline">
                                 {p.event.title}
                               </Link>
                             </td>
@@ -360,7 +430,6 @@ export default async function TournamentAccountingPage({
                   </table>
                 </div>
 
-                {/* 明細（モバイル） */}
                 <div className="sm:hidden divide-y divide-[#EAE0A8]">
                   {summary.participations
                     .sort((a, b) => new Date(a.event.start_at).getTime() - new Date(b.event.start_at).getTime())
@@ -368,22 +437,118 @@ export default async function TournamentAccountingPage({
                       <div key={p.event.id} className="px-4 py-3 flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-xs text-gray-500">{formatDate(p.event.start_at)}</p>
-                          <Link
-                            href={`/accounting/tournament/${p.event.id}`}
-                            className="text-sm font-semibold text-[#1A3666] hover:underline truncate block"
-                          >
+                          <Link href={`/accounting/tournament/${p.event.id}`} className="text-sm font-semibold text-[#1A3666] hover:underline truncate block">
                             {p.event.title}
                           </Link>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {p.category ? (CATEGORY_LABEL[p.category] ?? '—') : '—'}
-                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">{p.category ? (CATEGORY_LABEL[p.category] ?? '—') : '—'}</p>
                         </div>
-                        <p className="text-sm font-bold text-[#1A3666] shrink-0">
-                          {p.fee != null ? `¥${p.fee.toLocaleString()}` : '—'}
-                        </p>
+                        <p className="text-sm font-bold text-[#1A3666] shrink-0">{p.fee != null ? `¥${p.fee.toLocaleString()}` : '—'}</p>
                       </div>
                     ))}
                 </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ===== 保護者別 ===== */}
+      {view === 'guardian' && (
+        <div className="space-y-4">
+          {guardianSummaries.length === 0 ? (
+            <div className="bg-white rounded-xl border border-[#EAE0A8] py-16 text-center">
+              <p className="text-gray-400 text-sm">この月の参加登録はありません</p>
+            </div>
+          ) : (
+            guardianSummaries.map(gs => (
+              <div key={gs.guardianId} className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
+                {/* 保護者ヘッダー */}
+                <div className="px-5 py-4 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#1A3666] flex items-center justify-center shrink-0">
+                      <span className="text-white text-xs font-bold">{gs.guardianName.charAt(0)}</span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#1A3666]">{gs.guardianName}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {gs.children.length}名の子供 / {gs.children.reduce((s, c) => s + c.participations.length, 0)}大会参加
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400 font-semibold mb-0.5">参加費合計</p>
+                    <p className="text-xl font-bold text-[#1A3666]">¥{gs.totalFee.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                {/* 子供ごとの明細 */}
+                {gs.children
+                  .sort((a, b) => a.memberName.localeCompare(b.memberName, 'ja'))
+                  .map((child, childIdx) => (
+                    <div key={child.memberId}>
+                      {/* 子供名セパレーター */}
+                      <div className={`px-5 py-2 flex items-center justify-between ${childIdx > 0 ? 'border-t border-[#EAE0A8]' : ''} bg-gray-50`}>
+                        <span className="text-xs font-bold text-[#1A3666]">{child.memberName}</span>
+                        {gs.children.length > 1 && (
+                          <span className="text-xs font-semibold text-gray-500">
+                            小計 ¥{child.childTotal.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* デスクトップテーブル */}
+                      <div className="hidden sm:block overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="border-b border-[#EAE0A8]">
+                            <tr>
+                              <th className="text-left px-4 py-2 font-semibold text-gray-400 text-xs whitespace-nowrap">日付</th>
+                              <th className="text-left px-4 py-2 font-semibold text-gray-400 text-xs">大会名</th>
+                              <th className="text-left px-4 py-2 font-semibold text-gray-400 text-xs whitespace-nowrap">種目</th>
+                              <th className="text-right px-4 py-2 font-semibold text-gray-400 text-xs whitespace-nowrap">参加費</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#EAE0A8]">
+                            {child.participations
+                              .sort((a, b) => new Date(a.event.start_at).getTime() - new Date(b.event.start_at).getTime())
+                              .map(p => (
+                                <tr key={p.event.id} className="hover:bg-gray-50 transition-colors">
+                                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{formatDate(p.event.start_at)}</td>
+                                  <td className="px-4 py-3">
+                                    <Link href={`/accounting/tournament/${p.event.id}`} className="font-semibold text-[#1A3666] hover:underline">
+                                      {p.event.title}
+                                    </Link>
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-700 text-xs whitespace-nowrap">
+                                    {p.category ? (CATEGORY_LABEL[p.category] ?? '—') : '—'}
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-semibold text-[#1A3666]">
+                                    {p.fee != null ? `¥${p.fee.toLocaleString()}` : '—'}
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* モバイル */}
+                      <div className="sm:hidden divide-y divide-[#EAE0A8]">
+                        {child.participations
+                          .sort((a, b) => new Date(a.event.start_at).getTime() - new Date(b.event.start_at).getTime())
+                          .map(p => (
+                            <div key={p.event.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-xs text-gray-500">{formatDate(p.event.start_at)}</p>
+                                <Link href={`/accounting/tournament/${p.event.id}`} className="text-sm font-semibold text-[#1A3666] hover:underline truncate block">
+                                  {p.event.title}
+                                </Link>
+                                <p className="text-xs text-gray-500 mt-0.5">{p.category ? (CATEGORY_LABEL[p.category] ?? '—') : '—'}</p>
+                              </div>
+                              <p className="text-sm font-bold text-[#1A3666] shrink-0">{p.fee != null ? `¥${p.fee.toLocaleString()}` : '—'}</p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
               </div>
             ))
           )}
