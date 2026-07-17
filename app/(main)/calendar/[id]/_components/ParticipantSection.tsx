@@ -173,7 +173,7 @@ function RegisterBlock({
         onClick={register}
         className="text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white transition-colors disabled:opacity-50 shrink-0"
       >
-        {isTransitioning ? '...' : '参加登録'}
+        {isTransitioning ? '...' : isTournament ? '参加希望' : '参加登録'}
       </button>
     </div>
   )
