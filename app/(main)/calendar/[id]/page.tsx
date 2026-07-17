@@ -343,6 +343,7 @@ export default async function EventDetailPage({
       <ParticipantSection
         eventId={id}
         eventType={e.event_type}
+        eventStatus={e.status}
         participants={participants}
         myMembers={myMembers}
         role={role}

@@ -14,6 +14,7 @@ export default function CalendarContainer({
   role,
   currentUserId,
   creatorMap,
+  childEventIds,
 }: {
   year: number
   month: number
@@ -21,6 +22,7 @@ export default function CalendarContainer({
   role: Role
   currentUserId: string
   creatorMap: Record<string, string>
+  childEventIds?: string[]
 }) {
   const [mobileView, setMobileViewState] = useState<'agenda' | 'grid'>('grid')
 
@@ -34,7 +36,7 @@ export default function CalendarContainer({
     localStorage.setItem(STORAGE_KEY, view)
   }
 
-  const props = { year, month, events, role, currentUserId, creatorMap }
+  const props = { year, month, events, role, currentUserId, creatorMap, childEventIds }
 
   return (
     <>

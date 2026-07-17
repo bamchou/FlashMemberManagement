@@ -41,6 +41,7 @@ export default function AgendaView({
   role,
   currentUserId,
   creatorMap = {},
+  childEventIds,
 }: {
   year: number
   month: number
@@ -48,7 +49,9 @@ export default function AgendaView({
   role: Role
   currentUserId: string
   creatorMap?: Record<string, string>
+  childEventIds?: string[]
 }) {
+  const childEventSet = new Set(childEventIds ?? [])
   const router = useRouter()
   const todayStr = toDateStr(new Date())
 
@@ -172,6 +175,9 @@ export default function AgendaView({
                           )}
                           {e.is_game_practice && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">🏸 ゲーム</span>
+                          )}
+                          {childEventSet.has(e.id) && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-600">★ 参加</span>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">

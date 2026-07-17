@@ -60,6 +60,25 @@ export default async function CalendarPage({
     ])
   )
 
+  // 保護者：自分の子供が参加しているイベントIDを取得
+  let childEventIds: string[] = []
+  if (role === 'member') {
+    const { data: children } = await supabase
+      .from('members')
+      .select('id')
+      .eq('guardian_id', user!.id)
+    const childIds = (children ?? []).map((c: { id: string }) => c.id)
+    const eventIds = (events ?? []).map(e => e.id)
+    if (childIds.length > 0 && eventIds.length > 0) {
+      const { data: participations } = await adminSupabase
+        .from('event_participants')
+        .select('event_id')
+        .in('member_id', childIds)
+        .in('event_id', eventIds)
+      childEventIds = [...new Set((participations ?? []).map((p: { event_id: string }) => p.event_id))]
+    }
+  }
+
   return (
     <div className="w-full">
       <CalendarContainer
@@ -69,6 +88,7 @@ export default async function CalendarPage({
         role={role}
         currentUserId={user!.id}
         creatorMap={creatorMap}
+        childEventIds={childEventIds}
       />
     </div>
   )

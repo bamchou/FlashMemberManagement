@@ -239,12 +239,13 @@ function UnapproveButton({ eventId, memberId }: { eventId: string; memberId: str
 }
 
 export default function ParticipantSection({
-  eventId, eventType, participants, myMembers, role,
+  eventId, eventType, eventStatus, participants, myMembers, role,
   singlesFee, doublesFee, accompFeePerPerson, deadlinePassed = false,
   coachAttendances = [], isCoachAttending = false,
 }: {
   eventId: string
   eventType: string
+  eventStatus?: string
   participants: Participant[]
   myMembers: MyMember[]
   role: Role
@@ -258,6 +259,7 @@ export default function ParticipantSection({
   const participantMap = new Map(participants.map(p => [p.member_id, p]))
   const canRegister = role === 'member'
   const isPractice = eventType === 'practice'
+  const isPracticeConfirmed = !isPractice || eventStatus === 'confirmed'
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const isTournament = eventType === 'tournament'
 
@@ -303,7 +305,11 @@ export default function ParticipantSection({
       {canRegister && (
         <div className="mb-5">
           <p className="text-xs font-semibold text-gray-500 mb-2">参加するメンバーを選択</p>
-          {isTournament && deadlinePassed ? (
+          {!isPracticeConfirmed ? (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm text-orange-600 font-semibold">
+              練習が確定してから参加登録できます
+            </div>
+          ) : isTournament && deadlinePassed ? (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600 font-semibold">
               申込締切日を過ぎているため、参加登録できません
             </div>
