@@ -461,7 +461,7 @@ export default async function TournamentAccountingPage({
             </div>
           ) : (
             guardianSummaries.map(gs => (
-              <details key={gs.guardianId} open className="group bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
+              <details key={gs.guardianId} className="group bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
                 {/* 保護者ヘッダー（クリックで折り畳み） */}
                 <summary className="px-5 py-4 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between gap-4 flex-wrap cursor-pointer list-none [&::-webkit-details-marker]:hidden select-none">
                   <div className="flex items-center gap-3">
