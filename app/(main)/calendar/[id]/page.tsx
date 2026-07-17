@@ -105,9 +105,9 @@ export default async function EventDetailPage({
     participation_category: (participantCategoryMap[memberId] ?? null) as string | null,
   }))
 
-  // 参加登録できるメンバー取得（保護者のみ）
+  // 参加登録できるメンバー取得（保護者・コーチ）
   let myMembers: { id: string; full_name: string; photo_url: string | null }[] = []
-  if (isGuardian) {
+  if (isGuardian || role === 'coach') {
     const { data } = await adminSupabase
       .from('members')
       .select('id, full_name, photo_url')

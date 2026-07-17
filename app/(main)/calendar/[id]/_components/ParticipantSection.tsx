@@ -213,7 +213,7 @@ export default function ParticipantSection({
   deadlinePassed?: boolean
 }) {
   const participantMap = new Map(participants.map(p => [p.member_id, p]))
-  const canRegister = role === 'member'
+  const canRegister = role === 'member' || (role === 'coach' && eventType === 'practice')
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const isTournament = eventType === 'tournament'
 
@@ -234,7 +234,7 @@ export default function ParticipantSection({
       {/* 参加登録セクション（保護者のみ） */}
       {canRegister && (
         <div className="mb-5">
-          <p className="text-xs font-semibold text-gray-500 mb-2">参加するお子様を選択</p>
+          <p className="text-xs font-semibold text-gray-500 mb-2">参加するメンバーを選択</p>
           {isTournament && deadlinePassed ? (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600 font-semibold">
               申込締切日を過ぎているため、参加登録できません
