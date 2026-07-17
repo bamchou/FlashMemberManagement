@@ -338,7 +338,7 @@ export default function ParticipantSection({
                     {CATEGORY_LABEL[p.participation_category] ?? p.participation_category}
                   </span>
                 )}
-                {p.approval_status === 'pending' ? (
+                {p.approval_status === 'pending' && (
                   <>
                     <span className="text-[10px] font-bold text-orange-500 border border-orange-300 px-2 py-0.5 rounded-full shrink-0">
                       承認待ち
@@ -347,10 +347,6 @@ export default function ParticipantSection({
                       <ApproveButton eventId={eventId} memberId={p.member_id} />
                     )}
                   </>
-                ) : (
-                  <span className="text-[10px] font-bold text-green-600 border border-green-300 px-2 py-0.5 rounded-full shrink-0">
-                    参加確定
-                  </span>
                 )}
               </div>
             ))}
