@@ -373,6 +373,46 @@ export async function approveParticipant(eventId: string, memberId: string): Pro
   return {}
 }
 
+export async function unapproveParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin' && profile?.role !== 'coach') return { error: '権限がありません' }
+
+  const adminSupabase = createAdminClient()
+  const { error } = await adminSupabase
+    .from('event_participants')
+    .update({ approval_status: 'pending' })
+    .eq('event_id', eventId)
+    .eq('member_id', memberId)
+
+  if (error) return { error: '承認取消に失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
+export async function rejectParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin' && profile?.role !== 'coach') return { error: '権限がありません' }
+
+  const adminSupabase = createAdminClient()
+  const { error } = await adminSupabase
+    .from('event_participants')
+    .delete()
+    .eq('event_id', eventId)
+    .eq('member_id', memberId)
+
+  if (error) return { error: '参加希望取消に失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
 export async function removeParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { addParticipant, removeParticipant, approveParticipant, toggleCoachAttendance } from '../../actions'
+import { addParticipant, removeParticipant, approveParticipant, unapproveParticipant, rejectParticipant, toggleCoachAttendance } from '../../actions'
 import type { Role } from '@/lib/types'
 
 type Participant = {
@@ -197,17 +197,43 @@ function CoachToggleButton({ eventId, isAttending, isPractice }: { eventId: stri
   )
 }
 
-function ApproveButton({ eventId, memberId }: { eventId: string; memberId: string }) {
+function PendingApprovalButtons({ eventId, memberId }: { eventId: string; memberId: string }) {
   const [isPending, startTransition] = useTransition()
+  return (
+    <div className="flex gap-1 shrink-0">
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => startTransition(async () => { await approveParticipant(eventId, memberId) })}
+        className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#1A3666] text-white hover:bg-[#2A52A0] transition-colors disabled:opacity-50"
+      >
+        {isPending ? '...' : '承認'}
+      </button>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => {
+          if (!confirm('参加希望を取り消しますか？')) return
+          startTransition(async () => { await rejectParticipant(eventId, memberId) })
+        }}
+        className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
+      >
+        {isPending ? '...' : 'ゴメンナサイ'}
+      </button>
+    </div>
+  )
+}
 
+function UnapproveButton({ eventId, memberId }: { eventId: string; memberId: string }) {
+  const [isPending, startTransition] = useTransition()
   return (
     <button
       type="button"
       disabled={isPending}
-      onClick={() => startTransition(async () => { await approveParticipant(eventId, memberId) })}
-      className="text-xs font-bold px-3 py-1 rounded-full bg-[#1A3666] text-white hover:bg-[#2A52A0] transition-colors disabled:opacity-50 shrink-0"
+      onClick={() => startTransition(async () => { await unapproveParticipant(eventId, memberId) })}
+      className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition-colors disabled:opacity-50 shrink-0"
     >
-      {isPending ? '...' : '承認する'}
+      {isPending ? '...' : '承認取消'}
     </button>
   )
 }
@@ -340,9 +366,12 @@ export default function ParticipantSection({
                       承認待ち
                     </span>
                     {isAdminOrCoach && (
-                      <ApproveButton eventId={eventId} memberId={p.member_id} />
+                      <PendingApprovalButtons eventId={eventId} memberId={p.member_id} />
                     )}
                   </>
+                )}
+                {p.approval_status === 'approved' && isAdminOrCoach && (
+                  <UnapproveButton eventId={eventId} memberId={p.member_id} />
                 )}
               </div>
             ))}
