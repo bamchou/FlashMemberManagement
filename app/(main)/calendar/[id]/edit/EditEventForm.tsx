@@ -292,22 +292,6 @@ export default function EditEventForm({
         </div>
       )}
 
-      {/* 終日トグル */}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => toggleAllDay(!isAllDay)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            isAllDay ? 'bg-[#1A3666]' : 'bg-gray-200'
-          }`}
-        >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-            isAllDay ? 'translate-x-6' : 'translate-x-1'
-          }`} />
-        </button>
-        <span className="text-sm font-semibold text-[#1A3666]">終日</span>
-      </div>
-
       {/* ゲーム練習トグル（練習のみ） */}
       {eventType === 'practice' && (
         <div className="flex items-center gap-3">
@@ -325,6 +309,22 @@ export default function EditEventForm({
           <span className="text-sm font-semibold text-[#1A3666]">🏸 ゲーム練習</span>
         </div>
       )}
+
+      {/* 終日トグル */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => toggleAllDay(!isAllDay)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            isAllDay ? 'bg-[#1A3666]' : 'bg-gray-200'
+          }`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            isAllDay ? 'translate-x-6' : 'translate-x-1'
+          }`} />
+        </button>
+        <span className="text-sm font-semibold text-[#1A3666]">終日</span>
+      </div>
 
       {isAllDay ? (
         <div className="grid grid-cols-2 gap-4">
