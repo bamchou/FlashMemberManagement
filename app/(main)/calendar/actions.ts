@@ -97,6 +97,8 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     if (new Date(end_at) <= new Date(start_at)) return { error: '終了日時は開始日時より後にしてください' }
   }
 
+  const is_game_practice = event_type === 'practice' && formData.get('is_game_practice') === 'true'
+
   // 練習は仮登録スタート、その他は確定
   const status = event_type === 'practice' ? 'provisional' : 'confirmed'
 
@@ -145,7 +147,7 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     target, start_at, end_at, status,
     is_all_day, venue, singles_fee, doubles_fee,
     accompaniment_type, accompaniment_fee_per_person,
-    entry_deadline,
+    entry_deadline, is_game_practice,
     created_by: user.id,
   }).select('id').single()
 
@@ -189,6 +191,8 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     end_at   = jstToISO(end_at_raw)
     if (new Date(end_at) <= new Date(start_at)) return { error: '終了日時は開始日時より後にしてください' }
   }
+
+  const is_game_practice = event_type === 'practice' && formData.get('is_game_practice') === 'true'
 
   const status_raw = formData.get('status') as string | null
   const status = status_raw === 'provisional' || status_raw === 'confirmed'
@@ -254,7 +258,7 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     payment_amount: event_type === 'practice' && status === 'confirmed' ? payment_amount : null,
     venue, singles_fee, doubles_fee,
     accompaniment_type, accompaniment_fee_per_person,
-    entry_deadline,
+    entry_deadline, is_game_practice,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 

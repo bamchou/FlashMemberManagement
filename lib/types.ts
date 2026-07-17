@@ -118,6 +118,7 @@ export type CalendarEvent = {
   accompaniment_type: string | null
   accompaniment_fee_per_person: number | null
   entry_deadline: string | null
+  is_game_practice: boolean
   created_by: string | null
   created_at: string
   updated_at: string

@@ -71,6 +71,7 @@ export default function EventForm({
   const [startDate, setStartDate] = useState(initDate)
   const [endDate, setEndDate] = useState(initDate)
   const [description, setDescription] = useState('')
+  const [isGamePractice, setIsGamePractice] = useState(false)
 
   // 大会固有
   const [venue, setVenue] = useState('')
@@ -134,6 +135,7 @@ export default function EventForm({
     fd.set('start_at', isAllDay ? startDate : startAt)
     fd.set('end_at', isAllDay ? endDate : endAt)
     fd.set('description', description)
+    fd.set('is_game_practice', String(isGamePractice && eventType === 'practice'))
 
     if (eventType === 'tournament') {
       fd.set('venue', venue)
@@ -229,6 +231,24 @@ export default function EventForm({
         </button>
         <span className="text-sm font-semibold text-[#1A3666]">終日</span>
       </div>
+
+      {/* ゲーム練習トグル（練習のみ） */}
+      {eventType === 'practice' && (
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsGamePractice(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              isGamePractice ? 'bg-[#1A3666]' : 'bg-gray-200'
+            }`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+              isGamePractice ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
+          <span className="text-sm font-semibold text-[#1A3666]">🏸 ゲーム練習</span>
+        </div>
+      )}
 
       {isAllDay ? (
         <div className="grid grid-cols-2 gap-4">

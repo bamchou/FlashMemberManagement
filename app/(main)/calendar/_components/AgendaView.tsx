@@ -170,6 +170,9 @@ export default function AgendaView({
                           {isProvisional && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">仮</span>
                           )}
+                          {e.is_game_practice && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">🏸 ゲーム</span>
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

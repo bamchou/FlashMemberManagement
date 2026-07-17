@@ -253,7 +253,7 @@ export default function CalendarView({
                           <span className="mr-0.5 opacity-50">◀</span>
                         )}
                         <span className="truncate">
-                          {isHidden && '🚫 '}{isProvisional && '仮 '}{band.event.title}
+                          {isHidden && '🚫 '}{isProvisional && '仮 '}{band.event.is_game_practice && '🏸 '}{band.event.title}
                         </span>
                         {!band.isEnd && (
                           <span className="ml-0.5 opacity-50 shrink-0">▶</span>
@@ -327,7 +327,7 @@ export default function CalendarView({
                               className={`block text-[10px] font-semibold px-1 py-0.5 rounded truncate leading-tight ${bg} ${isHidden ? 'opacity-40' : ''}`}
                               title={`${label} ${e.is_all_day ? '終日' : formatTime(e.start_at)} ${e.title}${e.created_by && creatorMap[e.created_by] ? ` (${creatorMap[e.created_by]})` : ''}`}
                             >
-                              {isHidden && '🚫 '}{isProvisional && '仮 '}<span className="hidden sm:inline">{e.is_all_day ? '終日 ' : `${formatTime(e.start_at)} `}</span>{e.title}{e.created_by && creatorMap[e.created_by] ? ` ・${creatorMap[e.created_by]}` : ''}
+                              {isHidden && '🚫 '}{isProvisional && '仮 '}{e.is_game_practice && '🏸 '}<span className="hidden sm:inline">{e.is_all_day ? '終日 ' : `${formatTime(e.start_at)} `}</span>{e.title}{e.created_by && creatorMap[e.created_by] ? ` ・${creatorMap[e.created_by]}` : ''}
                             </Link>
                           )
                         })}
