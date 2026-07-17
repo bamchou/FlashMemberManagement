@@ -365,12 +365,12 @@ export default function ParticipantSection({
                     <span className="text-[10px] font-bold text-orange-500 border border-orange-300 px-2 py-0.5 rounded-full shrink-0">
                       承認待ち
                     </span>
-                    {isAdminOrCoach && (
+                    {isAdminOrCoach && isTournament && (
                       <PendingApprovalButtons eventId={eventId} memberId={p.member_id} />
                     )}
                   </>
                 )}
-                {p.approval_status === 'approved' && isAdminOrCoach && (
+                {p.approval_status === 'approved' && isAdminOrCoach && isTournament && (
                   <UnapproveButton eventId={eventId} memberId={p.member_id} />
                 )}
               </div>
