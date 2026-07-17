@@ -300,9 +300,9 @@ export default async function TournamentDetailPage({
             </div>
           ) : (
             guardianGroups.map(gg => (
-              <div key={gg.guardianId} className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
-                {/* 保護者ヘッダー */}
-                <div className="px-5 py-4 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between gap-4 flex-wrap">
+              <details key={gg.guardianId} open className="group bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
+                {/* 保護者ヘッダー（クリックで折り畳み） */}
+                <summary className="px-5 py-4 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between gap-4 flex-wrap cursor-pointer list-none [&::-webkit-details-marker]:hidden select-none">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#1A3666] flex items-center justify-center shrink-0">
                       <span className="text-white text-xs font-bold">{gg.guardianName.charAt(0)}</span>
@@ -312,11 +312,16 @@ export default async function TournamentDetailPage({
                       <p className="text-xs text-gray-500 mt-0.5">{gg.children.length}名参加</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-400 font-semibold mb-0.5">参加費合計</p>
-                    <p className="text-xl font-bold text-[#1A3666]">¥{gg.totalFee.toLocaleString()}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400 font-semibold mb-0.5">参加費合計</p>
+                      <p className="text-xl font-bold text-[#1A3666]">¥{gg.totalFee.toLocaleString()}</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
-                </div>
+                </summary>
 
                 {/* デスクトップテーブル */}
                 <div className="hidden sm:block overflow-x-auto">
@@ -360,7 +365,7 @@ export default async function TournamentDetailPage({
                     </div>
                   ))}
                 </div>
-              </div>
+              </details>
             ))
           )}
         </div>
