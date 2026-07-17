@@ -146,19 +146,17 @@ function RegisterBlock({
 
   // 未登録
   return (
-    <div className="p-2.5 rounded-lg border border-gray-200 bg-white space-y-2">
-      <div className="flex items-center gap-2.5">
-        <MemberAvatar photoUrl={photoUrl} name={name} />
-        <span className="text-sm font-semibold text-[#1A3666]">{name}</span>
-      </div>
+    <div className="px-3 py-2 rounded-lg border border-gray-200 bg-white flex items-center gap-2.5">
+      <MemberAvatar photoUrl={photoUrl} name={name} />
+      <span className="text-sm font-semibold text-[#1A3666] flex-1">{name}</span>
       {isTournament && availableOptions.length > 1 && (
-        <div className="flex items-center gap-1.5 pl-10">
+        <div className="flex items-center gap-1">
           {availableOptions.map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => setSelectedCategory(opt.value)}
-              className={`text-xs font-semibold px-2.5 py-1 rounded-lg border-2 transition-colors ${
+              className={`text-xs font-semibold px-2 py-1 rounded-lg border-2 transition-colors ${
                 selectedCategory === opt.value
                   ? 'bg-[#1A3666] border-[#1A3666] text-white'
                   : 'bg-white border-gray-200 text-gray-500'
@@ -169,16 +167,14 @@ function RegisterBlock({
           ))}
         </div>
       )}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          disabled={isTransitioning}
-          onClick={register}
-          className="text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white transition-colors disabled:opacity-50"
-        >
-          {isTransitioning ? '...' : '参加登録'}
-        </button>
-      </div>
+      <button
+        type="button"
+        disabled={isTransitioning}
+        onClick={register}
+        className="text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white transition-colors disabled:opacity-50 shrink-0"
+      >
+        {isTransitioning ? '...' : '参加登録'}
+      </button>
     </div>
   )
 }
