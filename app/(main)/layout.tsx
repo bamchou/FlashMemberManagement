@@ -30,7 +30,7 @@ export default async function MainLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#FFFDF0]">
       {/* ヘッダー */}
       <header className="bg-[#1A3666] shadow-md">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
