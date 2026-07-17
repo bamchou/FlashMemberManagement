@@ -389,6 +389,41 @@ export async function removeParticipant(eventId: string, memberId: string): Prom
   return {}
 }
 
+export async function toggleCoachAttendance(eventId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'coach' && profile?.role !== 'admin') return { error: '権限がありません' }
+
+  const adminSupabase = createAdminClient()
+
+  const { data: existing } = await adminSupabase
+    .from('event_coach_attendances')
+    .select('id')
+    .eq('event_id', eventId)
+    .eq('coach_id', user.id)
+    .maybeSingle()
+
+  if (existing) {
+    const { error } = await adminSupabase
+      .from('event_coach_attendances')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('coach_id', user.id)
+    if (error) return { error: '取消に失敗しました' }
+  } else {
+    const { error } = await adminSupabase
+      .from('event_coach_attendances')
+      .insert({ event_id: eventId, coach_id: user.id })
+    if (error) return { error: '参加登録に失敗しました' }
+  }
+
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
 export async function toggleEventVisibility(id: string, isVisible: boolean): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

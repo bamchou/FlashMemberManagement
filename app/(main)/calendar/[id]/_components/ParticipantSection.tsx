@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { addParticipant, removeParticipant, approveParticipant } from '../../actions'
+import { addParticipant, removeParticipant, approveParticipant, toggleCoachAttendance } from '../../actions'
 import type { Role } from '@/lib/types'
 
 type Participant = {
@@ -183,6 +183,24 @@ function RegisterBlock({
   )
 }
 
+function CoachToggleButton({ eventId, isAttending }: { eventId: string; isAttending: boolean }) {
+  const [isPending, startTransition] = useTransition()
+  return (
+    <button
+      type="button"
+      disabled={isPending}
+      onClick={() => startTransition(async () => { await toggleCoachAttendance(eventId) })}
+      className={`text-sm font-bold px-4 py-2 rounded-lg border-2 transition-colors disabled:opacity-50 ${
+        isAttending
+          ? 'bg-[#1A3666] border-[#1A3666] text-white hover:bg-red-600 hover:border-red-600'
+          : 'bg-white border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white'
+      }`}
+    >
+      {isPending ? '...' : isAttending ? '参加予定（取消）' : '練習に参加する'}
+    </button>
+  )
+}
+
 function ApproveButton({ eventId, memberId }: { eventId: string; memberId: string }) {
   const [isPending, startTransition] = useTransition()
 
@@ -201,6 +219,7 @@ function ApproveButton({ eventId, memberId }: { eventId: string; memberId: strin
 export default function ParticipantSection({
   eventId, eventType, participants, myMembers, role,
   singlesFee, doublesFee, accompFeePerPerson, deadlinePassed = false,
+  coachAttendances = [], isCoachAttending = false,
 }: {
   eventId: string
   eventType: string
@@ -211,9 +230,12 @@ export default function ParticipantSection({
   doublesFee?: number | null
   accompFeePerPerson?: number
   deadlinePassed?: boolean
+  coachAttendances?: { coachId: string; name: string }[]
+  isCoachAttending?: boolean
 }) {
   const participantMap = new Map(participants.map(p => [p.member_id, p]))
-  const canRegister = role === 'member' || (role === 'coach' && eventType === 'practice')
+  const canRegister = role === 'member'
+  const isPractice = eventType === 'practice'
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const isTournament = eventType === 'tournament'
 
@@ -230,6 +252,30 @@ export default function ParticipantSection({
         )}
         <span className="text-sm font-semibold text-gray-400">）</span>
       </h2>
+
+      {/* コーチ参加セクション（練習のみ） */}
+      {isPractice && (role === 'coach' || coachAttendances.length > 0) && (
+        <div className="mb-5 space-y-3">
+          {role === 'coach' && (
+            <CoachToggleButton eventId={eventId} isAttending={isCoachAttending} />
+          )}
+          {coachAttendances.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-2">参加予定コーチ</p>
+              <div className="flex flex-wrap gap-2">
+                {coachAttendances.map(c => (
+                  <span
+                    key={c.coachId}
+                    className="text-xs font-semibold bg-[#1A3666]/10 text-[#1A3666] border border-[#1A3666]/20 px-3 py-1 rounded-full"
+                  >
+                    {c.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 参加登録セクション（保護者のみ） */}
       {canRegister && (
