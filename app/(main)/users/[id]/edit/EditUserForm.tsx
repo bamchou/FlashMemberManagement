@@ -46,6 +46,7 @@ export default function EditUserForm({
   const [preview, setPreview] = useState<string | null>(null)
   const [tempPassword, setTempPassword] = useState<string | null>(initialTempPassword)
   const [copied, setCopied] = useState(false)
+  const [copiedBoth, setCopiedBoth] = useState(false)
   const [fields, setFields] = useState({
     username: initialUsername,
     display_name: initialDisplayName,
@@ -92,6 +93,14 @@ export default function EditUserForm({
     navigator.clipboard.writeText(tempPassword).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  function handleCopyBoth() {
+    if (!tempPassword) return
+    navigator.clipboard.writeText(`${fields.username} / ${tempPassword}`).then(() => {
+      setCopiedBoth(true)
+      setTimeout(() => setCopiedBoth(false), 2000)
     })
   }
 
@@ -246,18 +255,33 @@ export default function EditUserForm({
       <div className="pt-5 border-t border-[#EAE0A8] space-y-3">
         <p className="text-sm font-semibold text-[#1A3666]">パスワード</p>
         {tempPassword ? (
-          <div className="flex items-center gap-2">
-            <p className="flex-1 font-mono text-sm bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-3 py-2.5 tracking-widest select-all">
-              {tempPassword}
-            </p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <p className="flex-1 font-mono text-sm bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-3 py-2.5 tracking-widest select-all">
+                {tempPassword}
+              </p>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className={`shrink-0 text-sm font-semibold px-3 py-2.5 rounded-lg transition-colors ${
+                  copied ? 'bg-green-100 text-green-700' : 'bg-[#1A3666] text-white hover:bg-[#2A52A0]'
+                }`}
+              >
+                {copied ? 'コピー済' : 'コピー'}
+              </button>
+            </div>
             <button
               type="button"
-              onClick={handleCopy}
-              className={`shrink-0 text-sm font-semibold px-3 py-2.5 rounded-lg transition-colors ${
-                copied ? 'bg-green-100 text-green-700' : 'bg-[#1A3666] text-white hover:bg-[#2A52A0]'
+              onClick={handleCopyBoth}
+              className={`w-full text-sm font-semibold py-2.5 rounded-lg border transition-colors ${
+                copiedBoth
+                  ? 'bg-green-100 text-green-700 border-green-300'
+                  : 'bg-white text-[#1A3666] border-[#1A3666] hover:bg-[#1A3666] hover:text-white'
               }`}
             >
-              {copied ? 'コピー済' : 'コピー'}
+              {copiedBoth
+                ? `コピー済 （${fields.username} / ${tempPassword}）`
+                : 'ログインID / パスワード をまとめてコピー'}
             </button>
           </div>
         ) : (
