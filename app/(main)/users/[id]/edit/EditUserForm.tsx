@@ -97,6 +97,7 @@ export default function EditUserForm({
 
   const photoSrc = preview ?? initialPhotoUrl
   const today = new Date().toISOString().split('T')[0]
+  const thisMonth = today.slice(0, 7)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -204,10 +205,10 @@ export default function EditUserForm({
           />
         </div>
         <div>
-          <label htmlFor="badminton_start_date" className="block text-sm font-semibold text-[#1A3666] mb-1.5">バドミントン開始年月日</label>
+          <label htmlFor="badminton_start_date" className="block text-sm font-semibold text-[#1A3666] mb-1.5">バドミントン開始年月</label>
           <input
-            id="badminton_start_date" name="badminton_start_date" type="date"
-            value={fields.badminton_start_date} onChange={handleChange} max={today}
+            id="badminton_start_date" name="badminton_start_date" type="month"
+            value={fields.badminton_start_date} onChange={handleChange} max={thisMonth}
             className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
           />
         </div>

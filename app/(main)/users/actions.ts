@@ -128,7 +128,8 @@ export async function updateUser(
   const displayNameKana = (formData.get('display_name_kana') as string | null)?.trim() || null
   const role = formData.get('role') as string
   const birthDate = formData.get('birth_date') as string
-  const badmintonStartDate = formData.get('badminton_start_date') as string
+  const badmintonStartDateRaw = formData.get('badminton_start_date') as string  // YYYY-MM
+  const badmintonStartDate = badmintonStartDateRaw ? `${badmintonStartDateRaw}-01` : ''
   const showOnMembersPage = formData.get('show_on_members_page') === 'on'
   const qualificationsRaw = (formData.get('qualifications') as string | null)?.trim() || null
   const photo = formData.get('photo') as File | null

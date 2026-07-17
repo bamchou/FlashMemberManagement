@@ -38,7 +38,7 @@ export default async function EditUserPage({
           initialRole={target.role}
           initialPhotoUrl={target.photo_url ?? null}
           initialBirthDate={target.birth_date ?? ''}
-          initialBadmintonStartDate={target.badminton_start_date ?? ''}
+          initialBadmintonStartDate={target.badminton_start_date?.slice(0, 7) ?? ''}
           initialShowOnMembersPage={target.show_on_members_page ?? false}
           initialQualifications={target.qualifications ?? null}
           initialTempPassword={target.temp_password ?? null}
