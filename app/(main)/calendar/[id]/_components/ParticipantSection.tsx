@@ -183,7 +183,7 @@ function RegisterBlock({
   )
 }
 
-function CoachToggleButton({ eventId, isAttending }: { eventId: string; isAttending: boolean }) {
+function CoachToggleButton({ eventId, isAttending, isPractice }: { eventId: string; isAttending: boolean; isPractice: boolean }) {
   const [isPending, startTransition] = useTransition()
   return (
     <button
@@ -196,7 +196,7 @@ function CoachToggleButton({ eventId, isAttending }: { eventId: string; isAttend
           : 'bg-white border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white'
       }`}
     >
-      {isPending ? '...' : isAttending ? '参加予定（取消）' : '練習に参加する'}
+      {isPending ? '...' : isAttending ? '参加予定（取消）' : isPractice ? '練習に参加する' : '参加する'}
     </button>
   )
 }
@@ -253,11 +253,11 @@ export default function ParticipantSection({
         <span className="text-sm font-semibold text-gray-400">）</span>
       </h2>
 
-      {/* コーチ参加セクション（練習のみ） */}
-      {isPractice && (role === 'coach' || coachAttendances.length > 0) && (
+      {/* コーチ参加セクション（全イベント） */}
+      {(role === 'coach' || coachAttendances.length > 0) && (
         <div className="mb-5 space-y-3">
           {role === 'coach' && (
-            <CoachToggleButton eventId={eventId} isAttending={isCoachAttending} />
+            <CoachToggleButton eventId={eventId} isAttending={isCoachAttending} isPractice={isPractice} />
           )}
           {coachAttendances.length > 0 && (
             <div>

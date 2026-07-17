@@ -116,26 +116,24 @@ export default async function EventDetailPage({
     myMembers = (data ?? []) as typeof myMembers
   }
 
-  // コーチ参加情報取得（練習のみ）
+  // コーチ参加情報取得（全イベント）
   let coachAttendances: { coachId: string; name: string }[] = []
   let isCoachAttending = false
-  if (e.event_type === 'practice') {
-    const { data: attendances } = await adminSupabase
-      .from('event_coach_attendances')
-      .select('coach_id')
-      .eq('event_id', id)
-    if (attendances && attendances.length > 0) {
-      const coachIds = attendances.map((a: { coach_id: string }) => a.coach_id)
-      const { data: coachProfiles } = await adminSupabase
-        .from('profiles')
-        .select('id, display_name, username')
-        .in('id', coachIds)
-      coachAttendances = coachIds.map((cid: string) => {
-        const p = (coachProfiles ?? []).find((p: { id: string; display_name: string | null; username: string }) => p.id === cid)
-        return { coachId: cid, name: p?.display_name ?? p?.username ?? '不明' }
-      })
-      isCoachAttending = coachIds.includes(user!.id)
-    }
+  const { data: attendances } = await adminSupabase
+    .from('event_coach_attendances')
+    .select('coach_id')
+    .eq('event_id', id)
+  if (attendances && attendances.length > 0) {
+    const coachIds = attendances.map((a: { coach_id: string }) => a.coach_id)
+    const { data: coachProfiles } = await adminSupabase
+      .from('profiles')
+      .select('id, display_name, username')
+      .in('id', coachIds)
+    coachAttendances = coachIds.map((cid: string) => {
+      const p = (coachProfiles ?? []).find((p: { id: string; display_name: string | null; username: string }) => p.id === cid)
+      return { coachId: cid, name: p?.display_name ?? p?.username ?? '不明' }
+    })
+    isCoachAttending = coachIds.includes(user!.id)
   }
 
   // 大会の帯同費を取得
