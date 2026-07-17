@@ -231,7 +231,16 @@ export default async function TournamentDetailPage({
 
       {/* ===== メンバー別 ===== */}
       {view === 'member' && (
-        <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
+        <details className="group bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
+          <summary className="px-5 py-3 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden select-none">
+            <span className="text-sm font-bold text-[#1A3666]">参加メンバー一覧</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">{rows.length}名</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </summary>
           {rows.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-gray-400 text-sm">参加登録がありません</p>
@@ -288,7 +297,7 @@ export default async function TournamentDetailPage({
               </div>
             </>
           )}
-        </div>
+        </details>
       )}
 
       {/* ===== 保護者別 ===== */}
