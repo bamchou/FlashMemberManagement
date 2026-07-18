@@ -13,11 +13,13 @@
 html {
   background-color: #FFFDF0;
   overscroll-behavior: none;
+  color-scheme: light;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  color-scheme: light;
   font-family:
     "Hiragino Kaku Gothic ProN", "Hiragino Sans",
     "BIZ UDPGothic", "Meiryo", "Yu Gothic UI",
