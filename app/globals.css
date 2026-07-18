@@ -26,9 +26,11 @@ body {
   overscroll-behavior: none;
 }
 
-::view-transition-old(root),
+::view-transition-old(root) {
+  animation: none;
+}
 ::view-transition-new(root) {
-  animation-duration: 150ms;
+  animation-duration: 100ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
