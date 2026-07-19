@@ -2,11 +2,12 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { Role, CalendarEvent, Attachment } from '@/lib/types'
+import type { Role, CalendarEvent, Attachment, EventComment } from '@/lib/types'
 import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
 import DeleteEventButton from './_components/DeleteEventButton'
 import ToggleEventVisibilityButton from './_components/ToggleEventVisibilityButton'
 import ParticipantSection from './_components/ParticipantSection'
+import EventCommentSection from './_components/EventCommentSection'
 
 const TARGET_LABEL: Record<string, string> = {
   all:    '全員',
@@ -38,10 +39,11 @@ export default async function EventDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: event }, { data: attachments }] = await Promise.all([
+  const [{ data: profile }, { data: event }, { data: attachments }, { data: rawComments }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('events').select('*').eq('id', id).single(),
     supabase.from('attachments').select('*').eq('entity_type', 'event').eq('entity_id', id).order('created_at', { ascending: true }),
+    supabase.from('event_comments').select('*').eq('event_id', id).order('created_at', { ascending: true }),
   ])
 
   if (!event) notFound()
@@ -68,6 +70,19 @@ export default async function EventDetailPage({
   const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
 
   const adminSupabase = createAdminClient()
+
+  // コメント投稿者プロフィール取得
+  const commentUserIds = [...new Set((rawComments ?? []).map((c: { user_id: string }) => c.user_id))]
+  const { data: commentProfiles } = commentUserIds.length > 0
+    ? await adminSupabase.from('profiles').select('id, display_name, username').in('id', commentUserIds)
+    : { data: [] }
+  const commentProfileMap = Object.fromEntries(
+    (commentProfiles ?? []).map((p: { id: string; display_name: string | null; username: string | null }) => [p.id, p])
+  )
+  const comments = (rawComments ?? []).map((c: EventComment) => ({
+    ...c,
+    profiles: commentProfileMap[c.user_id] ?? null,
+  }))
 
   // 参加者 member_id + approval_status + participation_category 一覧を取得
   const { data: participantRows } = await adminSupabase
@@ -353,6 +368,15 @@ export default async function EventDetailPage({
         deadlinePassed={deadlinePassed}
         coachAttendances={coachAttendances}
         isCoachAttending={isCoachAttending}
+        isPast={isPast}
+      />
+
+      {/* コメントセクション */}
+      <EventCommentSection
+        eventId={id}
+        comments={comments as EventComment[]}
+        currentUserId={user!.id}
+        role={role}
       />
     </div>
   )

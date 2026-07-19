@@ -96,6 +96,16 @@ export type AnnouncementComment = {
   profiles?: { display_name: string | null; username: string | null }
 }
 
+export type EventComment = {
+  id: string
+  event_id: string
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+  profiles?: { display_name: string | null; username: string | null }
+}
+
 export type EventType = 'practice' | 'tournament' | 'event' | 'social' | 'other'
 
 export type CalendarEvent = {

@@ -185,6 +185,16 @@ CREATE TABLE public.push_notification_log (
   UNIQUE (subscription_id, event_id)
 );
 
+-- event_comments
+CREATE TABLE public.event_comments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id uuid NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  content text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- accompaniment_fee_settings
 CREATE TABLE public.accompaniment_fee_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -219,6 +229,7 @@ ALTER TABLE public.announcement_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coach_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_notification_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accompaniment_fee_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.practice_fee_settings ENABLE ROW LEVEL SECURITY;
 
@@ -234,5 +245,6 @@ CREATE POLICY "authenticated_all" ON public.announcement_comments FOR ALL TO aut
 CREATE POLICY "authenticated_all" ON public.coach_notes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_subscriptions FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_notification_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.accompaniment_fee_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.practice_fee_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);

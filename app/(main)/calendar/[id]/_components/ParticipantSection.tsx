@@ -77,12 +77,13 @@ function getAvailableOptions(
 
 function RegisterBlock({
   eventId, memberId, isTournament, isJoining, isPending: isApprovalPending,
-  name, photoUrl, category, singlesFee, doublesFee, accompFeePerPerson,
+  name, photoUrl, category, singlesFee, doublesFee, accompFeePerPerson, isPast,
 }: {
   eventId: string; memberId: string; isTournament: boolean
   isJoining: boolean; isPending: boolean; name: string; photoUrl: string | null
   category: string | null
   singlesFee?: number | null; doublesFee?: number | null; accompFeePerPerson?: number
+  isPast?: boolean
 }) {
   const [isTransitioning, startTransition] = useTransition()
   const [selectedCategory, setSelectedCategory] = useState<Category>(
@@ -103,10 +104,10 @@ function RegisterBlock({
   }
 
   if (isJoining) {
-    const isPending = isTournament && isApprovalPending
+    const isPendingApproval = isTournament && isApprovalPending
     return (
       <div className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
-        isPending ? 'bg-orange-50 border-orange-300' : 'bg-green-50 border-green-300'
+        isPendingApproval ? 'bg-orange-50 border-orange-300' : 'bg-green-50 border-green-300'
       }`}>
         <div className="flex items-center gap-2.5">
           <MemberAvatar photoUrl={photoUrl} name={name} />
@@ -114,7 +115,7 @@ function RegisterBlock({
             <p className="text-sm font-semibold text-[#1A3666]">{name}</p>
             {isTournament && category && (() => {
               const catLabel = CATEGORY_OPTIONS.find(o => o.value === category)?.label
-              const fee = !isPending
+              const fee = !isPendingApproval
                 ? calcFee(category, singlesFee, doublesFee, accompFeePerPerson ?? 0)
                 : null
               return (
@@ -128,23 +129,40 @@ function RegisterBlock({
             })()}
           </div>
         </div>
-        <button
-          type="button"
-          disabled={isTransitioning}
-          onClick={cancel}
-          className={`text-xs font-bold px-3 py-1 rounded-full transition-colors disabled:opacity-50 ${
-            isPending
-              ? 'bg-orange-500 text-white hover:bg-orange-600'
-              : 'bg-green-600 text-white hover:bg-green-700'
-          }`}
-        >
-          {isTransitioning ? '...' : isPending ? '承認待ち（取消）' : '参加予定（取消）'}
-        </button>
+        {isPast ? (
+          <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+            isPendingApproval ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-700'
+          }`}>
+            {isPendingApproval ? '承認待ち' : '参加'}
+          </span>
+        ) : (
+          <button
+            type="button"
+            disabled={isTransitioning}
+            onClick={cancel}
+            className={`text-xs font-bold px-3 py-1 rounded-full transition-colors disabled:opacity-50 ${
+              isPendingApproval
+                ? 'bg-orange-500 text-white hover:bg-orange-600'
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
+          >
+            {isTransitioning ? '...' : isPendingApproval ? '承認待ち（取消）' : '参加予定（取消）'}
+          </button>
+        )}
       </div>
     )
   }
 
   // 未登録
+  if (isPast) {
+    return (
+      <div className="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 flex items-center gap-2.5">
+        <MemberAvatar photoUrl={photoUrl} name={name} />
+        <span className="text-sm font-semibold text-gray-400 flex-1">{name}</span>
+      </div>
+    )
+  }
+
   return (
     <div className="px-3 py-2 rounded-lg border border-gray-200 bg-white flex items-center gap-2.5">
       <MemberAvatar photoUrl={photoUrl} name={name} />
@@ -241,7 +259,7 @@ function UnapproveButton({ eventId, memberId }: { eventId: string; memberId: str
 export default function ParticipantSection({
   eventId, eventType, eventStatus, participants, myMembers, role,
   singlesFee, doublesFee, accompFeePerPerson, deadlinePassed = false,
-  coachAttendances = [], isCoachAttending = false,
+  coachAttendances = [], isCoachAttending = false, isPast = false,
 }: {
   eventId: string
   eventType: string
@@ -255,6 +273,7 @@ export default function ParticipantSection({
   deadlinePassed?: boolean
   coachAttendances?: { coachId: string; name: string }[]
   isCoachAttending?: boolean
+  isPast?: boolean
 }) {
   const participantMap = new Map(participants.map(p => [p.member_id, p]))
   const canRegister = role === 'member'
@@ -280,7 +299,7 @@ export default function ParticipantSection({
       {/* コーチ参加セクション（全イベント） */}
       {(role === 'coach' || coachAttendances.length > 0) && (
         <div className="mb-5 space-y-3">
-          {role === 'coach' && (
+          {role === 'coach' && !isPast && (
             <CoachToggleButton eventId={eventId} isAttending={isCoachAttending} isPractice={isPractice} />
           )}
           {coachAttendances.length > 0 && (
@@ -308,6 +327,30 @@ export default function ParticipantSection({
           {!isPracticeConfirmed ? (
             <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm text-orange-600 font-semibold">
               練習が確定してから参加登録できます
+            </div>
+          ) : isPast ? (
+            <div className="space-y-2">
+              {myMembers.map(m => {
+                const entry = participantMap.get(m.id)
+                return (
+                  <RegisterBlock
+                    key={m.id}
+                    eventId={eventId}
+                    memberId={m.id}
+                    isTournament={isTournament}
+                    isJoining={!!entry}
+                    isPending={entry?.approval_status === 'pending'}
+                    name={m.full_name}
+                    photoUrl={m.photo_url}
+                    category={entry?.participation_category ?? null}
+                    singlesFee={singlesFee}
+                    doublesFee={doublesFee}
+                    accompFeePerPerson={accompFeePerPerson}
+                    isPast={true}
+                  />
+                )
+              })}
+              <p className="text-xs text-gray-400 mt-1">終了した予定のため参加の変更はできません</p>
             </div>
           ) : isTournament && deadlinePassed ? (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600 font-semibold">
@@ -340,7 +383,7 @@ export default function ParticipantSection({
               メンバーを登録して管理者に承認されると、参加登録ができます。
             </p>
           )}
-          {isTournament && !deadlinePassed && myMembers.length > 0 && (
+          {isTournament && !deadlinePassed && !isPast && myMembers.length > 0 && (
             <p className="text-xs text-orange-500 mt-2">※ 大会参加は管理者・指導者の承認後に確定します</p>
           )}
         </div>
