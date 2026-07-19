@@ -34,6 +34,14 @@ body {
 ::view-transition-new(root) {
   animation-duration: 100ms;
 }
+/* plus-lighter (デフォルト) だと old + new が色加算されて水色に見えるため normal に上書き */
+::view-transition-image-pair(root) {
+  mix-blend-mode: normal;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
