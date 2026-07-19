@@ -8,6 +8,7 @@ import MemberEventSection from './_components/MemberEventSection'
 import TappablePhoto from '../_components/TappablePhoto'
 import DeleteMemberButton from './_components/DeleteMemberButton'
 import ApprovalButtons from '../_components/ApprovalButtons'
+import ResubmitButton from '../_components/ResubmitButton'
 
 export default async function MemberDetailPage({
   params,
@@ -34,12 +35,13 @@ export default async function MemberDetailPage({
   const isGuardian = role === 'member'
   const isMyMember = member.guardian_id === user!.id
   const isPending = member.approval_status === 'pending'
+  const isRejected = member.approval_status === 'rejected'
   const oneMonthAgo = new Date()
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
   const isNew = new Date(member.join_date) >= oneMonthAgo
 
-  // 承認待ちメンバーは管理者と担当保護者のみ閲覧可
-  if (isPending && !isAdmin && !isMyMember) notFound()
+  // 承認待ち・取下げメンバーは管理者と担当保護者のみ閲覧可
+  if ((isPending || isRejected) && !isAdmin && !isMyMember) notFound()
 
   // 保護者が自分の子を見ている場合のみ参加登録セクションを表示
   const showEventSection = isGuardian && isMyMember
@@ -84,6 +86,14 @@ export default async function MemberDetailPage({
           <div className="mb-4 bg-orange-50 border border-orange-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
             <span className="text-xs font-bold bg-orange-100 text-orange-600 border border-orange-300 px-2 py-0.5 rounded-full">承認待ち</span>
             <p className="text-sm text-orange-700">このメンバーはまだ承認されていません</p>
+          </div>
+        )}
+        {isRejected && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
+            <span className="text-xs font-bold bg-red-100 text-red-600 border border-red-300 px-2 py-0.5 rounded-full">承認取下げ</span>
+            <p className="text-sm text-red-700">
+              {isMyMember ? '承認が取り下げられました。内容を修正して再度申請してください。' : '承認が取り下げられたメンバーです'}
+            </p>
           </div>
         )}
 
@@ -158,7 +168,7 @@ export default async function MemberDetailPage({
 
         {isAdmin && isPending && (
           <div className="mt-5 pt-5 border-t border-[#EAE0A8]">
-            <p className="text-sm font-semibold text-[#1A3666] mb-2">承認・却下</p>
+            <p className="text-sm font-semibold text-[#1A3666] mb-2">承認・取下げ</p>
             <ApprovalButtons id={id} />
           </div>
         )}
@@ -171,12 +181,13 @@ export default async function MemberDetailPage({
             >
               メンバー情報を編集
             </Link>
+            {isRejected && isGuardian && isMyMember && <ResubmitButton id={id} />}
             {isAdmin && <DeleteMemberButton id={id} name={member.full_name} />}
           </div>
         )}
       </div>
 
-      {!isPending && (
+      {!isPending && !isRejected && (
         <>
           {/* 戦績 */}
           <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">

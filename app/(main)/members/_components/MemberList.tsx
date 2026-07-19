@@ -241,6 +241,11 @@ export default function MemberList({
                   承認待ち
                 </span>
               )}
+              {member.approval_status === 'rejected' && (
+                <span className="absolute top-2 right-2 text-[10px] font-bold bg-red-100 text-red-600 border border-red-300 px-1.5 py-0.5 rounded-full">
+                  取下げ
+                </span>
+              )}
             </div>
           ))}
         </div>

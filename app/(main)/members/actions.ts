@@ -135,15 +135,36 @@ export async function rejectMember(id: string): Promise<void> {
   if (profile?.role !== 'admin') return
 
   const adminSupabase = createAdminClient()
-  const { data: member } = await adminSupabase.from('members').select('photo_url').eq('id', id).single()
-  if (member?.photo_url) {
-    const path = member.photo_url.split('/member-photos/')[1]
-    if (path) await supabase.storage.from('member-photos').remove([path])
-  }
-  const { error: deleteError } = await adminSupabase.from('members').delete().eq('id', id)
-  if (deleteError) throw new Error('却下に失敗しました: ' + deleteError.message)
+  const { error } = await adminSupabase
+    .from('members')
+    .update({ approval_status: 'rejected' })
+    .eq('id', id)
 
+  if (error) throw new Error('承認取下げに失敗しました: ' + error.message)
   revalidatePath('/members')
+  revalidatePath(`/members/${id}`)
+}
+
+export async function resubmitMember(id: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'member') return
+
+  const adminSupabase = createAdminClient()
+  const { data: member } = await adminSupabase.from('members').select('guardian_id').eq('id', id).single()
+  if (member?.guardian_id !== user.id) return
+
+  const { error } = await adminSupabase
+    .from('members')
+    .update({ approval_status: 'pending' })
+    .eq('id', id)
+
+  if (error) throw new Error('再申請に失敗しました: ' + error.message)
+  revalidatePath('/members')
+  revalidatePath(`/members/${id}`)
 }
 
 export async function updateMember(

@@ -44,13 +44,13 @@ export default function ApprovalButtons({ id }: { id: string }) {
                 await rejectMember(id)
                 router.push('/members')
               } catch (e) {
-                setError('削除に失敗しました: ' + String(e))
+                setError('承認取下げに失敗しました: ' + String(e))
               }
             })
           }}
           className="flex-1 py-1.5 text-xs font-bold bg-red-100 text-red-600 border border-red-300 rounded-lg hover:bg-red-200 disabled:opacity-50 transition-colors"
         >
-          {isPendingReject ? '削除中...' : '却下・削除'}
+          {isPendingReject ? '取下げ中...' : '承認取下げ'}
         </button>
       </div>
     </div>
