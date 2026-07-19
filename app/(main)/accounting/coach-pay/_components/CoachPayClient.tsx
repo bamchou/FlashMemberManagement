@@ -151,7 +151,8 @@ export default function CoachPayClient({
   return (
     <div className="space-y-5">
       {/* 月ナビゲーション */}
-      <div className="flex items-center justify-between bg-white rounded-xl border border-[#EAE0A8] px-4 py-3">
+      <div className="flex items-center gap-2">
+        <div className="flex-1 flex items-center justify-between bg-white rounded-xl border border-[#EAE0A8] px-4 py-3">
         <a href={prevHref} className="p-2 text-[#1A3666] hover:bg-[#F5F8FF] rounded-lg transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -162,6 +163,16 @@ export default function CoachPayClient({
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
+        </a>
+        </div>
+        <a
+          href={`/accounting/coach-pay/print?year=${year}&month=${month}`}
+          className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#1A3666]/30 text-[#1A3666] text-xs font-semibold rounded-xl hover:bg-[#F5F8FF] transition-colors shrink-0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          印刷
         </a>
       </div>
 
