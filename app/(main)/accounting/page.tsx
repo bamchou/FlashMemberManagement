@@ -81,6 +81,17 @@ const MENU_ITEMS = [
     ),
   },
   {
+    href: '/accounting/coach-pay-rates',
+    label: '指導者バイト代設定',
+    description: '指導者ごとの練習・大会帯同の単価を一覧で設定します',
+    comingSoon: false,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    ),
+  },
+  {
     href: '/accounting/coach-pay',
     label: '指導者バイト代管理',
     description: '月ごとのバイト代を自動計算して支払い状況を管理します',
