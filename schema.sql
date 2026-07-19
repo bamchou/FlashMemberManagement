@@ -195,6 +195,13 @@ CREATE TABLE public.event_comments (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- calendar_tokens
+CREATE TABLE public.calendar_tokens (
+  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  token uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- bib_requests
 CREATE TABLE public.bib_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -243,6 +250,7 @@ ALTER TABLE public.coach_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_notification_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.calendar_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bib_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accompaniment_fee_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.practice_fee_settings ENABLE ROW LEVEL SECURITY;
@@ -260,6 +268,7 @@ CREATE POLICY "authenticated_all" ON public.coach_notes FOR ALL TO authenticated
 CREATE POLICY "authenticated_all" ON public.push_subscriptions FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_notification_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.calendar_tokens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.bib_requests FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.accompaniment_fee_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.practice_fee_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);

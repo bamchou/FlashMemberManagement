@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Role, CalendarEvent } from '@/lib/types'
 import CalendarContainer from './_components/CalendarContainer'
+import CalendarSyncButton from './_components/CalendarSyncButton'
 
 export default async function CalendarPage({
   searchParams,
@@ -24,6 +25,12 @@ export default async function CalendarPage({
 
   const role = (profile?.role ?? 'member') as Role
   const isAdminOrCoach = role === 'admin' || role === 'coach'
+
+  const { data: calendarToken } = await supabase
+    .from('calendar_tokens')
+    .select('token')
+    .eq('user_id', user!.id)
+    .maybeSingle()
 
   const fetchStart = new Date(year, month - 2, 1)
   const fetchEnd = new Date(year, month + 1, 7)
@@ -81,6 +88,9 @@ export default async function CalendarPage({
 
   return (
     <div className="w-full">
+      <div className="flex justify-end mb-2">
+        <CalendarSyncButton initialToken={calendarToken?.token ?? null} />
+      </div>
       <CalendarContainer
         year={year}
         month={month}
