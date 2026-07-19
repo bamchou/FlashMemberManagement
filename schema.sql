@@ -15,6 +15,8 @@ CREATE TABLE public.profiles (
   show_on_members_page boolean NOT NULL DEFAULT false,
   qualifications text,
   temp_password text,
+  coach_rate_practice integer,
+  coach_rate_tournament integer,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

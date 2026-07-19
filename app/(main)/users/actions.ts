@@ -132,6 +132,12 @@ export async function updateUser(
   const badmintonStartDate = badmintonStartDateRaw ? `${badmintonStartDateRaw}-01` : ''
   const showOnMembersPage = formData.get('show_on_members_page') === 'on'
   const qualificationsRaw = (formData.get('qualifications') as string | null)?.trim() || null
+  const coachRatePracticeRaw = (formData.get('coach_rate_practice') as string | null)?.trim()
+  const coachRateTournamentRaw = (formData.get('coach_rate_tournament') as string | null)?.trim()
+  const coachRatePractice = role === 'coach' && coachRatePracticeRaw
+    ? (parseInt(coachRatePracticeRaw, 10) || null) : null
+  const coachRateTournament = role === 'coach' && coachRateTournamentRaw
+    ? (parseInt(coachRateTournamentRaw, 10) || null) : null
   const photo = formData.get('photo') as File | null
 
   if (!username || !role) return { error: 'ユーザー名・役割は必須です' }
@@ -184,6 +190,8 @@ export async function updateUser(
       badminton_start_date: badmintonStartDate || null,
       show_on_members_page: showOnMembersPage,
       qualifications: (role === 'admin' || role === 'coach') ? qualificationsRaw : null,
+      coach_rate_practice: coachRatePractice,
+      coach_rate_tournament: coachRateTournament,
       ...(photoUrl !== undefined && { photo_url: photoUrl }),
     })
     .eq('id', targetUserId)
