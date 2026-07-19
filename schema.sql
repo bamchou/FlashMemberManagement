@@ -217,6 +217,21 @@ CREATE TABLE public.bib_requests (
   UNIQUE (member_id)
 );
 
+-- coach_monthly_payments
+CREATE TABLE public.coach_monthly_payments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  coach_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  year integer NOT NULL,
+  month integer NOT NULL,
+  amount integer NOT NULL DEFAULT 0,
+  paid_at timestamptz,
+  paid_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  note text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (coach_id, year, month)
+);
+
 -- accompaniment_fee_settings
 CREATE TABLE public.accompaniment_fee_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -254,6 +269,7 @@ ALTER TABLE public.push_notification_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bib_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coach_monthly_payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accompaniment_fee_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.practice_fee_settings ENABLE ROW LEVEL SECURITY;
 
@@ -272,5 +288,6 @@ CREATE POLICY "authenticated_all" ON public.push_notification_log FOR ALL TO aut
 CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.calendar_tokens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.bib_requests FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.coach_monthly_payments FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.accompaniment_fee_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.practice_fee_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
