@@ -33,7 +33,7 @@ export default async function MainLayout({
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFDF0]">
       {/* ヘッダー */}
-      <header className="bg-[#1A3666] shadow-md">
+      <header className="bg-[#1A3666] shadow-md" style={{ viewTransitionName: 'site-header' }}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
           {/* ロゴ */}
           <div className="flex items-center gap-2 mr-4 shrink-0">

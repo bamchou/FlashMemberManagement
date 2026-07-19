@@ -104,7 +104,7 @@ export default function Nav({ role }: { role: Role }) {
       {/* モバイル: 画面下部タブバー */}
       <nav
         className="sm:hidden fixed bottom-0 left-0 right-0 bg-[#1A3666] border-t border-white/10 flex z-50"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', viewTransitionName: 'site-nav' }}
       >
         {items.map(item => {
           const active = pathname.startsWith(item.href)

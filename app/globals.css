@@ -34,9 +34,23 @@ body {
 ::view-transition-new(root) {
   animation-duration: 100ms;
 }
-/* plus-lighter (デフォルト) だと old + new が色加算されて水色に見えるため normal に上書き */
 ::view-transition-image-pair(root) {
   mix-blend-mode: normal;
+}
+
+/* ヘッダー・ボトムナビをトランジション対象から除外して色変化を防ぐ */
+::view-transition-group(site-header),
+::view-transition-group(site-nav) {
+  animation: none;
+  z-index: 200;
+}
+::view-transition-old(site-header),
+::view-transition-old(site-nav) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(site-nav) {
+  animation: none;
 }
 
 * {
