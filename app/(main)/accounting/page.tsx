@@ -70,6 +70,17 @@ const MENU_ITEMS = [
     ),
   },
   {
+    href: '/accounting/bib',
+    label: 'ゼッケン管理',
+    description: 'ゼッケン作成依頼の一覧と発注・渡し済み管理をします',
+    comingSoon: false,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z" />
+      </svg>
+    ),
+  },
+  {
     href: '/accounting/accompaniment',
     label: '帯同費設定',
     description: '大会の帯同費（1人あたり金額）を管理します',

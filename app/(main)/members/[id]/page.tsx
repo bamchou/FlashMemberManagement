@@ -9,6 +9,8 @@ import TappablePhoto from '../_components/TappablePhoto'
 import DeleteMemberButton from './_components/DeleteMemberButton'
 import ApprovalButtons from '../_components/ApprovalButtons'
 import ResubmitButton from '../_components/ResubmitButton'
+import BibRequestButton from '../_components/BibRequestButton'
+import type { BibRequest } from '@/lib/types'
 
 export default async function MemberDetailPage({
   params,
@@ -20,11 +22,12 @@ export default async function MemberDetailPage({
   const { data: { user } } = await supabase.auth.getUser()
   const adminSupabase = createAdminClient()
 
-  const [{ data: profile }, { data: member }, { data: results }, { data: reinforcements }] = await Promise.all([
+  const [{ data: profile }, { data: member }, { data: results }, { data: reinforcements }, { data: bibRequest }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     adminSupabase.from('members').select('*').eq('id', id).single(),
     adminSupabase.from('tournament_results').select('*').eq('member_id', id).order('tournament_date', { ascending: false }),
     adminSupabase.from('prefectural_reinforcements').select('*').eq('member_id', id).order('selected_date', { ascending: false }),
+    adminSupabase.from('bib_requests').select('*').eq('member_id', id).maybeSingle(),
   ])
 
   if (!member) notFound()
@@ -174,13 +177,30 @@ export default async function MemberDetailPage({
         )}
 
         {(isAdmin || (isGuardian && isMyMember)) && !isPending && (
-          <div className="mt-5 pt-5 border-t border-[#EAE0A8] flex gap-3 flex-wrap">
+          <div className="mt-5 pt-5 border-t border-[#EAE0A8] flex gap-3 flex-wrap items-center">
             <Link
               href={`/members/${id}/edit`}
               className="text-sm font-semibold text-[#1A3666] border border-[#1A3666] px-4 py-2 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
             >
               メンバー情報を編集
             </Link>
+            {/* ゼッケン */}
+            {!isRejected && member.approval_status === 'approved' && (() => {
+              const bib = bibRequest as BibRequest | null
+              if (!bib) {
+                if (isGuardian && isMyMember) return <BibRequestButton memberId={id} />
+                return null
+              }
+              const BIB_LABEL: Record<string, { label: string; cls: string }> = {
+                requested: { label: 'ゼッケン依頼済み', cls: 'text-orange-600 bg-orange-50 border-orange-300' },
+                ordered:   { label: 'ゼッケン発注済み', cls: 'text-blue-600 bg-blue-50 border-blue-300' },
+                delivered: { label: 'ゼッケン作成済み', cls: 'text-green-700 bg-green-50 border-green-300' },
+              }
+              const { label, cls } = BIB_LABEL[bib.status] ?? BIB_LABEL.requested
+              return (
+                <span className={`text-xs font-bold border px-3 py-1.5 rounded-lg ${cls}`}>{label}</span>
+              )
+            })()}
             {isRejected && isGuardian && isMyMember && <ResubmitButton id={id} />}
             {isAdmin && <DeleteMemberButton id={id} name={member.full_name} />}
           </div>

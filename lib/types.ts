@@ -163,3 +163,15 @@ export type CoachNote = {
   created_at: string
   updated_at: string
 }
+
+export type BibStatus = 'requested' | 'ordered' | 'delivered'
+
+export type BibRequest = {
+  id: string
+  member_id: string
+  requested_by: string | null
+  status: BibStatus
+  requested_at: string
+  ordered_at: string | null
+  delivered_at: string | null
+}
