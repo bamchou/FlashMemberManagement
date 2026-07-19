@@ -11,6 +11,7 @@ export default function CalendarSyncButton({ initialToken }: { initialToken: str
   const [origin, setOrigin] = useState('')
   const [iosOpen, setIosOpen] = useState(false)
   const [androidOpen, setAndroidOpen] = useState(false)
+  const [pcOpen, setPcOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => { setOrigin(window.location.origin) }, [])
@@ -177,6 +178,29 @@ export default function CalendarSyncButton({ initialToken }: { initialToken: str
                         <li>Googleカレンダーアプリを開く</li>
                         <li>左上メニュー →「設定」→「カレンダーを追加」</li>
                         <li>「URLから」を選択</li>
+                        <li>コピーしたURLをペーストして「カレンダーを追加」</li>
+                      </ol>
+                    )}
+                  </div>
+
+                  {/* PC（Googleカレンダー）手順 */}
+                  <div className="border border-gray-100 rounded-xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setPcOpen(v => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-[#1A3666] bg-gray-50"
+                    >
+                      <span className="flex items-center gap-2">🖥️ PC（Googleカレンダー）での設定方法</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 transition-transform ${pcOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {pcOpen && (
+                      <ol className="px-4 py-3 space-y-1.5 text-sm text-gray-700 list-decimal list-inside">
+                        <li>上の「コピー」ボタンでURLをコピー</li>
+                        <li>ブラウザで <span className="font-mono text-xs bg-gray-100 px-1 rounded">calendar.google.com</span> を開く</li>
+                        <li>左側「他のカレンダー」の横にある「＋」をクリック</li>
+                        <li>「URLから追加」を選択</li>
                         <li>コピーしたURLをペーストして「カレンダーを追加」</li>
                       </ol>
                     )}
