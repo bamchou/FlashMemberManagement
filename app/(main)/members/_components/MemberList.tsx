@@ -213,12 +213,12 @@ export default function MemberList({
               key={member.id}
               className="relative bg-white rounded-xl border-2 border-[#1A3666] p-5 flex items-center gap-4 hover:shadow-md transition-all"
             >
+              <TappablePhoto
+                src={member.photo_url}
+                alt={member.full_name}
+                containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
+              />
               <Link href={`/members/${member.id}`} className="flex items-center gap-4 flex-1 min-w-0">
-                <TappablePhoto
-                  src={member.photo_url}
-                  alt={member.full_name}
-                  containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
-                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>
@@ -263,12 +263,12 @@ export default function MemberList({
                   : 'border-gray-200 opacity-50'
               }`}
             >
+              <TappablePhoto
+                src={member.photo_url}
+                alt={member.full_name}
+                containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
+              />
               <Link href={`/members/${member.id}`} className="flex items-center gap-4 flex-1 min-w-0">
-                <TappablePhoto
-                  src={member.photo_url}
-                  alt={member.full_name}
-                  containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
-                />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="font-bold text-[#1A3666] truncate">{member.full_name}</p>

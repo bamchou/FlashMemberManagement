@@ -73,6 +73,9 @@ export default function EventForm({
   const [description, setDescription] = useState('')
   const [isGamePractice, setIsGamePractice] = useState(false)
 
+  // イベント固有
+  const [eventPaymentAmount, setEventPaymentAmount] = useState('')
+
   // 大会固有
   const [venue, setVenue] = useState('')
   const [entryDeadline, setEntryDeadline] = useState('')
@@ -136,6 +139,11 @@ export default function EventForm({
     fd.set('end_at', isAllDay ? endDate : endAt)
     fd.set('description', description)
     fd.set('is_game_practice', String(isGamePractice && eventType === 'practice'))
+
+    if (eventType === 'event' || eventType === 'social') {
+      if (venue.trim()) fd.set('venue', venue)
+      if (eventPaymentAmount) fd.set('event_payment_amount', eventPaymentAmount)
+    }
 
     if (eventType === 'tournament') {
       fd.set('venue', venue)
@@ -299,6 +307,38 @@ export default function EventForm({
               onChange={e => setEndAt(e.target.value)}
               className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
             />
+          </div>
+        </div>
+      )}
+
+      {/* イベント・親睦会情報（会場・参加費） */}
+      {(eventType === 'event' || eventType === 'social') && (
+        <div className="space-y-4 bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4">
+          <p className="text-xs font-bold text-[#1A3666]">{eventType === 'social' ? '親睦会情報' : 'イベント情報'}</p>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">場所</label>
+            <input
+              type="text"
+              value={venue}
+              onChange={e => setVenue(e.target.value)}
+              lang="ja"
+              placeholder="例）○○市民センター"
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費</label>
+            <div className="relative max-w-[200px]">
+              <input
+                type="number"
+                min="0"
+                value={eventPaymentAmount}
+                onChange={e => setEventPaymentAmount(e.target.value)}
+                placeholder="0"
+                className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+            </div>
           </div>
         </div>
       )}

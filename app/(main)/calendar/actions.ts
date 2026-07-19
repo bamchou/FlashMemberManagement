@@ -102,10 +102,21 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
   // 練習は仮登録スタート、その他は確定
   const status = event_type === 'practice' ? 'provisional' : 'confirmed'
 
-  // 大会固有フィールド
-  const venue = event_type === 'tournament'
+  // 大会・イベント・親睦会共通フィールド
+  const venue = (event_type === 'tournament' || event_type === 'event' || event_type === 'social')
     ? ((formData.get('venue') as string)?.trim() || null)
     : null
+
+  // イベント・親睦会参加費
+  let event_payment_amount: number | null = null
+  if (event_type === 'event' || event_type === 'social') {
+    const raw = (formData.get('event_payment_amount') as string)?.trim()
+    if (raw) {
+      const parsed = parseInt(raw, 10)
+      event_payment_amount = isNaN(parsed) ? null : parsed
+    }
+  }
+
   const entry_deadline = event_type === 'tournament'
     ? ((formData.get('entry_deadline') as string)?.trim() || null)
     : null
@@ -146,6 +157,7 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     event_type: event_type as EventType,
     target, start_at, end_at, status,
     is_all_day, venue, singles_fee, doubles_fee,
+    payment_amount: event_payment_amount,
     accompaniment_type, accompaniment_fee_per_person,
     entry_deadline, is_game_practice,
     created_by: user.id,
@@ -211,10 +223,21 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     if (payment_amount! <= 0) return { error: '支払い金額は1円以上で入力してください' }
   }
 
-  // 大会固有フィールド
-  const venue = event_type === 'tournament'
+  // 大会・イベント・親睦会共通フィールド
+  const venue = (event_type === 'tournament' || event_type === 'event' || event_type === 'social')
     ? ((formData.get('venue') as string)?.trim() || null)
     : null
+
+  // イベント・親睦会参加費
+  let event_payment_amount: number | null = null
+  if (event_type === 'event' || event_type === 'social') {
+    const raw = (formData.get('event_payment_amount') as string)?.trim()
+    if (raw) {
+      const parsed = parseInt(raw, 10)
+      event_payment_amount = isNaN(parsed) ? null : parsed
+    }
+  }
+
   const entry_deadline = event_type === 'tournament'
     ? ((formData.get('entry_deadline') as string)?.trim() || null)
     : null
@@ -250,12 +273,17 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
     accompaniment_fee_per_person = feeRow?.amount_per_person ?? null
   }
 
+  const resolved_payment_amount =
+    event_type === 'practice' && status === 'confirmed' ? payment_amount :
+    (event_type === 'event' || event_type === 'social') ? event_payment_amount :
+    null
+
   const { error } = await supabase.from('events').update({
     title, description,
     event_type: event_type as EventType,
     target, start_at, end_at, status, is_all_day,
     payment_method: event_type === 'practice' && status === 'confirmed' ? payment_method : null,
-    payment_amount: event_type === 'practice' && status === 'confirmed' ? payment_amount : null,
+    payment_amount: resolved_payment_amount,
     venue, singles_fee, doubles_fee,
     accompaniment_type, accompaniment_fee_per_person,
     entry_deadline, is_game_practice,

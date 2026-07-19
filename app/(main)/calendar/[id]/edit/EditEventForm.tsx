@@ -72,6 +72,9 @@ export default function EditEventForm({
   const [paymentAmount, setPaymentAmount] = useState(event.payment_amount?.toString() ?? '')
 
   const [venue, setVenue] = useState(event.venue ?? '')
+  const [eventPaymentAmount, setEventPaymentAmount] = useState(
+    (event.event_type === 'event' || event.event_type === 'social') ? (event.payment_amount?.toString() ?? '') : ''
+  )
   const [entryDeadline, setEntryDeadline] = useState(event.entry_deadline ?? '')
   const initSinglesMode: FeeMode = event.singles_fee != null ? 'amount' : 'none'
   const initDoublesMode: FeeMode = event.doubles_fee != null ? 'amount' : 'none'
@@ -131,6 +134,11 @@ export default function EditEventForm({
         fd.set('payment_method', paymentMethod)
         fd.set('payment_amount', paymentAmount)
       }
+    }
+
+    if (eventType === 'event' || eventType === 'social') {
+      if (venue.trim()) fd.set('venue', venue)
+      if (eventPaymentAmount) fd.set('event_payment_amount', eventPaymentAmount)
     }
 
     if (isTournament) {
@@ -375,6 +383,38 @@ export default function EditEventForm({
               onChange={e => setEndAt(e.target.value)}
               className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
             />
+          </div>
+        </div>
+      )}
+
+      {/* イベント・親睦会情報（会場・参加費） */}
+      {(eventType === 'event' || eventType === 'social') && (
+        <div className="space-y-4 bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4">
+          <p className="text-xs font-bold text-[#1A3666]">{eventType === 'social' ? '親睦会情報' : 'イベント情報'}</p>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">場所</label>
+            <input
+              type="text"
+              value={venue}
+              onChange={e => setVenue(e.target.value)}
+              lang="ja"
+              placeholder="例）○○市民センター"
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費</label>
+            <div className="relative max-w-[200px]">
+              <input
+                type="number"
+                min="0"
+                value={eventPaymentAmount}
+                onChange={e => setEventPaymentAmount(e.target.value)}
+                placeholder="0"
+                className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+            </div>
           </div>
         </div>
       )}
