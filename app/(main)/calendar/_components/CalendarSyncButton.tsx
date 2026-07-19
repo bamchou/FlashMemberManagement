@@ -173,13 +173,19 @@ export default function CalendarSyncButton({ initialToken }: { initialToken: str
                       </svg>
                     </button>
                     {androidOpen && (
-                      <ol className="px-4 py-3 space-y-1.5 text-sm text-gray-700 list-decimal list-inside">
-                        <li>上の「コピー」ボタンでURLをコピー</li>
-                        <li>Googleカレンダーアプリを開く</li>
-                        <li>左上メニュー →「設定」→「カレンダーを追加」</li>
-                        <li>「URLから」を選択</li>
-                        <li>コピーしたURLをペーストして「カレンダーを追加」</li>
-                      </ol>
+                      <div className="px-4 py-3 space-y-3 text-sm text-gray-700">
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                          GoogleカレンダーアプリにはURLからの追加機能がありません。ブラウザのPC版サイトから設定します。
+                        </p>
+                        <ol className="space-y-1.5 list-decimal list-inside">
+                          <li>上の「コピー」ボタンでURLをコピー</li>
+                          <li>ChromeなどのブラウザでGoogleカレンダーを開く</li>
+                          <li>ブラウザのメニューから「PC版サイト」に切り替える</li>
+                          <li>左側「他のカレンダー」の「＋」→「URLから追加」</li>
+                          <li>コピーしたURLをペーストして「カレンダーを追加」</li>
+                          <li>Googleカレンダーアプリ →「設定」→ 追加したカレンダーの「同期」をオン</li>
+                        </ol>
+                      </div>
                     )}
                   </div>
 
