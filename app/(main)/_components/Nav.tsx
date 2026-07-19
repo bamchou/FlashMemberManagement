@@ -75,53 +75,58 @@ const NAV_ITEMS: NavItem[] = [
   },
 ]
 
+/** デスクトップ用: ヘッダー内の横並びナビ */
 export default function Nav({ role }: { role: Role }) {
   const pathname = usePathname()
   const items = NAV_ITEMS.filter(item => item.roles.includes(role))
 
   return (
-    <>
-      {/* デスクトップ: ヘッダー内の横並びナビ */}
-      <nav className="hidden sm:flex items-center gap-1">
-        {items.map(item => {
-          const active = pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-                active
-                  ? 'bg-[#F5C800] text-[#1A3666]'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
+    <nav className="hidden sm:flex items-center gap-1">
+      {items.map(item => {
+        const active = pathname.startsWith(item.href)
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              active
+                ? 'bg-[#F5C800] text-[#1A3666]'
+                : 'text-white/80 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            {item.label}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
 
-      {/* モバイル: 画面下部タブバー */}
-      <nav
-        className="sm:hidden fixed bottom-0 left-0 right-0 bg-[#1A3666] border-t border-white/10 flex z-50"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', viewTransitionName: 'site-nav' }}
-      >
-        {items.map(item => {
-          const active = pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors ${
-                active ? 'text-[#F5C800]' : 'text-white/60'
-              }`}
-            >
-              {item.icon}
-              <span className="text-[10px] font-semibold leading-none">{item.label}</span>
-            </Link>
-          )
-        })}
-      </nav>
-    </>
+/** モバイル用: 画面下部タブバー（header の外で描画してz-indexを確保） */
+export function MobileNavBar({ role }: { role: Role }) {
+  const pathname = usePathname()
+  const items = NAV_ITEMS.filter(item => item.roles.includes(role))
+
+  return (
+    <nav
+      className="sm:hidden fixed bottom-0 left-0 right-0 bg-[#1A3666] border-t border-white/10 flex z-50"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', viewTransitionName: 'site-nav' }}
+    >
+      {items.map(item => {
+        const active = pathname.startsWith(item.href)
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors ${
+              active ? 'text-[#F5C800]' : 'text-white/60'
+            }`}
+          >
+            {item.icon}
+            <span className="text-[10px] font-semibold leading-none">{item.label}</span>
+          </Link>
+        )
+      })}
+    </nav>
   )
 }

@@ -1,7 +1,7 @@
 import { ViewTransition } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Nav from './_components/Nav'
+import Nav, { MobileNavBar } from './_components/Nav'
 import LogoutButton from './_components/LogoutButton'
 import NotificationButton from './_components/NotificationButton'
 import PullToRefresh from './_components/PullToRefresh'
@@ -62,6 +62,9 @@ export default async function MainLayout({
           </div>
         </div>
       </header>
+
+      {/* モバイルボトムナビ: header の外で描画して stacking context を分離 */}
+      <MobileNavBar role={profile.role as Role} />
 
       <PullToRefresh />
 
