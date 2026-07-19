@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Nav from './_components/Nav'
 import LogoutButton from './_components/LogoutButton'
 import NotificationButton from './_components/NotificationButton'
+import PullToRefresh from './_components/PullToRefresh'
 import type { Role } from '@/lib/types'
 
 export default async function MainLayout({
@@ -61,6 +62,8 @@ export default async function MainLayout({
           </div>
         </div>
       </header>
+
+      <PullToRefresh />
 
       {/* メインコンテンツ */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 pb-28 sm:pb-8">
