@@ -9,9 +9,6 @@ export default function CalendarSyncButton({ initialToken }: { initialToken: str
   const [isPending, startTransition] = useTransition()
   const [copied, setCopied] = useState(false)
   const [origin, setOrigin] = useState('')
-  const [iosOpen, setIosOpen] = useState(false)
-  const [androidOpen, setAndroidOpen] = useState(false)
-  const [pcOpen, setPcOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => { setOrigin(window.location.origin) }, [])
@@ -117,100 +114,56 @@ export default function CalendarSyncButton({ initialToken }: { initialToken: str
                 </div>
               ) : (
                 /* 連携済み */
-                <div className="space-y-5">
-                  {/* URL */}
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 mb-2">あなた専用の連携URL</p>
-                    <div className="flex gap-2">
-                      <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 font-mono break-all">
-                        {feedUrl}
+                <div className="space-y-4">
+                  {feedUrl && (
+                    <>
+                      {/* スマートフォン: webcal直接リンク */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-gray-700">📱 スマートフォン（iPhone推奨）</p>
+                        <a
+                          href={feedUrl.replace('https://', 'webcal://')}
+                          className="flex items-center justify-center gap-2 w-full py-3 bg-[#1A3666] text-white text-sm font-semibold rounded-xl hover:bg-[#2A52A0] transition-colors"
+                        >
+                          カレンダーアプリで開く
+                        </a>
+                        <p className="text-[11px] text-gray-500">タップするとカレンダーアプリの追加確認が表示されます</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleCopy}
-                        className="shrink-0 px-3 py-2 bg-[#1A3666] text-white text-xs font-semibold rounded-lg hover:bg-[#2A52A0] transition-colors"
-                      >
-                        {copied ? 'コピー済み✓' : 'コピー'}
-                      </button>
-                    </div>
-                    <p className="text-[11px] text-gray-400 mt-1.5">このURLは他の人に共有しないでください</p>
-                  </div>
 
-                  {/* iPhone手順 */}
-                  <div className="border border-gray-100 rounded-xl overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setIosOpen(v => !v)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-[#1A3666] bg-gray-50"
-                    >
-                      <span className="flex items-center gap-2">🍎 iPhoneでの設定方法</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 transition-transform ${iosOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {iosOpen && (
-                      <ol className="px-4 py-3 space-y-1.5 text-sm text-gray-700 list-decimal list-inside">
-                        <li>上の「コピー」ボタンでURLをコピー</li>
-                        <li>iPhoneの「設定」を開く</li>
-                        <li>「カレンダー」→「アカウント」→「アカウントを追加」</li>
-                        <li>「その他」→「照会するカレンダーを追加」</li>
-                        <li>コピーしたURLをペーストして「次へ」</li>
-                        <li>「保存」で完了</li>
-                      </ol>
-                    )}
-                  </div>
-
-                  {/* Android手順 */}
-                  <div className="border border-gray-100 rounded-xl overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setAndroidOpen(v => !v)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-[#1A3666] bg-gray-50"
-                    >
-                      <span className="flex items-center gap-2">🤖 Androidでの設定方法</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 transition-transform ${androidOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {androidOpen && (
-                      <div className="px-4 py-3 space-y-3 text-sm text-gray-700">
-                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                          GoogleカレンダーアプリにはURLからの追加機能がありません。ブラウザのPC版サイトから設定します。
-                        </p>
-                        <ol className="space-y-1.5 list-decimal list-inside">
-                          <li>上の「コピー」ボタンでURLをコピー</li>
-                          <li>ChromeなどのブラウザでGoogleカレンダーを開く</li>
-                          <li>ブラウザのメニューから「PC版サイト」に切り替える</li>
-                          <li>左側「他のカレンダー」の「＋」→「URLから追加」</li>
-                          <li>コピーしたURLをペーストして「カレンダーを追加」</li>
-                          <li>Googleカレンダーアプリ →「設定」→ 追加したカレンダーの「同期」をオン</li>
-                        </ol>
+                      {/* PC・Googleカレンダー */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-gray-700">🖥️ PC・Googleカレンダー</p>
+                        <a
+                          href={`https://calendar.google.com/calendar/r?cid=${feedUrl.replace('https://', 'webcal://')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border-2 border-[#1A3666] text-[#1A3666] text-sm font-semibold rounded-xl hover:bg-[#1A3666] hover:text-white transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          Googleカレンダーに追加
+                        </a>
                       </div>
-                    )}
-                  </div>
 
-                  {/* PC（Googleカレンダー）手順 */}
-                  <div className="border border-gray-100 rounded-xl overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setPcOpen(v => !v)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-[#1A3666] bg-gray-50"
-                    >
-                      <span className="flex items-center gap-2">🖥️ PC（Googleカレンダー）での設定方法</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 transition-transform ${pcOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {pcOpen && (
-                      <ol className="px-4 py-3 space-y-1.5 text-sm text-gray-700 list-decimal list-inside">
-                        <li>上の「コピー」ボタンでURLをコピー</li>
-                        <li>ブラウザで <span className="font-mono text-xs bg-gray-100 px-1 rounded">calendar.google.com</span> を開く</li>
-                        <li>左側「他のカレンダー」の横にある「＋」をクリック</li>
-                        <li>「URLから追加」を選択</li>
-                        <li>コピーしたURLをペーストして「カレンダーを追加」</li>
-                      </ol>
-                    )}
-                  </div>
+                      {/* URL コピー（手動フォールバック） */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 mb-2">上記でうまくいかない場合</p>
+                        <div className="flex gap-2">
+                          <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 font-mono break-all">
+                            {feedUrl}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCopy}
+                            className="shrink-0 px-3 py-2 bg-[#1A3666] text-white text-xs font-semibold rounded-lg hover:bg-[#2A52A0] transition-colors"
+                          >
+                            {copied ? 'コピー済み✓' : 'コピー'}
+                          </button>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-1.5">URLをコピーしてカレンダーアプリの「URLから追加」に貼り付けてください。URLは他の人に共有しないでください。</p>
+                      </div>
+                    </>
+                  )}
 
                   <p className="text-xs text-gray-400">
                     ※ 予定の更新はカレンダーアプリの自動更新タイミング（数時間〜1日）に依存します
