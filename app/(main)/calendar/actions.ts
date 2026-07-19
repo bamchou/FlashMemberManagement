@@ -21,6 +21,16 @@ function jstDateToISO(dateStr: string, endOfDay = false): string {
   return new Date(dateStr + time + '+09:00').toISOString()
 }
 
+// イベントが終了しているか判定（JST基準）
+function isEventPast(endAt: string, isAllDay: boolean): boolean {
+  const now = new Date()
+  if (isAllDay) {
+    const endDateJST = new Date(endAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })
+    return now > new Date(`${endDateJST}T23:59:00+09:00`)
+  }
+  return now > new Date(endAt)
+}
+
 export type EventFormState = { error: string } | undefined
 
 async function uploadAttachmentFiles(
@@ -333,18 +343,27 @@ export async function addParticipant(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラー' }
 
-  // 大会は承認待ち、それ以外は即承認
-  const { data: event } = await supabase
-    .from('events')
-    .select('event_type, singles_fee, doubles_fee, accompaniment_fee_per_person, entry_deadline')
-    .eq('id', eventId)
-    .single()
+  const [{ data: event }, { data: profile }] = await Promise.all([
+    supabase
+      .from('events')
+      .select('event_type, singles_fee, doubles_fee, accompaniment_fee_per_person, entry_deadline, end_at, is_all_day')
+      .eq('id', eventId)
+      .single(),
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
+  ])
+
+  const isAdmin = profile?.role === 'admin'
+
+  // 終了後ロック（管理者は除外）
+  if (event && !isAdmin && isEventPast(event.end_at, event.is_all_day)) {
+    return { error: '終了した予定のため参加の変更はできません' }
+  }
+
   const isTournament = event?.event_type === 'tournament'
 
   // 申込締切日チェック（管理者・指導者は除外）
   if (isTournament && event?.entry_deadline) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin' && profile?.role !== 'coach') {
+    if (!isAdmin && profile?.role !== 'coach') {
       const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })
       if (today > event.entry_deadline) {
         return { error: '申込締切日を過ぎているため、参加登録できません' }
@@ -450,6 +469,16 @@ export async function removeParticipant(eventId: string, memberId: string): Prom
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラー' }
 
+  const [{ data: event }, { data: profile }] = await Promise.all([
+    supabase.from('events').select('end_at, is_all_day').eq('id', eventId).single(),
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
+  ])
+
+  // 終了後ロック（管理者は除外）
+  if (event && profile?.role !== 'admin' && isEventPast(event.end_at, event.is_all_day)) {
+    return { error: '終了した予定のため参加の変更はできません' }
+  }
+
   const { error } = await supabase
     .from('event_participants')
     .delete()
@@ -466,8 +495,16 @@ export async function toggleCoachAttendance(eventId: string): Promise<{ error?: 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '認証エラー' }
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const [{ data: profile }, { data: event }] = await Promise.all([
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
+    supabase.from('events').select('end_at, is_all_day').eq('id', eventId).single(),
+  ])
   if (profile?.role !== 'coach' && profile?.role !== 'admin') return { error: '権限がありません' }
+
+  // 終了後ロック（管理者は除外）
+  if (event && profile?.role !== 'admin' && isEventPast(event.end_at, event.is_all_day)) {
+    return { error: '終了した予定のため参加の変更はできません' }
+  }
 
   const adminSupabase = createAdminClient()
 
