@@ -11,6 +11,8 @@ type GradeCategory = '' | 'elementary' | 'middle' | 'high' | 'graduated'
 type VisibilityFilter = '' | 'visible' | 'hidden'
 type GenderFilter = '' | '男' | '女'
 
+const WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日'] as const
+
 function isNewMember(joinDateStr: string): boolean {
   const oneMonthAgo = new Date()
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
@@ -84,6 +86,41 @@ function FilterPills<T extends string>({
   )
 }
 
+function MultiFilterPills({
+  label,
+  options,
+  values,
+  onChange,
+}: {
+  label: string
+  options: string[]
+  values: string[]
+  onChange: (v: string[]) => void
+}) {
+  function toggle(v: string) {
+    onChange(values.includes(v) ? values.filter(x => x !== v) : [...values, v])
+  }
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-xs font-semibold text-gray-500 shrink-0">{label}:</span>
+      {options.map(o => (
+        <button
+          key={o}
+          type="button"
+          onClick={() => toggle(o)}
+          className={`text-xs font-semibold w-8 h-7 rounded-full border transition-colors ${
+            values.includes(o)
+              ? 'bg-[#1A3666] text-white border-[#1A3666]'
+              : 'bg-white text-gray-500 border-gray-300 hover:border-[#1A3666] hover:text-[#1A3666]'
+          }`}
+        >
+          {o}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function MemberList({
   members,
   myMembers = [],
@@ -104,6 +141,7 @@ export default function MemberList({
   const [gradeFilter, setGradeFilter] = useState<GradeCategory>('')
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('')
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>(isAdmin ? 'visible' : '')
+  const [practiceDaysFilter, setPracticeDaysFilter] = useState<string[]>([])
 
   const filtered = useMemo(() => {
     // 自分の子は先頭固定表示するため除外
@@ -119,17 +157,22 @@ export default function MemberList({
       if (genderFilter && m.gender !== genderFilter) return false
       if (visibilityFilter === 'visible' && !m.is_visible) return false
       if (visibilityFilter === 'hidden' && m.is_visible) return false
+      if (practiceDaysFilter.length > 0) {
+        const days = m.practice_days ?? []
+        if (!practiceDaysFilter.some(d => days.includes(d))) return false
+      }
       return true
     })
-  }, [members, myMemberIds, keyword, gradeFilter, genderFilter, visibilityFilter])
+  }, [members, myMemberIds, keyword, gradeFilter, genderFilter, visibilityFilter, practiceDaysFilter])
 
-  const hasFilter = keyword || gradeFilter || genderFilter || visibilityFilter
+  const hasFilter = keyword || gradeFilter || genderFilter || visibilityFilter || practiceDaysFilter.length > 0
 
   function resetFilters() {
     setKeyword('')
     setGradeFilter('')
     setGenderFilter('')
     setVisibilityFilter('')
+    setPracticeDaysFilter([])
   }
 
   return (
@@ -181,6 +224,14 @@ export default function MemberList({
 
         {/* 性別 */}
         <FilterPills label="性別" options={GENDER_FILTERS} value={genderFilter} onChange={setGenderFilter} />
+
+        {/* 参加予定曜日（OR条件・複数選択可） */}
+        <MultiFilterPills
+          label="参加予定曜日"
+          options={[...WEEKDAYS]}
+          values={practiceDaysFilter}
+          onChange={setPracticeDaysFilter}
+        />
 
         {/* 表示状態（管理者のみ） */}
         {isAdmin && (
