@@ -33,7 +33,7 @@ export default function TappablePhoto({ src, alt, containerClassName, fallbackSi
         }}
       >
         {src
-          ? <img src={src} alt={alt} className="w-full h-full object-cover object-top" decoding="sync" />
+          ? <img src={src} alt={alt} className="w-full h-full object-cover object-top" decoding="sync" style={{ filter: 'brightness(1)' }} />
           : <span className={fallbackSize}>👤</span>}
       </div>
 

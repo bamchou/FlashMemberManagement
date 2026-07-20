@@ -265,7 +265,7 @@ export default function MemberList({
               className="relative bg-white rounded-xl border-2 border-[#1A3666] p-5 flex items-center gap-4 hover:shadow-md transition-all"
             >
               <TappablePhoto
-                src={null /* TEST: 輝度フラッシュ原因調査 */}
+                src={member.photo_url}
                 alt={member.full_name}
                 containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
               />
@@ -315,7 +315,7 @@ export default function MemberList({
               }`}
             >
               <TappablePhoto
-                src={null /* TEST: 輝度フラッシュ原因調査 */}
+                src={member.photo_url}
                 alt={member.full_name}
                 containerClassName="w-12 h-16 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
               />
