@@ -94,12 +94,11 @@ function MemberDuesRow({
       {/* 月謝合計 */}
       <div className="flex items-center justify-between border-t border-[#EAE0A8] pt-3">
         <div>
-          <p className="text-xs text-gray-400">基本月謝</p>
+          <p className="text-xs text-gray-400">
+            基本月謝{summary.frequency != null && `（週${summary.frequency}回）`}
+          </p>
           <p className="text-sm font-semibold text-gray-600">
             {summary.baseFee != null ? `¥${summary.baseFee.toLocaleString()}` : '未設定'}
-            {summary.frequency != null && (
-              <span className="text-xs font-normal text-gray-400 ml-1">（週{summary.frequency}回）</span>
-            )}
           </p>
         </div>
         <div className="text-right">
