@@ -14,5 +14,5 @@ export function toSupabaseImageUrl(
     '/storage/v1/render/image/public/'
   )
   if (transformed === url) return url // 変換対象外のURLはそのまま返す
-  return `${transformed}?width=${width}&quality=${quality}`
+  return `${transformed}?width=${width}&quality=${quality}&resize=contain`
 }
