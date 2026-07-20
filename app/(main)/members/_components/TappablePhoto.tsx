@@ -33,7 +33,7 @@ export default function TappablePhoto({ src, alt, containerClassName, fallbackSi
         }}
       >
         {src
-          ? <img src={src} alt={alt} className="w-full h-full object-cover object-top" decoding="async" />
+          ? <img src={src} alt={alt} className="w-full h-full object-cover object-top" decoding="sync" />
           : <span className={fallbackSize}>👤</span>}
       </div>
 
