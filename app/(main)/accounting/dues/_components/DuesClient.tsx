@@ -46,8 +46,40 @@ function MemberDuesRow({
     })
   }
 
+  // 支払い済み: コンパクト表示
+  if (isPaid && summary.payment) {
+    return (
+      <div className="bg-white rounded-xl border border-green-300 px-4 py-3 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center overflow-hidden shrink-0">
+          {summary.photoUrl
+            ? <img src={summary.photoUrl} alt={summary.name} className="w-full h-full object-cover" />
+            : <span className="text-xs">👤</span>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-[#1A3666] truncate">{summary.name}</p>
+          <p className="text-xs text-gray-400">
+            支払日: {new Date(summary.payment.paidAt).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-sm font-bold text-green-700">¥{summary.payment.amount.toLocaleString()}</p>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={handleUnpay}
+            className="text-[10px] text-red-400 hover:text-red-600 disabled:opacity-50 transition-colors mt-0.5"
+          >
+            {isPending ? '処理中...' : '未払いに戻す'}
+          </button>
+        </div>
+        <span className="text-xs font-bold text-green-700 bg-green-50 border border-green-300 px-2 py-0.5 rounded-full shrink-0">支払済</span>
+      </div>
+    )
+  }
+
+  // 未払い: 詳細表示
   return (
-    <div className={`bg-white rounded-xl border p-5 space-y-3 ${isPaid ? 'border-green-300' : 'border-[#EAE0A8]'}`}>
+    <div className="bg-white rounded-xl border border-[#EAE0A8] p-5 space-y-3">
       {/* ヘッダー */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -63,11 +95,7 @@ function MemberDuesRow({
             )}
           </div>
         </div>
-        {isPaid ? (
-          <span className="text-xs font-bold text-green-700 bg-green-50 border border-green-300 px-2.5 py-1 rounded-full shrink-0">支払済み</span>
-        ) : (
-          <span className="text-xs font-bold text-gray-400 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full shrink-0">未払い</span>
-        )}
+        <span className="text-xs font-bold text-gray-400 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full shrink-0">未払い</span>
       </div>
 
       {/* 参加回数 */}
@@ -111,39 +139,15 @@ function MemberDuesRow({
         </div>
       </div>
 
-      {/* 支払い済み情報 */}
-      {isPaid && summary.payment && (
-        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs text-green-700">
-          <p>支払額: ¥{summary.payment.amount.toLocaleString()}</p>
-          <p>
-            支払日:{' '}
-            {new Date(summary.payment.paidAt).toLocaleDateString('ja-JP', {
-              timeZone: 'Asia/Tokyo', year: 'numeric', month: 'long', day: 'numeric',
-            })}
-          </p>
-        </div>
-      )}
-
       {/* アクションボタン */}
-      {!isPaid ? (
-        <button
-          type="button"
-          disabled={isPending || summary.totalFee == null}
-          onClick={handlePay}
-          className="w-full py-2 text-sm font-bold bg-[#1A3666] text-white rounded-xl hover:bg-[#2A52A0] disabled:opacity-40 transition-colors"
-        >
-          {isPending ? '処理中...' : '支払い済みにする'}
-        </button>
-      ) : (
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={handleUnpay}
-          className="w-full py-2 text-sm font-semibold text-red-600 border border-red-200 rounded-xl hover:bg-red-50 disabled:opacity-50 transition-colors"
-        >
-          {isPending ? '処理中...' : '未払いに戻す'}
-        </button>
-      )}
+      <button
+        type="button"
+        disabled={isPending || summary.totalFee == null}
+        onClick={handlePay}
+        className="w-full py-2 text-sm font-bold bg-[#1A3666] text-white rounded-xl hover:bg-[#2A52A0] disabled:opacity-40 transition-colors"
+      >
+        {isPending ? '処理中...' : '支払い済みにする'}
+      </button>
     </div>
   )
 }
