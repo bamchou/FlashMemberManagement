@@ -79,14 +79,14 @@ export default function AgendaView({
     <div>
       {/* ヘッダー */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <button
             onClick={goPrev}
             className="w-9 h-9 flex items-center justify-center rounded-lg text-[#1A3666] text-xl font-bold"
           >
             ‹
           </button>
-          <h1 className="text-lg font-bold text-[#1A3666] min-w-[110px] text-center">
+          <h1 className="text-xl font-bold text-[#1A3666] min-w-[120px] text-center">
             {year}年{month}月
           </h1>
           <button
