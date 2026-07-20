@@ -42,7 +42,8 @@ export default function AgendaView({
   currentUserId,
   creatorMap = {},
   childEventIds,
-  viewToggle,
+  mobileView,
+  onSwitchMobileView,
 }: {
   year: number
   month: number
@@ -51,7 +52,8 @@ export default function AgendaView({
   currentUserId: string
   creatorMap?: Record<string, string>
   childEventIds?: string[]
-  viewToggle?: React.ReactNode
+  mobileView?: 'agenda' | 'grid'
+  onSwitchMobileView?: (view: 'agenda' | 'grid') => void
 }) {
   const childEventSet = new Set(childEventIds ?? [])
   const router = useRouter()
@@ -99,7 +101,30 @@ export default function AgendaView({
           >
             今月
           </button>
-          {viewToggle}
+          {onSwitchMobileView && (
+            <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => onSwitchMobileView('agenda')}
+                className={`p-2.5 transition-colors ${mobileView === 'agenda' ? 'bg-[#1A3666] text-white' : 'bg-white text-gray-400'}`}
+                aria-label="リスト表示"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => onSwitchMobileView('grid')}
+                className={`p-2.5 transition-colors ${mobileView === 'grid' ? 'bg-[#1A3666] text-white' : 'bg-white text-gray-400'}`}
+                aria-label="月表示"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
