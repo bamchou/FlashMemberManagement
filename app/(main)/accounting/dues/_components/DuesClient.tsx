@@ -58,10 +58,9 @@ function MemberDuesRow({
           </div>
           <div>
             <p className="font-bold text-[#1A3666] text-sm">{summary.name}</p>
-            <p className="text-xs text-gray-400">
-              {summary.frequency != null && <span className="mr-2">週{summary.frequency}回</span>}
-              {summary.practiceDays.length > 0 && <>参加予定曜日: {summary.practiceDays.join('・')}</>}
-            </p>
+            {summary.practiceDays.length > 0 && (
+              <p className="text-xs text-gray-400">参加予定曜日: {summary.practiceDays.join('・')}</p>
+            )}
           </div>
         </div>
         {isPaid ? (
@@ -98,6 +97,9 @@ function MemberDuesRow({
           <p className="text-xs text-gray-400">基本月謝</p>
           <p className="text-sm font-semibold text-gray-600">
             {summary.baseFee != null ? `¥${summary.baseFee.toLocaleString()}` : '未設定'}
+            {summary.frequency != null && (
+              <span className="text-xs font-normal text-gray-400 ml-1">（週{summary.frequency}回）</span>
+            )}
           </p>
         </div>
         <div className="text-right">
