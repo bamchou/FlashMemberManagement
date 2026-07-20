@@ -97,7 +97,7 @@ export default function AgendaView({
           </button>
           <button
             onClick={goToday}
-            className="text-xs font-semibold text-[#1A3666] border border-[#1A3666] px-2.5 py-1 rounded-lg"
+            className="text-xs font-semibold text-[#1A3666] border border-[#1A3666] px-3 py-1 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
           >
             今月
           </button>
