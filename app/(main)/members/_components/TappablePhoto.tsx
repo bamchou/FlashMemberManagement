@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toSupabaseImageUrl } from '@/lib/utils/imageUrl'
 
 type Props = {
   src: string | null | undefined
@@ -11,6 +12,8 @@ type Props = {
 
 export default function TappablePhoto({ src, alt, containerClassName, fallbackSize = 'text-2xl' }: Props) {
   const [isOpen, setIsOpen] = useState(false)
+  const thumbSrc = toSupabaseImageUrl(src, 300, 80)
+  const fullSrc = toSupabaseImageUrl(src, 800, 90)
 
   useEffect(() => {
     if (isOpen) {
@@ -24,20 +27,20 @@ export default function TappablePhoto({ src, alt, containerClassName, fallbackSi
   return (
     <>
       <div
-        className={`${containerClassName}${src ? ' cursor-pointer active:opacity-70' : ''}`}
+        className={`${containerClassName}${thumbSrc ? ' cursor-pointer active:opacity-70' : ''}`}
         onClick={(e) => {
-          if (!src) return
+          if (!thumbSrc) return
           e.preventDefault()
           e.stopPropagation()
           setIsOpen(true)
         }}
       >
-        {src
-          ? <img src={src} alt={alt} className="w-full h-full object-cover object-top" decoding="sync" style={{ filter: 'brightness(1)' }} />
+        {thumbSrc
+          ? <img src={thumbSrc} alt={alt} className="w-full h-full object-cover object-top" decoding="sync" />
           : <span className={fallbackSize}>👤</span>}
       </div>
 
-      {isOpen && src && (
+      {isOpen && fullSrc && (
         <div
           className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-6"
           onClick={(e) => { e.stopPropagation(); setIsOpen(false) }}
@@ -53,7 +56,7 @@ export default function TappablePhoto({ src, alt, containerClassName, fallbackSi
               閉じる
             </button>
             <img
-              src={src}
+              src={fullSrc}
               alt={alt}
               className="w-full rounded-xl object-contain max-h-[80vh]"
             />
