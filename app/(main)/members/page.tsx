@@ -57,7 +57,7 @@ export default async function MembersPage() {
             {coaches.map((coach: Partial<Profile>) => (
               <div key={coach.id} className="bg-white rounded-xl border-2 border-[#1A3666] p-5 flex items-center gap-4">
                 <TappablePhoto
-                  src={coach.photo_url}
+                  src={null /* TEST: 輝度フラッシュ原因調査 */}
                   alt={coach.display_name ?? ''}
                   containerClassName="w-12 h-16 rounded-xl bg-[#1A3666]/10 border-2 border-[#1A3666] flex items-center justify-center shrink-0 overflow-hidden"
                 />
@@ -94,7 +94,7 @@ export default async function MembersPage() {
               <div key={m.id} className="bg-white rounded-xl border-2 border-orange-300 p-4">
                 <div className="flex items-center gap-3">
                   <TappablePhoto
-                    src={m.photo_url}
+                    src={null /* TEST: 輝度フラッシュ原因調査 */}
                     alt={m.full_name}
                     containerClassName="w-10 h-14 rounded-xl bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center shrink-0 overflow-hidden"
                     fallbackSize="text-xl"
