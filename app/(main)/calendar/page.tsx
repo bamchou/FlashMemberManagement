@@ -88,7 +88,8 @@ export default async function CalendarPage({
 
   return (
     <div className="w-full">
-      <div className="flex justify-end mb-2">
+      {/* カレンダー連携: PCのみ表示 */}
+      <div className="hidden sm:flex justify-end mb-2">
         <CalendarSyncButton initialToken={calendarToken?.token ?? null} />
       </div>
       <CalendarContainer

@@ -42,6 +42,7 @@ export default function AgendaView({
   currentUserId,
   creatorMap = {},
   childEventIds,
+  viewToggle,
 }: {
   year: number
   month: number
@@ -50,6 +51,7 @@ export default function AgendaView({
   currentUserId: string
   creatorMap?: Record<string, string>
   childEventIds?: string[]
+  viewToggle?: React.ReactNode
 }) {
   const childEventSet = new Set(childEventIds ?? [])
   const router = useRouter()
@@ -97,6 +99,7 @@ export default function AgendaView({
           >
             今月
           </button>
+          {viewToggle}
         </div>
       </div>
 

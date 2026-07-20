@@ -110,6 +110,7 @@ export default function CalendarView({
   currentUserId,
   creatorMap = {},
   childEventIds,
+  viewToggle,
 }: {
   year: number
   month: number
@@ -118,6 +119,7 @@ export default function CalendarView({
   currentUserId: string
   creatorMap?: Record<string, string>
   childEventIds?: string[]
+  viewToggle?: React.ReactNode
 }) {
   const childEventSet = new Set(childEventIds ?? [])
   const router = useRouter()
@@ -171,6 +173,7 @@ export default function CalendarView({
           >
             今月
           </button>
+          {viewToggle}
         </div>
 
         <div className="flex items-center gap-3">
