@@ -58,9 +58,10 @@ function MemberDuesRow({
           </div>
           <div>
             <p className="font-bold text-[#1A3666] text-sm">{summary.name}</p>
-            {summary.practiceDays.length > 0 && (
-              <p className="text-xs text-gray-400">参加予定曜日: {summary.practiceDays.join('・')}</p>
-            )}
+            <p className="text-xs text-gray-400">
+              {summary.frequency != null && <span className="mr-2">週{summary.frequency}回</span>}
+              {summary.practiceDays.length > 0 && <>参加予定曜日: {summary.practiceDays.join('・')}</>}
+            </p>
           </div>
         </div>
         {isPaid ? (
