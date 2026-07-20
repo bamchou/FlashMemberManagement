@@ -30,9 +30,11 @@ body {
 
 ::view-transition-old(root) {
   animation: none;
+  mix-blend-mode: normal;
 }
 ::view-transition-new(root) {
   animation-duration: 100ms;
+  mix-blend-mode: normal;
 }
 ::view-transition-image-pair(root) {
   mix-blend-mode: normal;
