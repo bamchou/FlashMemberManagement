@@ -327,7 +327,7 @@ export default async function EventDetailPage({
                 {e.payment_method && <p>{e.payment_method}</p>}
                 {e.payment_amount != null && (
                   <p className={e.payment_method ? 'text-gray-500 text-xs mt-0.5' : ''}>
-                    参加費 {e.payment_amount.toLocaleString()} 円
+                    {e.event_type === 'practice' ? '使用料金額' : '参加費'} {e.payment_amount.toLocaleString()} 円
                   </p>
                 )}
               </div>
