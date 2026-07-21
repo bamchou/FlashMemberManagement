@@ -60,35 +60,55 @@ function CoachRow({
 
       {/* 参加実績 */}
       <div className="space-y-1.5 text-sm">
-        {summary.practiceCount > 0 || summary.ratePractice != null ? (
-          <div className="flex items-center justify-between text-gray-600">
-            <span>練習　{summary.practiceCount}回 × {summary.ratePractice != null ? `¥${summary.ratePractice.toLocaleString()}` : '単価未設定'}</span>
-            <span className="font-semibold text-[#1A3666]">
-              {summary.ratePractice != null
-                ? `¥${(summary.practiceCount * summary.ratePractice).toLocaleString()}`
-                : '—'}
-            </span>
-          </div>
-        ) : null}
-        {summary.tournamentCount > 0 || summary.rateTournament != null ? (
-          <div className="flex items-center justify-between text-gray-600">
-            <span>大会帯同　{summary.tournamentCount}回 × {summary.rateTournament != null ? `¥${summary.rateTournament.toLocaleString()}` : '単価未設定'}</span>
-            <span className="font-semibold text-[#1A3666]">
-              {summary.rateTournament != null
-                ? `¥${(summary.tournamentCount * summary.rateTournament).toLocaleString()}`
-                : '—'}
-            </span>
-          </div>
-        ) : null}
-        {summary.practiceCount === 0 && summary.tournamentCount === 0 && (
-          <p className="text-gray-400 text-xs">この月の参加実績なし</p>
+        {isPaid ? (
+          // 支払済：単価は確定済みのため現在値を表示せず回数のみ表示
+          <>
+            {summary.practiceCount > 0 && (
+              <div className="text-gray-600">練習　{summary.practiceCount}回</div>
+            )}
+            {summary.tournamentCount > 0 && (
+              <div className="text-gray-600">大会帯同　{summary.tournamentCount}回</div>
+            )}
+            {summary.practiceCount === 0 && summary.tournamentCount === 0 && (
+              <p className="text-gray-400 text-xs">この月の参加実績なし</p>
+            )}
+          </>
+        ) : (
+          // 未払：現在の単価で内訳を表示
+          <>
+            {summary.practiceCount > 0 || summary.ratePractice != null ? (
+              <div className="flex items-center justify-between text-gray-600">
+                <span>練習　{summary.practiceCount}回 × {summary.ratePractice != null ? `¥${summary.ratePractice.toLocaleString()}` : '単価未設定'}</span>
+                <span className="font-semibold text-[#1A3666]">
+                  {summary.ratePractice != null
+                    ? `¥${(summary.practiceCount * summary.ratePractice).toLocaleString()}`
+                    : '—'}
+                </span>
+              </div>
+            ) : null}
+            {summary.tournamentCount > 0 || summary.rateTournament != null ? (
+              <div className="flex items-center justify-between text-gray-600">
+                <span>大会帯同　{summary.tournamentCount}回 × {summary.rateTournament != null ? `¥${summary.rateTournament.toLocaleString()}` : '単価未設定'}</span>
+                <span className="font-semibold text-[#1A3666]">
+                  {summary.rateTournament != null
+                    ? `¥${(summary.tournamentCount * summary.rateTournament).toLocaleString()}`
+                    : '—'}
+                </span>
+              </div>
+            ) : null}
+            {summary.practiceCount === 0 && summary.tournamentCount === 0 && (
+              <p className="text-gray-400 text-xs">この月の参加実績なし</p>
+            )}
+          </>
         )}
       </div>
 
       {/* 合計 */}
       <div className="flex items-center justify-between border-t border-[#EAE0A8] pt-3">
         <span className="text-sm font-bold text-[#1A3666]">合計</span>
-        <span className="text-lg font-bold text-[#1A3666]">¥{summary.totalAmount.toLocaleString()}</span>
+        <span className="text-lg font-bold text-[#1A3666]">
+          ¥{(isPaid && summary.payment ? summary.payment.amount : summary.totalAmount).toLocaleString()}
+        </span>
       </div>
 
       {/* 支払い済み情報 */}
