@@ -2,6 +2,16 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { Role } from '@/lib/types'
 
+function formatDateJa(iso: string) {
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${y}年${m}月${d}日`
+}
+
+function formatMonthJa(iso: string) {
+  const [y, m] = iso.split('-').map(Number)
+  return `${y}年${m}月`
+}
+
 const ROLE_LABEL: Record<Role, string> = {
   admin: '管理者',
   coach: '指導者',
@@ -15,7 +25,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, display_name, display_name_kana, role, photo_url, qualifications, coach_rate_practice, coach_rate_tournament')
+    .select('username, display_name, display_name_kana, role, photo_url, qualifications, birth_date, badminton_start_date, coach_rate_practice, coach_rate_tournament')
     .eq('id', user.id)
     .single()
 
@@ -26,8 +36,16 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-lg">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-bold text-[#1A3666]">マイプロフィール</h1>
+        {isCoach && (
+          <a
+            href="/profile/edit"
+            className="text-sm font-semibold text-[#1A3666] border border-[#1A3666] px-3.5 py-1.5 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
+          >
+            編集
+          </a>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 space-y-5">
@@ -61,6 +79,24 @@ export default async function ProfilePage() {
             <div className="flex items-start justify-between py-2 gap-4">
               <span className="text-sm font-semibold text-gray-500 shrink-0">資格・免許</span>
               <span className="text-sm text-[#1A3666] text-right whitespace-pre-wrap">{profile.qualifications}</span>
+            </div>
+          )}
+
+          {/* 指導者のみ：生年月日・バドミントン開始年月 */}
+          {isCoach && profile.birth_date && (
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm font-semibold text-gray-500">生年月日</span>
+              <span className="text-sm text-[#1A3666]">
+                {formatDateJa(profile.birth_date as string)}
+              </span>
+            </div>
+          )}
+          {isCoach && profile.badminton_start_date && (
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm font-semibold text-gray-500 shrink-0">バドミントン開始</span>
+              <span className="text-sm text-[#1A3666]">
+                {formatMonthJa(profile.badminton_start_date as string)}
+              </span>
             </div>
           )}
         </div>

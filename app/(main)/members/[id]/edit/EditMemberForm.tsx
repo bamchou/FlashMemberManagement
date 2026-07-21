@@ -149,38 +149,66 @@ export default function EditMemberForm({ member, isAdmin }: { member: Member; is
       )}
 
       {/* 練習頻度 */}
-      <div>
-        <label htmlFor="practice_frequency" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
-          練習頻度
-        </label>
-        <select
-          id="practice_frequency" name="practice_frequency"
-          defaultValue={member.practice_frequency ?? ''}
-          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-        >
-          <option value="">選択してください</option>
-          {[1, 2, 3, 4, 5].map(n => (
-            <option key={n} value={n}>週{n}回</option>
-          ))}
-        </select>
-      </div>
+      {isAdmin || member.practice_frequency == null ? (
+        <div>
+          <label htmlFor="practice_frequency" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+            練習頻度
+            {!isAdmin && member.practice_frequency == null && (
+              <span className="text-xs font-normal text-gray-400 ml-2">※一度設定すると変更は管理者のみ</span>
+            )}
+          </label>
+          <select
+            id="practice_frequency" name="practice_frequency"
+            defaultValue={member.practice_frequency ?? ''}
+            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+          >
+            <option value="">選択してください</option>
+            {[1, 2, 3, 4, 5].map(n => (
+              <option key={n} value={n}>週{n}回</option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div>
+          <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">練習頻度</p>
+          <div className="px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 flex items-center justify-between">
+            <span>週{member.practice_frequency}回</span>
+            <span className="text-xs text-gray-400">変更は管理者にお問い合わせください</span>
+          </div>
+          <input type="hidden" name="practice_frequency" value={member.practice_frequency} />
+        </div>
+      )}
 
       {/* 参加曜日 */}
-      <div>
-        <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">主な参加曜日</p>
-        <div className="flex gap-4 flex-wrap">
-          {['月', '火', '水', '木', '金', '土', '日'].map(day => (
-            <label key={day} className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="checkbox" name="practice_days" value={day}
-                defaultChecked={member.practice_days?.includes(day) ?? false}
-                className="w-4 h-4 rounded border-gray-300 text-[#1A3666] focus:ring-[#1A3666]"
-              />
-              <span className="text-sm text-gray-700">{day}</span>
-            </label>
+      {isAdmin || member.practice_frequency == null ? (
+        <div>
+          <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">主な参加曜日</p>
+          <div className="flex gap-4 flex-wrap">
+            {['月', '火', '水', '木', '金', '土', '日'].map(day => (
+              <label key={day} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox" name="practice_days" value={day}
+                  defaultChecked={member.practice_days?.includes(day) ?? false}
+                  className="w-4 h-4 rounded border-gray-300 text-[#1A3666] focus:ring-[#1A3666]"
+                />
+                <span className="text-sm text-gray-700">{day}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div>
+          <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">主な参加曜日</p>
+          <div className="px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+            {(member.practice_days ?? []).length > 0
+              ? (member.practice_days ?? []).join('・') + '曜'
+              : '未設定'}
+          </div>
+          {(member.practice_days ?? []).map(day => (
+            <input key={day} type="hidden" name="practice_days" value={day} />
           ))}
         </div>
-      </div>
+      )}
 
       <div>
         <label htmlFor="play_style" className="block text-sm font-semibold text-[#1A3666] mb-1.5">

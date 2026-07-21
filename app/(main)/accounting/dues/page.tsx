@@ -31,6 +31,14 @@ function monthHref(year: number, month: number) {
   return `/accounting/dues?year=${year}&month=${month}`
 }
 
+// 表示月の2ヶ月前（超過分算出対象月）
+function excessMonthOf(year: number, month: number) {
+  let m = month - 2
+  let y = year
+  if (m <= 0) { m += 12; y -= 1 }
+  return { excessYear: y, excessMonth: m }
+}
+
 export default async function DuesPage({
   searchParams,
 }: {
@@ -44,17 +52,23 @@ export default async function DuesPage({
   if (profile?.role !== 'admin') redirect('/accounting')
 
   const nowJST = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
-  const year = parseInt(sp.year ?? nowJST.getUTCFullYear().toString())
-  const month = parseInt(sp.month ?? (nowJST.getUTCMonth() + 1).toString())
+  const currentYear = nowJST.getUTCFullYear()
+  const currentMonth = nowJST.getUTCMonth() + 1
+  // デフォルトは翌月（当月中旬〜下旬に翌月分を確定する運用）
+  const defaultNext = nextMonth(currentYear, currentMonth)
+  const year = parseInt(sp.year ?? defaultNext.year.toString())
+  const month = parseInt(sp.month ?? defaultNext.month.toString())
 
   const admin = createAdminClient()
-  const { start, end } = getMonthBounds(year, month)
+  const { excessYear, excessMonth } = excessMonthOf(year, month)
+  const { start: excessStart, end: excessEnd } = getMonthBounds(excessYear, excessMonth)
 
   const [
     { data: members },
     { data: feeSettings },
     { data: extraFeeSetting },
-    { data: practiceEvents },
+    { data: excessEvents },
+    { data: snapshots },
     { data: payments },
   ] = await Promise.all([
     admin
@@ -69,8 +83,13 @@ export default async function DuesPage({
       .select('id, start_at')
       .eq('event_type', 'practice')
       .eq('is_visible', true)
-      .gte('start_at', start)
-      .lt('start_at', end),
+      .gte('start_at', excessStart)
+      .lt('start_at', excessEnd),
+    admin
+      .from('dues_snapshots')
+      .select('member_id, base_fee, excess_count, extra_fee_per_session, total_fee, confirmed_at')
+      .eq('year', year)
+      .eq('month', month),
     admin
       .from('dues_payments')
       .select('member_id, amount, paid_at')
@@ -78,30 +97,29 @@ export default async function DuesPage({
       .eq('month', month),
   ])
 
-  const practiceEventIds = (practiceEvents ?? []).map(e => e.id)
+  const excessEventIds = (excessEvents ?? []).map(e => e.id)
 
-  const { data: participants } = practiceEventIds.length > 0
+  const { data: excessParticipants } = excessEventIds.length > 0
     ? await admin
         .from('event_participants')
         .select('event_id, member_id')
-        .in('event_id', practiceEventIds)
+        .in('event_id', excessEventIds)
         .eq('approval_status', 'approved')
     : { data: [] }
 
   const feeByFrequency = new Map((feeSettings ?? []).map(s => [s.frequency, s.monthly_fee]))
   const extraFee = extraFeeSetting?.fee_per_session ?? 500
 
-  const eventWeekday = new Map((practiceEvents ?? []).map(e => [e.id, getJSTWeekday(e.start_at)]))
+  const eventWeekday = new Map((excessEvents ?? []).map(e => [e.id, getJSTWeekday(e.start_at)]))
 
-  const actualByMember = new Map<string, Set<string>>()
-  for (const p of participants ?? []) {
-    if (!actualByMember.has(p.member_id)) actualByMember.set(p.member_id, new Set())
-    actualByMember.get(p.member_id)!.add(p.event_id)
+  const excessActualByMember = new Map<string, Set<string>>()
+  for (const p of excessParticipants ?? []) {
+    if (!excessActualByMember.has(p.member_id)) excessActualByMember.set(p.member_id, new Set())
+    excessActualByMember.get(p.member_id)!.add(p.event_id)
   }
 
-  const paymentByMember = new Map(
-    (payments ?? []).map(p => [p.member_id, { amount: p.amount, paidAt: p.paid_at }])
-  )
+  const snapshotByMember = new Map((snapshots ?? []).map(s => [s.member_id, s]))
+  const paymentByMember = new Map((payments ?? []).map(p => [p.member_id, { amount: p.amount, paidAt: p.paid_at }]))
 
   const summaries: MemberDuesSummary[] = (members ?? []).map(m => {
     const practiceDays: string[] = m.practice_days ?? []
@@ -109,13 +127,25 @@ export default async function DuesPage({
       m.practice_frequency ?? (practiceDays.length > 0 ? practiceDays.length : null)
     const baseFee = frequency != null ? (feeByFrequency.get(frequency) ?? null) : null
 
-    const expectedCount = (practiceEvents ?? []).filter(e =>
+    // M-2月の超過分
+    const excessExpected = (excessEvents ?? []).filter(e =>
       practiceDays.includes(eventWeekday.get(e.id) ?? '')
     ).length
+    const excessActual = excessActualByMember.get(m.id)?.size ?? 0
+    const excessCount = Math.max(0, excessActual - excessExpected)
 
-    const actualCount = actualByMember.get(m.id)?.size ?? 0
-    const excessCount = Math.max(0, actualCount - expectedCount)
-    const totalFee = baseFee != null ? baseFee + excessCount * extraFee : null
+    const liveTotalFee = baseFee != null ? baseFee + excessCount * extraFee : null
+
+    const snap = snapshotByMember.get(m.id)
+    const snapshot = snap
+      ? {
+          totalFee: snap.total_fee,
+          baseFee: snap.base_fee,
+          excessCount: snap.excess_count,
+          extraFeePerSession: snap.extra_fee_per_session,
+          confirmedAt: snap.confirmed_at,
+        }
+      : null
 
     return {
       id: m.id,
@@ -124,11 +154,12 @@ export default async function DuesPage({
       practiceDays,
       frequency,
       baseFee,
-      expectedCount,
-      actualCount,
+      excessYear,
+      excessMonth,
       excessCount,
       extraFeePerSession: extraFee,
-      totalFee,
+      liveTotalFee,
+      snapshot,
       payment: paymentByMember.get(m.id) ?? null,
     }
   })
@@ -142,8 +173,10 @@ export default async function DuesPage({
         <Link href="/accounting" className="text-sm text-[#1A3666] hover:underline">
           ← 経理管理
         </Link>
-        <h1 className="text-xl font-bold text-[#1A3666] mt-2">月謝管理</h1>
-        <p className="text-sm text-gray-500 mt-1">参加予定回数と実績から月謝を自動計算します</p>
+        <div className="mt-2">
+          <h1 className="text-xl font-bold text-[#1A3666]">月謝管理</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{excessYear}年{excessMonth}月の超過分を加算して月謝を確定します</p>
+        </div>
       </div>
 
       <DuesClient
