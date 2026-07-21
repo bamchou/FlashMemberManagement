@@ -9,6 +9,12 @@ import type { EventType } from '@/lib/types'
 const VALID_EVENT_TYPES = ['practice', 'tournament', 'event', 'social', 'other']
 const VALID_TARGETS = ['all', 'coach', 'member']
 
+// UTC ISO 文字列から JST の年月を取得してカレンダーURLを生成
+function calendarUrl(isoStr: string): string {
+  const jst = new Date(new Date(isoStr).getTime() + 9 * 60 * 60 * 1000)
+  return `/calendar?year=${jst.getUTCFullYear()}&month=${jst.getUTCMonth() + 1}`
+}
+
 // datetime-local の値 (YYYY-MM-DDTHH:MM または YYYY-MM-DDTHH:MM:SS) を JST として UTC ISO に変換
 function jstToISO(dtLocal: string): string {
   const base = dtLocal.slice(0, 16)
@@ -180,7 +186,7 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
   if (uploadErr) return { error: uploadErr }
 
   revalidatePath('/calendar')
-  redirect('/calendar')
+  redirect(calendarUrl(start_at))
 }
 
 export async function updateEvent(id: string, formData: FormData): Promise<EventFormState> {
@@ -308,7 +314,7 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
 
   revalidatePath('/calendar')
   revalidatePath(`/calendar/${id}`)
-  redirect('/calendar')
+  redirect(calendarUrl(start_at))
 }
 
 export async function deleteEvent(id: string): Promise<void> {
@@ -316,6 +322,7 @@ export async function deleteEvent(id: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
+  const { data: eventRow } = await supabase.from('events').select('start_at').eq('id', id).single()
   const adminForDelete = createAdminClient()
   const { data: atts } = await supabase
     .from('attachments')
@@ -329,7 +336,7 @@ export async function deleteEvent(id: string): Promise<void> {
 
   await supabase.from('events').delete().eq('id', id)
   revalidatePath('/calendar')
-  redirect('/calendar')
+  redirect(eventRow ? calendarUrl(eventRow.start_at) : '/calendar')
 }
 
 const VALID_PARTICIPATION_CATEGORIES = ['singles', 'doubles', 'both']
