@@ -57,8 +57,7 @@ export default function UserForm() {
 
   function handleCopyAll() {
     if (!generatedPassword) return
-    const text = `ログインID: ${fields.username}\nパスワード: ${generatedPassword}`
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(`${fields.username} / ${generatedPassword}`).then(() => {
       setCopiedAll(true)
       setTimeout(() => setCopiedAll(false), 2000)
     })
@@ -94,13 +93,13 @@ export default function UserForm() {
 
         <button
           onClick={handleCopyAll}
-          className={`w-full text-sm font-semibold py-2.5 rounded-lg transition-colors ${
+          className={`w-full text-sm font-semibold py-2.5 rounded-lg border transition-colors ${
             copiedAll
-              ? 'bg-green-100 text-green-700'
-              : 'bg-[#F5C800] text-[#1A3666] hover:bg-[#e6b800]'
+              ? 'bg-green-100 text-green-700 border-green-300'
+              : 'bg-white text-[#1A3666] border-[#1A3666] hover:bg-[#1A3666] hover:text-white'
           }`}
         >
-          {copiedAll ? 'コピー済み' : 'ログインID / パスワードをまとめてコピー'}
+          {copiedAll ? `コピー済 （${fields.username} / ${generatedPassword}）` : 'ログインID / パスワード をまとめてコピー'}
         </button>
 
         <button
