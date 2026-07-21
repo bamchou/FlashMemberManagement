@@ -16,6 +16,7 @@ export default function UserForm() {
   const [error, setError] = useState<string | null>(null)
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [copiedAll, setCopiedAll] = useState(false)
   const [fields, setFields] = useState({ username: '', display_name: '', role: '', qualifications: '' })
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
@@ -54,6 +55,15 @@ export default function UserForm() {
     })
   }
 
+  function handleCopyAll() {
+    if (!generatedPassword) return
+    const text = `ログインID: ${fields.username}\nパスワード: ${generatedPassword}`
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedAll(true)
+      setTimeout(() => setCopiedAll(false), 2000)
+    })
+  }
+
   // 登録成功 → パスワード表示画面
   if (generatedPassword) {
     return (
@@ -81,6 +91,17 @@ export default function UserForm() {
           </div>
           <p className="text-xs text-gray-400 mt-2">このパスワードをユーザーに伝えてください。この画面を閉じると確認できなくなります。</p>
         </div>
+
+        <button
+          onClick={handleCopyAll}
+          className={`w-full text-sm font-semibold py-2.5 rounded-lg transition-colors ${
+            copiedAll
+              ? 'bg-green-100 text-green-700'
+              : 'bg-[#F5C800] text-[#1A3666] hover:bg-[#e6b800]'
+          }`}
+        >
+          {copiedAll ? 'コピー済み' : 'ログインID / パスワードをまとめてコピー'}
+        </button>
 
         <button
           onClick={() => router.push('/users')}
