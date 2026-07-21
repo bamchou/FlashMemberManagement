@@ -93,7 +93,7 @@ export default function EditMemberForm({ member, isAdmin }: { member: Member; is
         defaultValue={member.full_name} lang="ja"
       />
       <Field
-        label="氏名（カタカナ）" name="full_name_kana"
+        label="氏名（ヨミガナ）" name="full_name_kana"
         defaultValue={member.full_name_kana ?? ''} placeholder="例: ヤマダ タロウ"
       />
 

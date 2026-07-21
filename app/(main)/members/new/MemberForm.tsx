@@ -61,7 +61,7 @@ export default function MemberForm({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       <Field label="氏名" name="full_name" required placeholder="例: 山田 太郎" lang="ja" />
-      <Field label="氏名（カタカナ）" name="full_name_kana" placeholder="例: ヤマダ タロウ" />
+      <Field label="氏名（ヨミガナ）" name="full_name_kana" placeholder="例: ヤマダ タロウ" />
 
       <div>
         <p className="block text-sm font-semibold text-[#1A3666] mb-1.5">性別</p>

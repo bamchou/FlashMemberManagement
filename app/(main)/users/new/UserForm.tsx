@@ -121,7 +121,7 @@ export default function UserForm() {
 
       <div>
         <label htmlFor="display_name_kana" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
-          表示名（カタカナ）
+          表示名（ヨミガナ）
         </label>
         <input
           id="display_name_kana" name="display_name_kana" type="text"
