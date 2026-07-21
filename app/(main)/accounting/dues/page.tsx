@@ -75,7 +75,8 @@ export default async function DuesPage({
       .from('members')
       .select('id, full_name, photo_url, practice_days, practice_frequency')
       .eq('is_visible', true)
-      .order('full_name', { ascending: true }),
+      .order('birth_date', { ascending: true })
+      .order('join_date', { ascending: true }),
     admin.from('practice_fee_settings').select('frequency, monthly_fee'),
     admin.from('extra_practice_fee_settings').select('fee_per_session').limit(1).single(),
     admin

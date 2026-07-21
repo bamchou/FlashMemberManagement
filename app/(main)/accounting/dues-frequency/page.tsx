@@ -13,9 +13,10 @@ export default async function DuesFrequencyPage() {
   const admin = createAdminClient()
   const { data: members } = await admin
     .from('members')
-    .select('id, full_name, photo_url, practice_days, practice_frequency')
+    .select('id, full_name, photo_url, practice_days, practice_frequency, birth_date, join_date')
     .eq('is_visible', true)
-    .order('full_name', { ascending: true })
+    .order('birth_date', { ascending: true })
+    .order('join_date', { ascending: true })
 
   const memberList = (members ?? []).map(m => ({
     id: m.id,
