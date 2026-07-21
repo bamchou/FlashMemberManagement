@@ -157,9 +157,9 @@ export default function EditUserForm({
         />
       </div>
 
-      {/* 表示名（読み仮名） */}
+      {/* 表示名（カタカナ） */}
       <div>
-        <label htmlFor="display_name_kana" className="block text-sm font-semibold text-[#1A3666] mb-1.5">表示名（読み仮名）</label>
+        <label htmlFor="display_name_kana" className="block text-sm font-semibold text-[#1A3666] mb-1.5">表示名（カタカナ）</label>
         <input
           id="display_name_kana" name="display_name_kana" type="text"
           defaultValue={initialDisplayNameKana ?? ''}
