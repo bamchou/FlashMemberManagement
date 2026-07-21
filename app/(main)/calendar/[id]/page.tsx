@@ -9,11 +9,6 @@ import ToggleEventVisibilityButton from './_components/ToggleEventVisibilityButt
 import ParticipantSection from './_components/ParticipantSection'
 import EventCommentSection from './_components/EventCommentSection'
 
-const TARGET_LABEL: Record<string, string> = {
-  all:    '全員',
-  coach:  '指導者のみ',
-  member: '保護者のみ',
-}
 
 function formatDateTime(isoStr: string): string {
   return new Date(isoStr).toLocaleString('ja-JP', {
@@ -176,9 +171,6 @@ export default async function EventDetailPage({
         <div className="mb-5">
           <div className="flex items-center gap-2 flex-wrap mb-2">
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${bg}`}>{label}</span>
-            <span className="text-xs font-semibold text-gray-400 border border-gray-200 px-2.5 py-1 rounded-full">
-              {TARGET_LABEL[e.target] ?? e.target}
-            </span>
             {e.event_type === 'practice' && (
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                 e.status === 'provisional'
