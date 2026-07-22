@@ -53,6 +53,17 @@ const MENU_GROUPS: MenuGroup[] = [
         ),
       },
       {
+        href: '/accounting/extra-practice',
+        label: '追加練習管理',
+        description: '追加で練習参加したメンバーの回数を月ごとに記録します',
+        comingSoon: false,
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        ),
+      },
+      {
         href: '/accounting/coach-pay',
         label: '指導者バイト代管理',
         description: '月ごとのバイト代を自動計算して支払い状況を管理します',
