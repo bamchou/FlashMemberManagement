@@ -34,7 +34,7 @@ export default async function ExtraPracticePage({
 
   const admin = createAdminClient()
 
-  const [{ data: members }, { data: counts }] = await Promise.all([
+  const [{ data: members }, { data: counts }, { data: settings }] = await Promise.all([
     admin
       .from('members')
       .select('id, full_name')
@@ -47,6 +47,11 @@ export default async function ExtraPracticePage({
       .select('member_id, count')
       .eq('year', year)
       .eq('month', month),
+    admin
+      .from('extra_practice_settings')
+      .select('fee_per_session')
+      .eq('id', 1)
+      .single(),
   ])
 
   const countMap: Record<string, number> = Object.fromEntries(
@@ -76,6 +81,7 @@ export default async function ExtraPracticePage({
         year={year}
         month={month}
         members={memberRows}
+        feePerSession={settings?.fee_per_session ?? 0}
         prevHref={monthHref(prev.year, prev.month)}
         nextHref={monthHref(next.year, next.month)}
       />
