@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { confirmDues, confirmAllDues, unconfirmDues, markDuesPaid, markDuesUnpaid, updateMemberFrequency } from '../actions'
+import { toSupabaseImageUrl } from '@/lib/utils/imageUrl'
 
 export type MemberDuesSummary = {
   id: string
@@ -36,6 +37,7 @@ function MemberDuesRow({
 
   const isPaid = !!summary.payment
   const isConfirmed = !!summary.snapshot
+  const photoSrc = toSupabaseImageUrl(summary.photoUrl)
 
   function handleSaveFrequency() {
     setFreqError(null)
@@ -89,8 +91,8 @@ function MemberDuesRow({
     return (
       <div className="bg-white rounded-xl border border-green-300 px-4 py-3 flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center overflow-hidden shrink-0">
-          {summary.photoUrl
-            ? <img src={summary.photoUrl} alt={summary.name} className="w-full h-full object-cover" />
+          {photoSrc
+            ? <img src={photoSrc} alt={summary.name} className="w-full h-full object-cover" />
             : <span className="text-xs">👤</span>}
         </div>
         <div className="flex-1 min-w-0">
@@ -126,8 +128,8 @@ function MemberDuesRow({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center overflow-hidden shrink-0">
-              {summary.photoUrl
-                ? <img src={summary.photoUrl} alt={summary.name} className="w-full h-full object-cover" />
+              {photoSrc
+                ? <img src={photoSrc} alt={summary.name} className="w-full h-full object-cover" />
                 : <span className="text-sm">👤</span>}
             </div>
             <div>
@@ -179,8 +181,8 @@ function MemberDuesRow({
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-[#F5C800]/20 border-2 border-[#F5C800] flex items-center justify-center overflow-hidden shrink-0">
-            {summary.photoUrl
-              ? <img src={summary.photoUrl} alt={summary.name} className="w-full h-full object-cover" />
+            {photoSrc
+              ? <img src={photoSrc} alt={summary.name} className="w-full h-full object-cover" />
               : <span className="text-sm">👤</span>}
           </div>
           <p className="font-bold text-[#1A3666] text-sm">{summary.name}</p>
