@@ -7,9 +7,9 @@ export type CoachSummary = {
   id: string
   name: string
   ratePractice: number | null
-  rateTournament: number | null
   practiceCount: number
   tournamentCount: number
+  tournamentPay: number
   totalAmount: number
   hasMissingRate: boolean
   payment: { amount: number; paidAt: string; paidBy: string } | null
@@ -86,16 +86,14 @@ function CoachRow({
                 </span>
               </div>
             ) : null}
-            {summary.tournamentCount > 0 || summary.rateTournament != null ? (
+            {summary.tournamentCount > 0 && (
               <div className="flex items-center justify-between text-gray-600">
-                <span>大会帯同　{summary.tournamentCount}回 × {summary.rateTournament != null ? `¥${summary.rateTournament.toLocaleString()}` : '単価未設定'}</span>
+                <span>大会帯同　{summary.tournamentCount}回（山分け）</span>
                 <span className="font-semibold text-[#1A3666]">
-                  {summary.rateTournament != null
-                    ? `¥${(summary.tournamentCount * summary.rateTournament).toLocaleString()}`
-                    : '—'}
+                  ¥{summary.tournamentPay.toLocaleString()}
                 </span>
               </div>
-            ) : null}
+            )}
             {summary.practiceCount === 0 && summary.tournamentCount === 0 && (
               <p className="text-gray-400 text-xs">この月の参加実績なし</p>
             )}

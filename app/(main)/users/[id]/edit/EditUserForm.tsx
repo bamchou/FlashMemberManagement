@@ -23,7 +23,6 @@ type Props = {
   initialQualifications: string | null
   initialTempPassword: string | null
   initialCoachRatePractice: number | null
-  initialCoachRateTournament: number | null
   roleChangeLocked: boolean
 }
 
@@ -40,7 +39,6 @@ export default function EditUserForm({
   initialQualifications,
   initialTempPassword,
   initialCoachRatePractice,
-  initialCoachRateTournament,
   roleChangeLocked,
 }: Props) {
   const router = useRouter()
@@ -62,7 +60,6 @@ export default function EditUserForm({
     show_on_members_page: initialShowOnMembersPage,
     qualifications: initialQualifications ?? '',
     coach_rate_practice: initialCoachRatePractice?.toString() ?? '',
-    coach_rate_tournament: initialCoachRateTournament?.toString() ?? '',
   })
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
@@ -228,39 +225,22 @@ export default function EditUserForm({
       {fields.role === 'coach' && (
         <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-xl p-4 space-y-3">
           <p className="text-sm font-semibold text-[#1A3666]">バイト代単価</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="coach_rate_practice" className="block text-xs font-semibold text-gray-600 mb-1.5">
-                練習（1回あたり）
-              </label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  id="coach_rate_practice" name="coach_rate_practice" type="number"
-                  min="0" step="100"
-                  value={fields.coach_rate_practice} onChange={handleChange}
-                  placeholder="例: 3000"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-                />
-                <span className="text-sm text-gray-500 shrink-0">円</span>
-              </div>
-            </div>
-            <div>
-              <label htmlFor="coach_rate_tournament" className="block text-xs font-semibold text-gray-600 mb-1.5">
-                大会帯同（1回あたり）
-              </label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  id="coach_rate_tournament" name="coach_rate_tournament" type="number"
-                  min="0" step="100"
-                  value={fields.coach_rate_tournament} onChange={handleChange}
-                  placeholder="未確認"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-                />
-                <span className="text-sm text-gray-500 shrink-0">円</span>
-              </div>
+          <div>
+            <label htmlFor="coach_rate_practice" className="block text-xs font-semibold text-gray-600 mb-1.5">
+              練習（1回あたり）
+            </label>
+            <div className="flex items-center gap-1.5">
+              <input
+                id="coach_rate_practice" name="coach_rate_practice" type="number"
+                min="0" step="100"
+                value={fields.coach_rate_practice} onChange={handleChange}
+                placeholder="例: 3000"
+                className="w-40 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+              />
+              <span className="text-sm text-gray-500 shrink-0">円</span>
             </div>
           </div>
-          <p className="text-xs text-gray-400">月次バイト代の自動計算に使用されます</p>
+          <p className="text-xs text-gray-400">大会帯同は参加費の山分けで自動計算されます</p>
         </div>
       )}
 

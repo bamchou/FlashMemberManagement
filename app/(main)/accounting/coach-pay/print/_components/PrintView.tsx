@@ -66,7 +66,7 @@ export default function PrintView({
               <th className="print-th print-th-num">練習<br />参加回数</th>
               <th className="print-th print-th-num">練習<br />単価</th>
               <th className="print-th print-th-num">大会帯同<br />回数</th>
-              <th className="print-th print-th-num">大会帯同<br />単価</th>
+              <th className="print-th print-th-num">大会帯同<br />（山分け）</th>
               <th className="print-th print-th-amount">合計</th>
               <th className="print-th print-th-status">支払状況</th>
             </tr>
@@ -84,7 +84,7 @@ export default function PrintView({
                 </td>
                 <td className="print-td print-td-num">{coach.tournamentCount}回</td>
                 <td className="print-td print-td-num">
-                  {coach.rateTournament != null ? `¥${coach.rateTournament.toLocaleString()}` : '—'}
+                  {coach.tournamentCount > 0 ? `¥${coach.tournamentPay.toLocaleString()}` : '—'}
                 </td>
                 <td className="print-td print-td-amount">¥{coach.totalAmount.toLocaleString()}</td>
                 <td className="print-td print-td-status">

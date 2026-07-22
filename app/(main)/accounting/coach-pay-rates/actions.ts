@@ -7,7 +7,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export async function updateCoachRate(
   coachId: string,
   ratePractice: number | null,
-  rateTournament: number | null,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -19,7 +18,7 @@ export async function updateCoachRate(
   const admin = createAdminClient()
   const { error } = await admin
     .from('profiles')
-    .update({ coach_rate_practice: ratePractice, coach_rate_tournament: rateTournament })
+    .update({ coach_rate_practice: ratePractice })
     .eq('id', coachId)
 
   if (error) return { error: '単価の更新に失敗しました' }

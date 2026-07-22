@@ -46,7 +46,7 @@ export default async function CoachPayPage({
   // コーチ一覧
   const { data: coaches } = await admin
     .from('profiles')
-    .select('id, display_name, username, coach_rate_practice, coach_rate_tournament')
+    .select('id, display_name, username, coach_rate_practice')
     .eq('role', 'coach')
     .order('display_name', { ascending: true })
 
@@ -54,13 +54,18 @@ export default async function CoachPayPage({
   const { start, end } = getMonthBounds(year, month)
   const { data: events } = await admin
     .from('events')
-    .select('id, event_type')
+    .select('id, event_type, accompaniment_fee_per_person')
     .gte('start_at', start)
     .lt('start_at', end)
 
   const eventIds = (events ?? []).map(e => e.id)
   const eventTypeMap: Record<string, string> = Object.fromEntries(
     (events ?? []).map(e => [e.id, e.event_type])
+  )
+  const eventFeeMap: Record<string, number> = Object.fromEntries(
+    (events ?? [])
+      .filter(e => e.event_type === 'tournament')
+      .map(e => [e.id, e.accompaniment_fee_per_person ?? 0])
   )
 
   // コーチ参加実績
@@ -70,6 +75,60 @@ export default async function CoachPayPage({
         .select('coach_id, event_id')
         .in('event_id', eventIds)
     : { data: [] }
+
+  // 大会イベントの参加メンバー数（承認済みのみ）
+  const tournamentEventIds = (events ?? [])
+    .filter(e => e.event_type === 'tournament')
+    .map(e => e.id)
+
+  const { data: participants } = tournamentEventIds.length > 0
+    ? await admin
+        .from('event_participants')
+        .select('event_id')
+        .in('event_id', tournamentEventIds)
+        .eq('approval_status', 'approved')
+    : { data: [] }
+
+  const memberCountMap: Record<string, number> = {}
+  for (const p of participants ?? []) {
+    memberCountMap[p.event_id] = (memberCountMap[p.event_id] ?? 0) + 1
+  }
+
+  // 大会イベントごとの出席者（コーチ・管理者）リスト
+  const attendeesPerTournament: Record<string, string[]> = {}
+  for (const a of attendances ?? []) {
+    if (eventTypeMap[a.event_id] === 'tournament') {
+      attendeesPerTournament[a.event_id] = attendeesPerTournament[a.event_id] ?? []
+      attendeesPerTournament[a.event_id].push(a.coach_id)
+    }
+  }
+
+  // 管理者IDセット（余り分の上乗せ対象）
+  const { data: adminProfiles } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('role', 'admin')
+  const adminIds = new Set((adminProfiles ?? []).map((a: { id: string }) => a.id))
+
+  // 大会帯同バイト代を出席者の山分けで計算
+  const coachTournamentPay: Record<string, number> = {}
+  for (const [eventId, attendeeIds] of Object.entries(attendeesPerTournament)) {
+    const fee = eventFeeMap[eventId] ?? 0
+    const memberCount = memberCountMap[eventId] ?? 0
+    if (attendeeIds.length === 0 || memberCount === 0 || fee === 0) continue
+
+    const total = fee * memberCount
+    const perPerson = Math.floor(total / attendeeIds.length)
+    const remainder = total - perPerson * attendeeIds.length
+    const adminAttendee = attendeeIds.find(id => adminIds.has(id))
+
+    for (const coachId of attendeeIds) {
+      coachTournamentPay[coachId] = (coachTournamentPay[coachId] ?? 0) + perPerson
+      if (remainder > 0 && coachId === adminAttendee) {
+        coachTournamentPay[coachId] += remainder
+      }
+    }
+  }
 
   // 支払い記録
   const { data: payments } = await admin
@@ -101,22 +160,21 @@ export default async function CoachPayPage({
     const myAttendances = (attendances ?? []).filter(a => a.coach_id === coach.id)
     const practiceCount = myAttendances.filter(a => eventTypeMap[a.event_id] === 'practice').length
     const tournamentCount = myAttendances.filter(a => eventTypeMap[a.event_id] === 'tournament').length
+    const tournamentPay = coachTournamentPay[coach.id] ?? 0
 
-    const missingPractice = practiceCount > 0 && coach.coach_rate_practice == null
-    const missingTournament = tournamentCount > 0 && coach.coach_rate_tournament == null
-    const hasMissingRate = missingPractice || missingTournament
+    const hasMissingRate = practiceCount > 0 && coach.coach_rate_practice == null
 
     const totalAmount =
       practiceCount * (coach.coach_rate_practice ?? 0) +
-      tournamentCount * (coach.coach_rate_tournament ?? 0)
+      tournamentPay
 
     return {
       id: coach.id,
       name: coach.display_name ?? coach.username ?? '不明',
       ratePractice: coach.coach_rate_practice,
-      rateTournament: coach.coach_rate_tournament,
       practiceCount,
       tournamentCount,
+      tournamentPay,
       totalAmount,
       hasMissingRate,
       payment: paymentMap[coach.id] ?? null,

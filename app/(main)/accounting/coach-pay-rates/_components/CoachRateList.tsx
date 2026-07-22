@@ -8,27 +8,22 @@ type Coach = {
   name: string
   photoUrl: string | null
   ratePractice: number | null
-  rateTournament: number | null
 }
 
 function CoachRateRow({ coach }: { coach: Coach }) {
   const [isPending, startTransition] = useTransition()
   const [practice, setPractice] = useState(coach.ratePractice?.toString() ?? '')
-  const [tournament, setTournament] = useState(coach.rateTournament?.toString() ?? '')
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const practiceVal = practice.trim() ? parseInt(practice.trim(), 10) : null
-  const tournamentVal = tournament.trim() ? parseInt(tournament.trim(), 10) : null
 
-  const isDirty =
-    practiceVal !== coach.ratePractice ||
-    tournamentVal !== coach.rateTournament
+  const isDirty = practiceVal !== coach.ratePractice
 
   function handleSave() {
     setError(null)
     startTransition(async () => {
-      const result = await updateCoachRate(coach.id, practiceVal, tournamentVal)
+      const result = await updateCoachRate(coach.id, practiceVal)
       if (result.error) { setError(result.error); return }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -48,37 +43,21 @@ function CoachRateRow({ coach }: { coach: Coach }) {
       </div>
 
       {/* 単価入力 */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1.5">練習（1回あたり）</label>
-          <div className="flex items-center gap-1.5">
-            <input
-              type="number"
-              min="0"
-              step="100"
-              value={practice}
-              onChange={e => { setPractice(e.target.value); setError(null) }}
-              placeholder="例: 3000"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-            />
-            <span className="text-sm text-gray-500 shrink-0">円</span>
-          </div>
+      <div className="mb-3">
+        <label className="block text-xs font-semibold text-gray-500 mb-1.5">練習（1回あたり）</label>
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            min="0"
+            step="100"
+            value={practice}
+            onChange={e => { setPractice(e.target.value); setError(null) }}
+            placeholder="例: 3000"
+            className="w-48 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+          />
+          <span className="text-sm text-gray-500 shrink-0">円</span>
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1.5">大会帯同（1回あたり）</label>
-          <div className="flex items-center gap-1.5">
-            <input
-              type="number"
-              min="0"
-              step="100"
-              value={tournament}
-              onChange={e => { setTournament(e.target.value); setError(null) }}
-              placeholder="未確認"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-            />
-            <span className="text-sm text-gray-500 shrink-0">円</span>
-          </div>
-        </div>
+        <p className="text-xs text-gray-400 mt-1">大会帯同は参加費の山分けで自動計算されます</p>
       </div>
 
       {error && (

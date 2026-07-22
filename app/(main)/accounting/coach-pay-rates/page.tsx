@@ -13,7 +13,7 @@ export default async function CoachPayRatesPage() {
   const admin = createAdminClient()
   const { data: coaches } = await admin
     .from('profiles')
-    .select('id, display_name, username, photo_url, coach_rate_practice, coach_rate_tournament')
+    .select('id, display_name, username, photo_url, coach_rate_practice')
     .eq('role', 'coach')
     .order('display_name', { ascending: true })
 
@@ -22,7 +22,6 @@ export default async function CoachPayRatesPage() {
     name: c.display_name ?? c.username ?? '不明',
     photoUrl: c.photo_url,
     ratePractice: c.coach_rate_practice,
-    rateTournament: c.coach_rate_tournament,
   }))
 
   return (

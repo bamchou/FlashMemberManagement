@@ -25,7 +25,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, display_name, display_name_kana, role, photo_url, qualifications, birth_date, badminton_start_date, coach_rate_practice, coach_rate_tournament')
+    .select('username, display_name, display_name_kana, role, photo_url, qualifications, birth_date, badminton_start_date, coach_rate_practice')
     .eq('id', user.id)
     .single()
 
@@ -105,31 +105,18 @@ export default async function ProfilePage() {
         {isCoach && (
           <div className="border-t border-[#EAE0A8] pt-4">
             <p className="text-sm font-bold text-[#1A3666] mb-3">バイト代単価</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4 text-center">
-                <p className="text-xs font-semibold text-gray-500 mb-1">練習（1回あたり）</p>
-                {profile.coach_rate_practice != null ? (
-                  <p className="text-xl font-bold text-[#1A3666]">
-                    {profile.coach_rate_practice.toLocaleString()}
-                    <span className="text-sm font-semibold ml-0.5">円</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-400">未設定</p>
-                )}
-              </div>
-              <div className="bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4 text-center">
-                <p className="text-xs font-semibold text-gray-500 mb-1">大会帯同（1回あたり）</p>
-                {profile.coach_rate_tournament != null ? (
-                  <p className="text-xl font-bold text-[#1A3666]">
-                    {profile.coach_rate_tournament.toLocaleString()}
-                    <span className="text-sm font-semibold ml-0.5">円</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-400">未設定</p>
-                )}
-              </div>
+            <div className="bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl p-4 text-center inline-block min-w-40">
+              <p className="text-xs font-semibold text-gray-500 mb-1">練習（1回あたり）</p>
+              {profile.coach_rate_practice != null ? (
+                <p className="text-xl font-bold text-[#1A3666]">
+                  {profile.coach_rate_practice.toLocaleString()}
+                  <span className="text-sm font-semibold ml-0.5">円</span>
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400">未設定</p>
+              )}
             </div>
-            <p className="text-xs text-gray-400 mt-2">単価の変更は管理者にお問い合わせください</p>
+            <p className="text-xs text-gray-400 mt-2">大会帯同は参加費の山分けで計算されます。単価の変更は管理者にお問い合わせください</p>
           </div>
         )}
       </div>
