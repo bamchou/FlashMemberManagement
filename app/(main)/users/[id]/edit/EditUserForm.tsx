@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateUser, resetPassword } from '../../actions'
+import { updateUser, resetPassword, withdrawGuardian } from '../../actions'
 
 const ROLE_OPTIONS = [
   { value: 'admin',  label: '管理者' },
@@ -51,6 +51,8 @@ export default function EditUserForm({
   const [tempPassword, setTempPassword] = useState<string | null>(initialTempPassword)
   const [copied, setCopied] = useState(false)
   const [copiedBoth, setCopiedBoth] = useState(false)
+  const [isWithdrawing, startWithdraw] = useTransition()
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
   const [fields, setFields] = useState({
     username: initialUsername,
     display_name: initialDisplayName,
@@ -107,6 +109,19 @@ export default function EditUserForm({
     navigator.clipboard.writeText(`${fields.username} / ${tempPassword}`).then(() => {
       setCopiedBoth(true)
       setTimeout(() => setCopiedBoth(false), 2000)
+    })
+  }
+
+  function handleWithdrawGuardian() {
+    if (!confirm('この保護者を退会処理しますか？\nお子様も同時に退会扱いとなりますがよろしいですか？')) return
+    setWithdrawError(null)
+    startWithdraw(async () => {
+      const result = await withdrawGuardian(userId)
+      if (result?.error) {
+        setWithdrawError(result.error)
+      } else {
+        router.push('/users/guardians')
+      }
     })
   }
 
@@ -342,6 +357,27 @@ export default function EditUserForm({
           {isResetting ? '再発行中...' : 'パスワードを再発行する'}
         </button>
       </div>
+
+      {/* 退会処理（保護者のみ） */}
+      {initialRole === 'member' && (
+        <div className="pt-5 border-t border-red-100 space-y-3">
+          <p className="text-sm font-semibold text-red-700">退会処理</p>
+          <p className="text-xs text-gray-500">
+            退会処理を行うと、この保護者はログインできなくなり、紐づくお子様はメンバー一覧から非表示になります。
+          </p>
+          {withdrawError && (
+            <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3.5 py-2.5">{withdrawError}</p>
+          )}
+          <button
+            type="button"
+            onClick={handleWithdrawGuardian}
+            disabled={isWithdrawing}
+            className="w-full text-sm font-semibold text-red-600 border border-red-300 py-2.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+          >
+            {isWithdrawing ? '処理中...' : 'この保護者を退会処理する'}
+          </button>
+        </div>
+      )}
     </form>
   )
 }

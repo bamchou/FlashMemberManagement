@@ -32,12 +32,20 @@ export default async function UsersPage() {
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-[#1A3666]">ユーザー管理</h1>
-        <Link
-          href="/users/new"
-          className="text-sm font-semibold bg-[#1A3666] text-white px-4 py-2 rounded-lg hover:bg-[#2A52A0] transition-colors"
-        >
-          ＋ ユーザーを登録
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/users/guardians"
+            className="text-sm font-semibold text-[#1A3666] border border-[#1A3666] px-4 py-2 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
+          >
+            保護者管理
+          </Link>
+          <Link
+            href="/users/new"
+            className="text-sm font-semibold bg-[#1A3666] text-white px-4 py-2 rounded-lg hover:bg-[#2A52A0] transition-colors"
+          >
+            ＋ ユーザーを登録
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">

@@ -1,5 +1,6 @@
 import { ViewTransition } from 'react'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import Nav, { MobileNavBar } from './_components/Nav'
 import LogoutButton from './_components/LogoutButton'
@@ -18,11 +19,17 @@ export default async function MainLayout({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, role, display_name')
+    .select('username, role, display_name, pending_reenrollment')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
+
+  const headersList = await headers()
+  const pathname = headersList.get('x-pathname') ?? ''
+  if (profile.pending_reenrollment && profile.role === 'member' && pathname !== '/reenrollment') {
+    redirect('/reenrollment')
+  }
 
   const roleLabel: Record<Role, string> = {
     admin: '管理者',

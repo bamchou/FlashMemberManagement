@@ -7,6 +7,7 @@ import type { Role, TournamentResult, PrefecturalReinforcement } from '@/lib/typ
 import MemberEventSection from './_components/MemberEventSection'
 import TappablePhoto from '../_components/TappablePhoto'
 import DeleteMemberButton from './_components/DeleteMemberButton'
+import WithdrawMemberButton from './_components/WithdrawMemberButton'
 import ApprovalButtons from '../_components/ApprovalButtons'
 import ResubmitButton from '../_components/ResubmitButton'
 import BibRequestButton from '../_components/BibRequestButton'
@@ -39,6 +40,7 @@ export default async function MemberDetailPage({
   const isMyMember = member.guardian_id === user!.id
   const isPending = member.approval_status === 'pending'
   const isRejected = member.approval_status === 'rejected'
+  const isWithdrawn = !!member.withdrawn_at
   const oneMonthAgo = new Date()
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
   const isNew = new Date(member.join_date) >= oneMonthAgo
@@ -85,6 +87,12 @@ export default async function MemberDetailPage({
 
       {/* メンバー基本情報 */}
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
+        {isWithdrawn && (
+          <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
+            <span className="text-xs font-bold bg-gray-200 text-gray-600 border border-gray-300 px-2 py-0.5 rounded-full">退会済み</span>
+            <p className="text-sm text-gray-600">このメンバーは退会済みです</p>
+          </div>
+        )}
         {isPending && (
           <div className="mb-4 bg-orange-50 border border-orange-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
             <span className="text-xs font-bold bg-orange-100 text-orange-600 border border-orange-300 px-2 py-0.5 rounded-full">承認待ち</span>
@@ -176,7 +184,7 @@ export default async function MemberDetailPage({
           </div>
         )}
 
-        {(isAdmin || (isGuardian && isMyMember)) && !isPending && (
+        {(isAdmin || (isGuardian && isMyMember)) && !isPending && !isWithdrawn && (
           <div className="mt-5 pt-5 border-t border-[#EAE0A8] flex gap-3 flex-wrap items-center">
             <Link
               href={`/members/${id}/edit`}
@@ -203,6 +211,9 @@ export default async function MemberDetailPage({
             })()}
             {isRejected && isGuardian && isMyMember && <ResubmitButton id={id} />}
             {isAdmin && <DeleteMemberButton id={id} name={member.full_name} />}
+            {!isRejected && member.approval_status === 'approved' && (
+              <WithdrawMemberButton memberId={id} memberName={member.full_name} />
+            )}
           </div>
         )}
       </div>

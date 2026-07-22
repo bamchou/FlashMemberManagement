@@ -220,6 +220,61 @@ export async function toggleUserVisibility(targetUserId: string, show: boolean):
   revalidatePath('/members')
 }
 
+export async function withdrawGuardian(guardianId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラーが発生しました' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: '権限がありません' }
+  if (guardianId === user.id) return { error: '自分自身を退会させることはできません' }
+
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%'
+  const lockedPassword = Array.from({ length: 24 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+
+  const adminSupabase = createAdminClient()
+
+  const { error: authError } = await adminSupabase.auth.admin.updateUserById(guardianId, { password: lockedPassword })
+  if (authError) return { error: 'ロック処理に失敗しました' }
+
+  await adminSupabase.from('profiles').update({ is_auth_locked: true, temp_password: null }).eq('id', guardianId)
+
+  await adminSupabase
+    .from('members')
+    .update({ withdrawn_at: new Date().toISOString(), is_visible: false })
+    .eq('guardian_id', guardianId)
+    .is('withdrawn_at', null)
+
+  revalidatePath('/users/guardians')
+  revalidatePath('/members')
+  return {}
+}
+
+export async function reenrollGuardian(guardianId: string): Promise<{ password: string } | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラーが発生しました' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: '権限がありません' }
+
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%'
+  const password = Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+
+  const adminSupabase = createAdminClient()
+
+  const { error: authError } = await adminSupabase.auth.admin.updateUserById(guardianId, { password })
+  if (authError) return { error: 'パスワードの発行に失敗しました' }
+
+  await adminSupabase
+    .from('profiles')
+    .update({ is_auth_locked: false, pending_reenrollment: true, temp_password: password })
+    .eq('id', guardianId)
+
+  revalidatePath('/users/guardians')
+  return { password }
+}
+
 export async function deleteUser(targetUserId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
