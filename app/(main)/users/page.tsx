@@ -23,10 +23,18 @@ export default async function UsersPage() {
 
   if ((profile?.role as Role) !== 'admin') redirect('/members')
 
-  const { data: profiles } = await supabase
+  const { data: profilesRaw } = await supabase
     .from('profiles')
     .select('id, username, display_name, display_name_kana, role, show_on_members_page')
-    .order('created_at', { ascending: true })
+
+  const ROLE_ORDER: Record<string, number> = { admin: 0, coach: 1, member: 2 }
+  const profiles = [...(profilesRaw ?? [])].sort((a, b) => {
+    const roleDiff = (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9)
+    if (roleDiff !== 0) return roleDiff
+    const kanaA = a.display_name_kana ?? a.display_name ?? ''
+    const kanaB = b.display_name_kana ?? b.display_name ?? ''
+    return kanaA.localeCompare(kanaB, 'ja')
+  })
 
   return (
     <div className="max-w-2xl">
