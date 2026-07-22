@@ -43,18 +43,21 @@ export default async function CoachPayPage({
 
   const admin = createAdminClient()
 
-  // コーチ一覧
-  const { data: coaches } = await admin
+  // コーチ一覧（コーチ役割＋メンバー一覧掲載中の管理者）
+  const { data: allProfiles } = await admin
     .from('profiles')
-    .select('id, display_name, username, coach_rate_practice')
-    .eq('role', 'coach')
+    .select('id, display_name, username, coach_rate_practice, role, show_on_members_page')
+    .in('role', ['coach', 'admin'])
     .order('display_name', { ascending: true })
+  const coaches = (allProfiles ?? []).filter(
+    c => c.role === 'coach' || (c.role === 'admin' && c.show_on_members_page)
+  )
 
   // 対象月のイベント（JST基準）
   const { start, end } = getMonthBounds(year, month)
   const { data: events } = await admin
     .from('events')
-    .select('id, event_type, accompaniment_fee_per_person')
+    .select('id, title, start_at, event_type, accompaniment_fee_per_person')
     .gte('start_at', start)
     .lt('start_at', end)
 
@@ -110,8 +113,10 @@ export default async function CoachPayPage({
     .eq('role', 'admin')
   const adminIds = new Set((adminProfiles ?? []).map((a: { id: string }) => a.id))
 
-  // 大会帯同バイト代を出席者の山分けで計算
+  // 大会帯同バイト代を出席者の山分けで計算（大会別明細も構築）
   const coachTournamentPay: Record<string, number> = {}
+  const coachTournamentDetails: Record<string, { title: string; startAt: string; memberCount: number; feePerPerson: number; attendeeCount: number; coachAmount: number; hasRemainder: boolean }[]> = {}
+
   for (const [eventId, attendeeIds] of Object.entries(attendeesPerTournament)) {
     const fee = eventFeeMap[eventId] ?? 0
     const memberCount = memberCountMap[eventId] ?? 0
@@ -121,12 +126,22 @@ export default async function CoachPayPage({
     const perPerson = Math.floor(total / attendeeIds.length)
     const remainder = total - perPerson * attendeeIds.length
     const adminAttendee = attendeeIds.find(id => adminIds.has(id))
+    const ev = (events ?? []).find(e => e.id === eventId)
 
     for (const coachId of attendeeIds) {
-      coachTournamentPay[coachId] = (coachTournamentPay[coachId] ?? 0) + perPerson
-      if (remainder > 0 && coachId === adminAttendee) {
-        coachTournamentPay[coachId] += remainder
-      }
+      const hasRemainder = remainder > 0 && coachId === adminAttendee
+      const coachAmount = perPerson + (hasRemainder ? remainder : 0)
+      coachTournamentPay[coachId] = (coachTournamentPay[coachId] ?? 0) + coachAmount
+      coachTournamentDetails[coachId] = coachTournamentDetails[coachId] ?? []
+      coachTournamentDetails[coachId].push({
+        title: ev?.title ?? '大会',
+        startAt: ev?.start_at ?? '',
+        memberCount,
+        feePerPerson: fee,
+        attendeeCount: attendeeIds.length,
+        coachAmount,
+        hasRemainder,
+      })
     }
   }
 
@@ -175,6 +190,7 @@ export default async function CoachPayPage({
       practiceCount,
       tournamentCount,
       tournamentPay,
+      tournamentDetails: coachTournamentDetails[coach.id] ?? [],
       totalAmount,
       hasMissingRate,
       payment: paymentMap[coach.id] ?? null,

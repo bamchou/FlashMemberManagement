@@ -84,7 +84,17 @@ export default function PrintView({
                 </td>
                 <td className="print-td print-td-num">{coach.tournamentCount}回</td>
                 <td className="print-td print-td-num">
-                  {coach.tournamentCount > 0 ? `¥${coach.tournamentPay.toLocaleString()}` : '—'}
+                  {coach.tournamentCount > 0 ? (
+                    <>
+                      <span>¥{coach.tournamentPay.toLocaleString()}</span>
+                      {coach.tournamentDetails.map((d, i) => (
+                        <span key={i} className="block text-[9px] text-gray-400 leading-snug mt-0.5">
+                          {new Date(d.startAt).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric' })}
+                          {' '}{d.title}（{d.memberCount}人×¥{d.feePerPerson.toLocaleString()}÷{d.attendeeCount}人{d.hasRemainder ? '・余り含む' : ''}）
+                        </span>
+                      ))}
+                    </>
+                  ) : '—'}
                 </td>
                 <td className="print-td print-td-amount">¥{coach.totalAmount.toLocaleString()}</td>
                 <td className="print-td print-td-status">

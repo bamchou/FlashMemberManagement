@@ -11,18 +11,20 @@ export default async function CoachPayRatesPage() {
   if (profile?.role !== 'admin') redirect('/accounting')
 
   const admin = createAdminClient()
-  const { data: coaches } = await admin
+  const { data: allProfiles } = await admin
     .from('profiles')
-    .select('id, display_name, username, photo_url, coach_rate_practice')
-    .eq('role', 'coach')
+    .select('id, display_name, username, photo_url, coach_rate_practice, role, show_on_members_page')
+    .in('role', ['coach', 'admin'])
     .order('display_name', { ascending: true })
 
-  const coachList = (coaches ?? []).map(c => ({
-    id: c.id,
-    name: c.display_name ?? c.username ?? '不明',
-    photoUrl: c.photo_url,
-    ratePractice: c.coach_rate_practice,
-  }))
+  const coachList = (allProfiles ?? [])
+    .filter(c => c.role === 'coach' || (c.role === 'admin' && c.show_on_members_page))
+    .map(c => ({
+      id: c.id,
+      name: c.display_name ?? c.username ?? '不明',
+      photoUrl: c.photo_url,
+      ratePractice: c.coach_rate_practice,
+    }))
 
   return (
     <div className="max-w-lg">

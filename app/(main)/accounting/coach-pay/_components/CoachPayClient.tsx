@@ -3,6 +3,16 @@
 import { useTransition } from 'react'
 import { markCoachPaid, markCoachUnpaid } from '../actions'
 
+export type TournamentDetail = {
+  title: string
+  startAt: string
+  memberCount: number
+  feePerPerson: number
+  attendeeCount: number
+  coachAmount: number
+  hasRemainder: boolean
+}
+
 export type CoachSummary = {
   id: string
   name: string
@@ -10,6 +20,7 @@ export type CoachSummary = {
   practiceCount: number
   tournamentCount: number
   tournamentPay: number
+  tournamentDetails: TournamentDetail[]
   totalAmount: number
   hasMissingRate: boolean
   payment: { amount: number; paidAt: string; paidBy: string } | null
@@ -87,11 +98,25 @@ function CoachRow({
               </div>
             ) : null}
             {summary.tournamentCount > 0 && (
-              <div className="flex items-center justify-between text-gray-600">
-                <span>大会帯同　{summary.tournamentCount}回（山分け）</span>
-                <span className="font-semibold text-[#1A3666]">
-                  ¥{summary.tournamentPay.toLocaleString()}
-                </span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-gray-600">
+                  <span>大会帯同　{summary.tournamentCount}回</span>
+                  <span className="font-semibold text-[#1A3666]">
+                    ¥{summary.tournamentPay.toLocaleString()}
+                  </span>
+                </div>
+                {summary.tournamentDetails.map((d, i) => (
+                  <div key={i} className="ml-5 pl-3 border-l-2 border-gray-200 flex items-start justify-between gap-2 text-xs text-gray-700">
+                    <span className="leading-snug">
+                      {new Date(d.startAt).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric' })}
+                      {' '}{d.title}
+                      <span className="ml-1 text-gray-500">
+                        （{d.memberCount}人×¥{d.feePerPerson.toLocaleString()}÷{d.attendeeCount}人{d.hasRemainder ? '・余り含む' : ''}）
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-semibold text-gray-700">¥{d.coachAmount.toLocaleString()}</span>
+                  </div>
+                ))}
               </div>
             )}
             {summary.practiceCount === 0 && summary.tournamentCount === 0 && (
