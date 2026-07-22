@@ -68,6 +68,15 @@ export default async function MainLayout({
             <LogoutButton />
           </div>
         </div>
+
+        {/* 集合写真帯 */}
+        <div className="w-full h-28 sm:h-36 overflow-hidden">
+          <img
+            src="/team-photo.png"
+            alt="BC FLASH メンバー集合写真"
+            className="w-full h-full object-cover object-center"
+          />
+        </div>
       </header>
 
       {/* モバイルボトムナビ: header の外で描画して stacking context を分離 */}
