@@ -28,6 +28,9 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const pathname = request.nextUrl.pathname
 
+  // pathnameをヘッダーに付与（レイアウトでのリダイレクト判定に使用）
+  supabaseResponse.headers.set('x-pathname', pathname)
+
   // 未ログインで /login 以外にアクセスした場合 → /login へ
   if (!user && !pathname.startsWith('/login')) {
     const url = request.nextUrl.clone()
