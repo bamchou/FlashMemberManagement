@@ -46,12 +46,18 @@ export default async function CoachPayPage({
   // コーチ一覧（コーチ役割＋メンバー一覧掲載中の管理者）
   const { data: allProfiles } = await admin
     .from('profiles')
-    .select('id, display_name, username, coach_rate_practice, role, show_on_members_page')
+    .select('id, display_name, display_name_kana, username, coach_rate_practice, role, show_on_members_page')
     .in('role', ['coach', 'admin'])
-    .order('display_name', { ascending: true })
-  const coaches = (allProfiles ?? []).filter(
-    c => c.role === 'coach' || (c.role === 'admin' && c.show_on_members_page)
-  )
+  const COACH_ROLE_ORDER: Record<string, number> = { coach: 0, admin: 1 }
+  const coaches = (allProfiles ?? [])
+    .filter(c => c.role === 'coach' || (c.role === 'admin' && c.show_on_members_page))
+    .sort((a, b) => {
+      const roleDiff = (COACH_ROLE_ORDER[a.role] ?? 9) - (COACH_ROLE_ORDER[b.role] ?? 9)
+      if (roleDiff !== 0) return roleDiff
+      const kanaA = a.display_name_kana ?? a.display_name ?? ''
+      const kanaB = b.display_name_kana ?? b.display_name ?? ''
+      return kanaA.localeCompare(kanaB, 'ja')
+    })
 
   // 対象月のイベント（JST基準）
   const { start, end } = getMonthBounds(year, month)
