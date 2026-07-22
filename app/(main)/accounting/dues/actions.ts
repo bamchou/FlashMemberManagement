@@ -10,10 +10,6 @@ export async function confirmDues(
   month: number,
   data: {
     baseFee: number
-    excessYear: number
-    excessMonth: number
-    excessCount: number
-    extraFeePerSession: number
     totalFee: number
     frequencySnapshot: number | null
     practiceDaysSnapshot: string[]
@@ -35,10 +31,6 @@ export async function confirmDues(
         year,
         month,
         base_fee: data.baseFee,
-        excess_year: data.excessYear,
-        excess_month: data.excessMonth,
-        excess_count: data.excessCount,
-        extra_fee_per_session: data.extraFeePerSession,
         total_fee: data.totalFee,
         frequency_snapshot: data.frequencySnapshot,
         practice_days_snapshot: data.practiceDaysSnapshot,
@@ -60,10 +52,6 @@ export async function confirmAllDues(
   items: Array<{
     memberId: string
     baseFee: number
-    excessYear: number
-    excessMonth: number
-    excessCount: number
-    extraFeePerSession: number
     totalFee: number
     frequencySnapshot: number | null
     practiceDaysSnapshot: string[]
@@ -84,10 +72,6 @@ export async function confirmAllDues(
     year,
     month,
     base_fee: item.baseFee,
-    excess_year: item.excessYear,
-    excess_month: item.excessMonth,
-    excess_count: item.excessCount,
-    extra_fee_per_session: item.extraFeePerSession,
     total_fee: item.totalFee,
     frequency_snapshot: item.frequencySnapshot,
     practice_days_snapshot: item.practiceDaysSnapshot,
