@@ -190,16 +190,6 @@ function MemberDuesRow({
         <span className="text-xs font-bold text-gray-400 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full shrink-0">未確定</span>
       </div>
 
-      {/* 参考情報（小） */}
-      <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg px-4 py-2 text-xs text-gray-500">
-        <div className="flex items-center justify-between">
-          <span>基本月謝（確定前）</span>
-          {summary.baseFee != null
-            ? <span>¥{summary.baseFee.toLocaleString()}</span>
-            : <span className="text-amber-600 font-semibold">練習頻度未設定</span>}
-        </div>
-      </div>
-
       {/* 基本月謝 + 頻度変更（主） */}
       <div className="border-t border-[#EAE0A8] pt-3 space-y-2">
         <div className="flex items-center justify-between gap-3">
