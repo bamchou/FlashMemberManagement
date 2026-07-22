@@ -1,55 +1,12 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { changeExtraPractice, updateExtraPracticeFee } from '../actions'
+import { changeExtraPractice } from '../actions'
 
 type MemberRow = {
   id: string
   fullName: string
   count: number
-}
-
-function FeeEditor({ initialFee }: { initialFee: number }) {
-  const [fee, setFee] = useState(initialFee.toString())
-  const [isPending, startTransition] = useTransition()
-  const [saved, setSaved] = useState(false)
-
-  function handleSave() {
-    const val = parseInt(fee.trim(), 10)
-    if (isNaN(val) || val < 0) return
-    startTransition(async () => {
-      await updateExtraPracticeFee(val)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    })
-  }
-
-  return (
-    <div className="bg-white rounded-xl border border-[#EAE0A8] px-5 py-4">
-      <p className="text-xs font-semibold text-gray-500 mb-2">追加参加費（1回あたり）</p>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          min="0"
-          step="100"
-          value={fee}
-          onChange={e => { setFee(e.target.value); setSaved(false) }}
-          className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-        />
-        <span className="text-sm text-gray-500">円</span>
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={handleSave}
-          className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors disabled:opacity-50 ${
-            saved ? 'bg-green-600 text-white' : 'bg-[#1A3666] text-white hover:bg-[#2A52A0]'
-          }`}
-        >
-          {isPending ? '保存中...' : saved ? '保存しました ✓' : '保存する'}
-        </button>
-      </div>
-    </div>
-  )
 }
 
 function CountRow({
@@ -123,9 +80,6 @@ export default function ExtraPracticeClient({
   prevHref: string
   nextHref: string
 }) {
-  const totalCount = members.reduce((s, m) => s + m.count, 0)
-  const totalAmount = totalCount * feePerSession
-
   return (
     <div className="space-y-4">
       {/* 月ナビゲーション */}
@@ -141,21 +95,6 @@ export default function ExtraPracticeClient({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </a>
-      </div>
-
-      {/* 参加費設定 */}
-      <FeeEditor initialFee={feePerSession} />
-
-      {/* サマリー */}
-      <div className="bg-[#F5F8FF] border border-[#D0DCF5] rounded-xl px-5 py-4 grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs font-semibold text-gray-500 mb-0.5">今月の追加参加合計</p>
-          <p className="text-2xl font-bold text-[#1A3666]">{totalCount}<span className="text-sm font-semibold ml-0.5">回</span></p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-gray-500 mb-0.5">合計金額</p>
-          <p className="text-2xl font-bold text-[#1A3666]">¥{totalAmount.toLocaleString()}</p>
-        </div>
       </div>
 
       {/* メンバー一覧 */}

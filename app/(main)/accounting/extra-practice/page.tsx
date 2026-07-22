@@ -48,9 +48,9 @@ export default async function ExtraPracticePage({
       .eq('year', year)
       .eq('month', month),
     admin
-      .from('extra_practice_settings')
+      .from('extra_practice_fee_settings')
       .select('fee_per_session')
-      .eq('id', 1)
+      .limit(1)
       .single(),
   ])
 
