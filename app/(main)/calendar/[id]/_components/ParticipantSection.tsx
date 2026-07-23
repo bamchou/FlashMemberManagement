@@ -283,8 +283,8 @@ export default function ParticipantSection({
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const isTournament = eventType === 'tournament'
 
-  const approvedCount = participants.filter(p => p.approval_status === 'approved' && !p.isWithdrawn).length
-  const pendingCount  = participants.filter(p => p.approval_status === 'pending' && !p.isWithdrawn).length
+  const approvedCount = participants.filter(p => p.approval_status === 'approved' && !(p.isWithdrawn && !isPast)).length
+  const pendingCount  = participants.filter(p => p.approval_status === 'pending' && !(p.isWithdrawn && !isPast)).length
 
   return (
     <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
@@ -405,18 +405,20 @@ export default function ParticipantSection({
             <p className="text-xs font-semibold text-gray-500 mb-2">参加予定者</p>
           )}
           <div className="space-y-2">
-            {participants.map(p => (
+            {participants.map(p => {
+              const showWithdrawn = !!p.isWithdrawn && !isPast
+              return (
               <div key={p.member_id} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                p.isWithdrawn
+                showWithdrawn
                   ? 'bg-gray-50 border-gray-200'
                   : p.approval_status === 'pending'
                     ? 'bg-orange-50 border-orange-200'
                     : 'bg-[#F5F8FF] border-[#D0DCF5]'
               }`}>
                 <MemberAvatar photoUrl={p.members?.photo_url ?? null} name={p.members?.full_name ?? ''} />
-                <span className={`text-xs font-semibold flex-1 ${p.isWithdrawn ? 'text-gray-400' : 'text-[#1A3666]'}`}>
+                <span className={`text-xs font-semibold flex-1 ${showWithdrawn ? 'text-gray-400' : 'text-[#1A3666]'}`}>
                   {p.members?.full_name ?? '不明'}
-                  {p.isWithdrawn && (
+                  {showWithdrawn && (
                     <span className="ml-1 font-bold text-gray-400">（退会済み）</span>
                   )}
                 </span>
@@ -439,7 +441,8 @@ export default function ParticipantSection({
                   <UnapproveButton eventId={eventId} memberId={p.member_id} />
                 )}
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       ) : (
