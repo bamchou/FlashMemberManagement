@@ -6,6 +6,7 @@ import Nav, { MobileNavBar } from './_components/Nav'
 import LogoutButton from './_components/LogoutButton'
 import NotificationButton from './_components/NotificationButton'
 import PullToRefresh from './_components/PullToRefresh'
+import SessionGuard from './_components/SessionGuard'
 import type { Role } from '@/lib/types'
 
 export default async function MainLayout({
@@ -74,6 +75,7 @@ export default async function MainLayout({
       <MobileNavBar role={profile.role as Role} />
 
       <PullToRefresh />
+      <SessionGuard />
 
       {/* メインコンテンツ */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 pb-28 sm:pb-8">
