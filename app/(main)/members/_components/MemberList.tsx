@@ -6,6 +6,7 @@ import { calculateGrade, formatYearMonth } from '@/lib/utils/grade'
 import type { Role, Member } from '@/lib/types'
 import VisibilityToggle from './VisibilityToggle'
 import TappablePhoto from './TappablePhoto'
+import RejoinButton from './RejoinButton'
 
 type GradeCategory = '' | 'elementary' | 'middle' | 'high' | 'graduated'
 type VisibilityFilter = '' | 'visible' | 'hidden'
@@ -393,6 +394,13 @@ export default function MemberList({
                     {formatWithdrawalLabel(member.withdrawn_at!)}
                   </span>
                 </div>
+                {(isAdmin || myMemberIds.has(member.id)) && (
+                  <RejoinButton
+                    memberId={member.id}
+                    memberName={member.full_name}
+                    isAdmin={isAdmin}
+                  />
+                )}
               </div>
             ))}
           </div>

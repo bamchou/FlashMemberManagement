@@ -123,6 +123,7 @@ export default async function EventDetailPage({
       .select('id, full_name, photo_url')
       .eq('guardian_id', user!.id)
       .eq('approval_status', 'approved')
+      .is('withdrawn_at', null)
     myMembers = (data ?? []) as typeof myMembers
   }
 

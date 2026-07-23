@@ -378,6 +378,17 @@ export async function addParticipant(
     }
   }
 
+  // 退会済みメンバーは参加不可
+  const adminForCheck = createAdminClient()
+  const { data: memberData } = await adminForCheck
+    .from('members')
+    .select('withdrawn_at')
+    .eq('id', memberId)
+    .single()
+  if (memberData?.withdrawn_at) {
+    return { error: '退会済みのメンバーは参加登録できません' }
+  }
+
   const approval_status = isTournament ? 'pending' : 'approved'
 
   const effectiveCategory = isTournament ? (category ?? 'singles') : null
