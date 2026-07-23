@@ -30,6 +30,7 @@ export type Member = {
   approval_status: 'pending' | 'approved' | 'rejected'
   practice_frequency: number | null
   practice_days: string[] | null
+  withdrawn_at: string | null
   created_at: string
   updated_at: string
 }

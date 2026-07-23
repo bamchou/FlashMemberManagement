@@ -19,6 +19,11 @@ function isNewMember(joinDateStr: string): boolean {
   return new Date(joinDateStr) >= oneMonthAgo
 }
 
+function formatWithdrawalLabel(withdrawnAt: string): string {
+  const jst = new Date(new Date(withdrawnAt).getTime() + 9 * 60 * 60 * 1000)
+  return `${jst.getUTCFullYear()}年${jst.getUTCMonth() + 1}月退会`
+}
+
 function getGradeCategory(birthDateStr: string): GradeCategory {
   const birth = new Date(birthDateStr)
   const today = new Date()
@@ -136,6 +141,10 @@ export default function MemberList({
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const myMemberIds = new Set(myMembers.map(m => m.id))
 
+  // 退会済みメンバーは末尾に別表示するため分離
+  const activeMembers = members.filter(m => !m.withdrawn_at)
+  const withdrawnMembers = members.filter(m => !!m.withdrawn_at)
+
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [keyword, setKeyword] = useState('')
   const [gradeFilter, setGradeFilter] = useState<GradeCategory>('')
@@ -144,8 +153,8 @@ export default function MemberList({
   const [practiceDaysFilter, setPracticeDaysFilter] = useState<string[]>([])
 
   const filtered = useMemo(() => {
-    // 自分の子は先頭固定表示するため除外
-    return members.filter(m => {
+    // 自分の子は先頭固定表示するため除外（退会済みは別セクションで表示）
+    return activeMembers.filter(m => {
       if (myMemberIds.has(m.id)) return false
       if (keyword.trim()) {
         const kw = keyword.trim().toLowerCase()
@@ -163,7 +172,7 @@ export default function MemberList({
       }
       return true
     })
-  }, [members, myMemberIds, keyword, gradeFilter, genderFilter, visibilityFilter, practiceDaysFilter])
+  }, [activeMembers, myMemberIds, keyword, gradeFilter, genderFilter, visibilityFilter, practiceDaysFilter])
 
   const hasFilter = keyword || gradeFilter || genderFilter || visibilityFilter || practiceDaysFilter.length > 0
 
@@ -355,6 +364,38 @@ export default function MemberList({
           <p className="text-gray-400 text-sm">
             {hasFilter ? '条件に一致するメンバーがいません' : 'メンバーがまだ登録されていません'}
           </p>
+        </div>
+      )}
+
+      {/* 退会済みメンバー（退会後2か月間表示） */}
+      {withdrawnMembers.length > 0 && (
+        <div className="mt-8">
+          <p className="text-xs font-semibold text-gray-400 mb-3">退会済み（退会後2か月間表示）</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {withdrawnMembers.map(member => (
+              <div
+                key={member.id}
+                className="relative bg-gray-50 rounded-xl border border-gray-200 p-5 flex items-center gap-4"
+              >
+                <TappablePhoto
+                  src={member.photo_url}
+                  alt={member.full_name}
+                  containerClassName="w-12 h-16 rounded-xl bg-gray-100 border-2 border-gray-200 flex items-center justify-center shrink-0 overflow-hidden"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-gray-400 truncate">{member.full_name}</p>
+                  {member.full_name_kana && (
+                    <p className="text-[11px] text-gray-400">{member.full_name_kana}</p>
+                  )}
+                  <p className="text-sm text-gray-400 mt-0.5">{calculateGrade(member.birth_date)}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">加入: {formatYearMonth(member.join_date)}</p>
+                  <span className="inline-block mt-1 text-[10px] font-bold bg-red-50 text-red-500 border border-red-200 px-1.5 py-0.5 rounded-full">
+                    {formatWithdrawalLabel(member.withdrawn_at!)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -43,9 +43,19 @@ export default async function MembersPage() {
     myMembers = (members ?? []).filter((m: Member) => m.guardian_id === user!.id) as Member[]
   }
 
-  const approvedVisibleMembers = (members ?? []).filter((m: Member) =>
-    isAdmin || (m.is_visible && m.approval_status === 'approved')
-  ) as Member[]
+  // 退会後2か月以内は全ロールで表示する
+  const twoMonthsAgo = new Date()
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2)
+  const twoMonthsAgoISO = twoMonthsAgo.toISOString()
+
+  const approvedVisibleMembers = (members ?? []).filter((m: Member) => {
+    if (isAdmin) return true
+    if (m.is_visible && m.approval_status === 'approved') return true
+    if (m.withdrawn_at && m.withdrawn_at >= twoMonthsAgoISO) return true
+    return false
+  }) as Member[]
+
+  const activeMemberCount = approvedVisibleMembers.filter((m: Member) => !m.withdrawn_at).length
 
   return (
     <div>
@@ -134,7 +144,7 @@ export default async function MembersPage() {
         members={approvedVisibleMembers}
         myMembers={isGuardian ? myMembers : []}
         role={role}
-        totalCount={approvedVisibleMembers.length}
+        totalCount={activeMemberCount}
       />
     </div>
   )
