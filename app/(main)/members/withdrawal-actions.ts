@@ -25,6 +25,22 @@ export async function withdrawMember(memberId: string): Promise<{ error?: string
 
   if (error) return { error: '退会処理に失敗しました' }
 
+  // 未実施の練習・大会の参加予定をすべて取り消す
+  const now = new Date().toISOString()
+  const { data: futureEvents } = await admin
+    .from('events')
+    .select('id')
+    .gt('end_at', now)
+
+  const futureEventIds = (futureEvents ?? []).map((e: { id: string }) => e.id)
+  if (futureEventIds.length > 0) {
+    await admin
+      .from('event_participants')
+      .delete()
+      .eq('member_id', memberId)
+      .in('event_id', futureEventIds)
+  }
+
   revalidatePath('/members')
   revalidatePath(`/members/${memberId}`)
   return {}
