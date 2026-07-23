@@ -9,6 +9,7 @@ type Participant = {
   approval_status: 'approved' | 'pending'
   participation_category: string | null
   members: { full_name: string; photo_url: string | null } | null
+  isWithdrawn?: boolean
 }
 
 type MyMember = {
@@ -282,8 +283,8 @@ export default function ParticipantSection({
   const isAdminOrCoach = role === 'admin' || role === 'coach'
   const isTournament = eventType === 'tournament'
 
-  const approvedCount = participants.filter(p => p.approval_status === 'approved').length
-  const pendingCount  = participants.filter(p => p.approval_status === 'pending').length
+  const approvedCount = participants.filter(p => p.approval_status === 'approved' && !p.isWithdrawn).length
+  const pendingCount  = participants.filter(p => p.approval_status === 'pending' && !p.isWithdrawn).length
 
   return (
     <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
@@ -406,12 +407,19 @@ export default function ParticipantSection({
           <div className="space-y-2">
             {participants.map(p => (
               <div key={p.member_id} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                p.approval_status === 'pending'
-                  ? 'bg-orange-50 border-orange-200'
-                  : 'bg-[#F5F8FF] border-[#D0DCF5]'
+                p.isWithdrawn
+                  ? 'bg-gray-50 border-gray-200'
+                  : p.approval_status === 'pending'
+                    ? 'bg-orange-50 border-orange-200'
+                    : 'bg-[#F5F8FF] border-[#D0DCF5]'
               }`}>
                 <MemberAvatar photoUrl={p.members?.photo_url ?? null} name={p.members?.full_name ?? ''} />
-                <span className="text-xs font-semibold text-[#1A3666] flex-1">{p.members?.full_name ?? '不明'}</span>
+                <span className={`text-xs font-semibold flex-1 ${p.isWithdrawn ? 'text-gray-400' : 'text-[#1A3666]'}`}>
+                  {p.members?.full_name ?? '不明'}
+                  {p.isWithdrawn && (
+                    <span className="ml-1 font-bold text-gray-400">（退会済み）</span>
+                  )}
+                </span>
                 {isTournament && p.participation_category && (
                   <span className="text-[10px] font-bold text-[#1A3666] bg-[#F5C800]/30 border border-[#F5C800]/50 px-1.5 py-0.5 rounded shrink-0">
                     {CATEGORY_LABEL[p.participation_category] ?? p.participation_category}

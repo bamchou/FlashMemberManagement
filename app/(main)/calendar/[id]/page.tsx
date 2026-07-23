@@ -98,22 +98,24 @@ export default async function EventDetailPage({
   const { data: participantMemberDetails } = participantMemberIds.length > 0
     ? await adminSupabase
         .from('members')
-        .select('id, full_name, photo_url')
+        .select('id, full_name, photo_url, withdrawn_at')
         .in('id', participantMemberIds)
     : { data: [] }
 
   const memberDetailMap = Object.fromEntries(
-    (participantMemberDetails ?? []).map((m: { id: string; full_name: string; photo_url: string | null }) => [
-      m.id, { full_name: m.full_name, photo_url: m.photo_url }
+    (participantMemberDetails ?? []).map((m: { id: string; full_name: string; photo_url: string | null; withdrawn_at: string | null }) => [
+      m.id, { full_name: m.full_name, photo_url: m.photo_url, withdrawn_at: m.withdrawn_at }
     ])
   )
 
-  const participants = participantMemberIds.map(memberId => ({
-    member_id: memberId,
-    members: memberDetailMap[memberId] ?? null,
-    approval_status: (participantStatusMap[memberId] ?? 'approved') as 'approved' | 'pending',
-    participation_category: (participantCategoryMap[memberId] ?? null) as string | null,
-  }))
+  const participants = participantMemberIds
+    .map(memberId => ({
+      member_id: memberId,
+      members: memberDetailMap[memberId] ?? null,
+      approval_status: (participantStatusMap[memberId] ?? 'approved') as 'approved' | 'pending',
+      participation_category: (participantCategoryMap[memberId] ?? null) as string | null,
+      isWithdrawn: !!memberDetailMap[memberId]?.withdrawn_at,
+    }))
 
   // 参加登録できるメンバー取得（保護者のみ）
   let myMembers: { id: string; full_name: string; photo_url: string | null }[] = []
