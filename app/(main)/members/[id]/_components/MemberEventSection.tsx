@@ -2,7 +2,7 @@
 
 import { useTransition, useState } from 'react'
 import Link from 'next/link'
-import { addParticipant, removeParticipant } from '@/app/(main)/calendar/actions'
+import { addParticipant, removeParticipant, reapplyParticipant } from '@/app/(main)/calendar/actions'
 import { EVENT_TYPE_STYLE } from '@/app/(main)/calendar/_utils/eventTypeStyle'
 
 type EventRow = {
@@ -65,7 +65,11 @@ function EventRow({
   function register(category: Category) {
     setPendingCategory(category)
     startTransition(async () => {
-      await addParticipant(event.id, memberId, category)
+      if (isRejected) {
+        await reapplyParticipant(event.id, memberId, category)
+      } else {
+        await addParticipant(event.id, memberId, category)
+      }
       setPendingCategory(null)
     })
   }

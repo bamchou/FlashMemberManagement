@@ -482,6 +482,51 @@ export async function rejectParticipant(eventId: string, memberId: string): Prom
   return {}
 }
 
+export async function reapplyParticipant(
+  eventId: string,
+  memberId: string,
+  category: string,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const adminSupabase = createAdminClient()
+
+  // 保護者は自分の子のみ再申請可
+  const { data: member } = await adminSupabase.from('members').select('guardian_id, withdrawn_at').eq('id', memberId).single()
+  if (!member) return { error: 'メンバーが見つかりません' }
+  if (member.withdrawn_at) return { error: '退会済みのメンバーは参加登録できません' }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = profile?.role === 'admin'
+  if (!isAdmin && member.guardian_id !== user.id) return { error: '権限がありません' }
+
+  if (!VALID_PARTICIPATION_CATEGORIES.includes(category)) return { error: '参加種目の値が無効です' }
+
+  // 参加費スナップショットを再計算
+  const { data: event } = await supabase.from('events').select('singles_fee, doubles_fee, accompaniment_fee_per_person').eq('id', eventId).single()
+  let fee_snapshot: number | null = null
+  if (event) {
+    let entryFee = 0
+    if (category === 'singles') entryFee = event.singles_fee ?? 0
+    else if (category === 'doubles') entryFee = event.doubles_fee ?? 0
+    else if (category === 'both') entryFee = (event.singles_fee ?? 0) + (event.doubles_fee ?? 0)
+    fee_snapshot = entryFee + (event.accompaniment_fee_per_person ?? 0)
+  }
+
+  const { error } = await adminSupabase
+    .from('event_participants')
+    .update({ approval_status: 'pending', participation_category: category, fee_snapshot, registered_by: user.id })
+    .eq('event_id', eventId)
+    .eq('member_id', memberId)
+    .eq('approval_status', 'rejected')
+
+  if (error) return { error: '再申請に失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
 export async function removeParticipant(eventId: string, memberId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
