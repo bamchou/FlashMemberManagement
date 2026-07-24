@@ -117,7 +117,7 @@ function EventRow({
           </Link>
           {isTournament && isRejected && (
             <span className="text-xs text-red-500 font-medium whitespace-nowrap shrink-0">
-              ※参加希望がゴメンナサイされました
+              ※ゴメンナサイされました
             </span>
           )}
         </div>
