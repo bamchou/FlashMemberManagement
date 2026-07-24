@@ -45,7 +45,7 @@ export default async function UsersPage() {
             href="/users/guardians"
             className="text-sm font-semibold text-[#1A3666] border border-[#1A3666] px-4 py-2 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors"
           >
-            保護者管理
+            退会管理
           </Link>
           <Link
             href="/users/new"

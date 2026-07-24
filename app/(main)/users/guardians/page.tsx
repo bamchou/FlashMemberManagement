@@ -66,7 +66,7 @@ export default async function GuardiansPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link href="/users" className="text-sm text-[#1A3666] hover:underline">← ユーザー管理</Link>
-        <h1 className="text-xl font-bold text-[#1A3666] mt-2">保護者管理</h1>
+        <h1 className="text-xl font-bold text-[#1A3666] mt-2">退会管理</h1>
         <p className="text-sm text-gray-500 mt-0.5">保護者の退会・再入会処理を行います</p>
       </div>
       <GuardianListClient active={active} withdrawn={withdrawn} />
