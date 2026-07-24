@@ -18,25 +18,20 @@ type EventRow = {
 
 type Category = 'singles' | 'doubles' | 'both'
 
-const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
-  { value: 'singles', label: 'シングルス' },
-  { value: 'doubles', label: 'ダブルス' },
-  { value: 'both',    label: '両方' },
+const REGISTER_BUTTONS: { value: Category; label: string }[] = [
+  { value: 'singles', label: 'シングルスで参加' },
+  { value: 'doubles', label: 'ダブルスで参加' },
+  { value: 'both',    label: 'シングルス＋ダブルスで参加' },
 ]
 
-function getDefaultCategory(singlesFee: number | null, doublesFee: number | null): Category {
-  if (doublesFee != null && singlesFee == null) return 'doubles'
-  return 'singles'
-}
-
-function getAvailableOptions(singlesFee: number | null, doublesFee: number | null) {
+function getAvailableButtons(singlesFee: number | null, doublesFee: number | null) {
   const hasSingles = singlesFee != null
   const hasDoubles = doublesFee != null
-  if (!hasSingles && !hasDoubles) return CATEGORY_OPTIONS
-  return CATEGORY_OPTIONS.filter(opt => {
-    if (opt.value === 'singles') return hasSingles
-    if (opt.value === 'doubles') return hasDoubles
-    if (opt.value === 'both')    return hasSingles && hasDoubles
+  if (!hasSingles && !hasDoubles) return REGISTER_BUTTONS
+  return REGISTER_BUTTONS.filter(b => {
+    if (b.value === 'singles') return hasSingles
+    if (b.value === 'doubles') return hasDoubles
+    if (b.value === 'both')    return hasSingles && hasDoubles
     return false
   })
 }
@@ -59,87 +54,113 @@ function EventRow({
   approvalStatus: 'approved' | 'pending' | null
 }) {
   const [isPending, startTransition] = useTransition()
+  const [pendingCategory, setPendingCategory] = useState<Category | 'cancel' | null>(null)
   const { bg, label } = EVENT_TYPE_STYLE[event.event_type] ?? EVENT_TYPE_STYLE.other
   const isProvisional = event.event_type === 'practice' && event.status === 'provisional'
   const isTournament = event.event_type === 'tournament'
   const isJoining = approvalStatus !== null
+  const availableButtons = getAvailableButtons(event.singles_fee, event.doubles_fee)
 
-  const availableOptions = getAvailableOptions(event.singles_fee, event.doubles_fee)
-  const [selectedCategory, setSelectedCategory] = useState<Category>(
-    () => getDefaultCategory(event.singles_fee, event.doubles_fee)
-  )
+  function register(category: Category) {
+    setPendingCategory(category)
+    startTransition(async () => {
+      await addParticipant(event.id, memberId, category)
+      setPendingCategory(null)
+    })
+  }
 
-  function toggle() {
+  function cancel() {
+    setPendingCategory('cancel')
+    startTransition(async () => {
+      await removeParticipant(event.id, memberId)
+      setPendingCategory(null)
+    })
+  }
+
+  function togglePractice() {
     startTransition(async () => {
       if (isJoining) {
         await removeParticipant(event.id, memberId)
       } else {
-        await addParticipant(event.id, memberId, isTournament ? selectedCategory : undefined)
+        await addParticipant(event.id, memberId)
       }
     })
   }
 
-  const buttonLabel = isPending
-    ? '...'
-    : isJoining
-      ? isTournament && approvalStatus === 'pending' ? '承認待ち（取消）' : '参加予定（取消）'
-      : '参加登録'
-
-  const buttonClass = isJoining
-    ? isTournament && approvalStatus === 'pending'
-      ? 'bg-orange-500 text-white hover:bg-orange-600'
-      : 'bg-green-600 text-white hover:bg-green-700'
-    : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
+  const isPracticeOrJoining = !isTournament || isJoining
 
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+    <div className={`p-3 rounded-lg border transition-colors ${
       isJoining
         ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
         : 'bg-white border-gray-200'
     }`}>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${bg}`}>{label}</span>
-          {isProvisional && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">仮</span>
-          )}
-        </div>
-        <Link href={`/calendar/${event.id}`} className="font-semibold text-sm text-[#1A3666] hover:underline truncate block">
-          {event.title}
-        </Link>
-        <p className="text-xs text-gray-500 mt-0.5">{formatDate(event.start_at)}</p>
-
-        {/* 大会：未登録時のみカテゴリ選択を表示 */}
-        {isTournament && !isJoining && availableOptions.length > 1 && (
-          <div className="flex items-center gap-1 mt-2 flex-wrap">
-            {availableOptions.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setSelectedCategory(opt.value)}
-                className={`text-xs font-semibold px-2 py-1 rounded-lg border-2 transition-colors ${
-                  selectedCategory === opt.value
-                    ? 'bg-[#1A3666] border-[#1A3666] text-white'
-                    : 'bg-white border-gray-200 text-gray-500'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+      <div className={`flex ${isPracticeOrJoining ? 'items-center' : 'items-start'} gap-3`}>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${bg}`}>{label}</span>
+            {isProvisional && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">仮</span>
+            )}
           </div>
+          <Link href={`/calendar/${event.id}`} className="font-semibold text-sm text-[#1A3666] hover:underline truncate block">
+            {event.title}
+          </Link>
+          <p className="text-xs text-gray-500 mt-0.5">{formatDate(event.start_at)}</p>
+        </div>
+
+        {/* 練習・その他 or 登録済み大会：右端に1ボタン */}
+        {!isTournament && (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={togglePractice}
+            className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 ${
+              isJoining
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
+            }`}
+          >
+            {isPending ? '...' : isJoining ? '参加予定（取消）' : '参加登録'}
+          </button>
         )}
-        {isTournament && !isJoining && availableOptions.length === 1 && (
-          <p className="text-xs text-gray-500 mt-1">種目: {availableOptions[0].label}</p>
+
+        {isTournament && isJoining && (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={cancel}
+            className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 ${
+              approvalStatus === 'pending'
+                ? 'bg-orange-500 text-white hover:bg-orange-600'
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
+          >
+            {pendingCategory === 'cancel' ? '...' : approvalStatus === 'pending' ? '承認待ち（取消）' : '参加予定（取消）'}
+          </button>
         )}
       </div>
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={toggle}
-        className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 ${buttonClass}`}
-      >
-        {buttonLabel}
-      </button>
+
+      {/* 大会：未登録時は種目ボタンを下に並べる */}
+      {isTournament && !isJoining && (
+        <div className="flex flex-wrap gap-2 mt-2.5">
+          {availableButtons.map(btn => (
+            <button
+              key={btn.value}
+              type="button"
+              disabled={isPending}
+              onClick={() => register(btn.value)}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full border-2 border-[#1A3666] transition-colors disabled:opacity-50 ${
+                pendingCategory === btn.value
+                  ? 'bg-[#1A3666] text-white opacity-70'
+                  : 'text-[#1A3666] hover:bg-[#1A3666] hover:text-white'
+              }`}
+            >
+              {pendingCategory === btn.value ? '登録中...' : btn.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
