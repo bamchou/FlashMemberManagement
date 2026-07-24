@@ -167,7 +167,7 @@ function EventRow({
           </button>
         )}
 
-        {isTournament && !isJoining && availableButtons.map(btn => (
+        {isTournament && !isJoining && !isRejected && availableButtons.map(btn => (
           <button
             key={btn.value}
             type="button"
