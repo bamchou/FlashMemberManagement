@@ -52,14 +52,14 @@ export default async function MemberDetailPage({
   const showEventSection = isGuardian && isMyMember
 
   // 今後の予定を取得（保護者のみ）
-  let upcomingEvents: { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string }[] = []
+  let upcomingEvents: { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string; singles_fee: number | null; doubles_fee: number | null }[] = []
   let participationStatusMap = new Map<string, 'approved' | 'pending'>()
 
   if (showEventSection) {
     const now = new Date().toISOString()
     const { data: eventsData } = await adminSupabase
       .from('events')
-      .select('id, title, event_type, start_at, end_at, status, target')
+      .select('id, title, event_type, start_at, end_at, status, target, singles_fee, doubles_fee')
       .gte('start_at', now)
       .in('target', ['all', 'member'])
       .eq('is_visible', true)

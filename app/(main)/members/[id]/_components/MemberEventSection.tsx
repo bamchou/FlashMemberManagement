@@ -12,6 +12,33 @@ type EventRow = {
   start_at: string
   end_at: string
   status: string
+  singles_fee: number | null
+  doubles_fee: number | null
+}
+
+type Category = 'singles' | 'doubles' | 'both'
+
+const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
+  { value: 'singles', label: 'シングルス' },
+  { value: 'doubles', label: 'ダブルス' },
+  { value: 'both',    label: '両方' },
+]
+
+function getDefaultCategory(singlesFee: number | null, doublesFee: number | null): Category {
+  if (doublesFee != null && singlesFee == null) return 'doubles'
+  return 'singles'
+}
+
+function getAvailableOptions(singlesFee: number | null, doublesFee: number | null) {
+  const hasSingles = singlesFee != null
+  const hasDoubles = doublesFee != null
+  if (!hasSingles && !hasDoubles) return CATEGORY_OPTIONS
+  return CATEGORY_OPTIONS.filter(opt => {
+    if (opt.value === 'singles') return hasSingles
+    if (opt.value === 'doubles') return hasDoubles
+    if (opt.value === 'both')    return hasSingles && hasDoubles
+    return false
+  })
 }
 
 function formatDate(isoStr: string): string {
@@ -37,12 +64,17 @@ function EventRow({
   const isTournament = event.event_type === 'tournament'
   const isJoining = approvalStatus !== null
 
+  const availableOptions = getAvailableOptions(event.singles_fee, event.doubles_fee)
+  const [selectedCategory, setSelectedCategory] = useState<Category>(
+    () => getDefaultCategory(event.singles_fee, event.doubles_fee)
+  )
+
   function toggle() {
     startTransition(async () => {
       if (isJoining) {
         await removeParticipant(event.id, memberId)
       } else {
-        await addParticipant(event.id, memberId)
+        await addParticipant(event.id, memberId, isTournament ? selectedCategory : undefined)
       }
     })
   }
@@ -60,7 +92,7 @@ function EventRow({
     : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+    <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
       isJoining
         ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
         : 'bg-white border-gray-200'
@@ -76,6 +108,29 @@ function EventRow({
           {event.title}
         </Link>
         <p className="text-xs text-gray-500 mt-0.5">{formatDate(event.start_at)}</p>
+
+        {/* 大会：未登録時のみカテゴリ選択を表示 */}
+        {isTournament && !isJoining && availableOptions.length > 1 && (
+          <div className="flex items-center gap-1 mt-2 flex-wrap">
+            {availableOptions.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setSelectedCategory(opt.value)}
+                className={`text-xs font-semibold px-2 py-1 rounded-lg border-2 transition-colors ${
+                  selectedCategory === opt.value
+                    ? 'bg-[#1A3666] border-[#1A3666] text-white'
+                    : 'bg-white border-gray-200 text-gray-500'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {isTournament && !isJoining && availableOptions.length === 1 && (
+          <p className="text-xs text-gray-500 mt-1">種目: {availableOptions[0].label}</p>
+        )}
       </div>
       <button
         type="button"
