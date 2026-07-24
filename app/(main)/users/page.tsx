@@ -69,17 +69,15 @@ export default async function UsersPage() {
                   <div key={p.id} className="px-4 py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-[#1A3666] truncate">{p.username ?? '—'}</p>
+                        <p className="font-bold text-[#1A3666] truncate">{p.display_name ?? p.username ?? '—'}</p>
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${roleInfo.className}`}>
                           {roleInfo.label}
                         </span>
                       </div>
-                      {p.display_name && (
-                        <p className="text-xs text-gray-500 mt-0.5">{p.display_name}</p>
-                      )}
                       {p.display_name_kana && (
-                        <p className="text-xs text-gray-400">{p.display_name_kana}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{p.display_name_kana}</p>
                       )}
+                      <p className="text-xs text-gray-400">{p.username ?? '—'}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {isCoachOrAdmin && (
@@ -101,8 +99,8 @@ export default async function UsersPage() {
             <table className="hidden sm:table w-full text-sm">
               <thead className="bg-[#F5C800]/20 border-b border-[#EAE0A8]">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">ユーザー名</th>
                   <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">表示名</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">ユーザー名</th>
                   <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">役割</th>
                   <th className="text-left px-4 py-3 font-semibold text-[#1A3666]">一覧表示</th>
                   <th className="px-4 py-3"></th>
@@ -115,13 +113,13 @@ export default async function UsersPage() {
                   const isCoachOrAdmin = p.role === 'admin' || p.role === 'coach'
                   return (
                     <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-[#1A3666]">{p.username ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-600">
-                        <span>{p.display_name ?? '—'}</span>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-[#1A3666]">{p.display_name ?? '—'}</span>
                         {p.display_name_kana && (
                           <span className="block text-xs text-gray-400">{p.display_name_kana}</span>
                         )}
                       </td>
+                      <td className="px-4 py-3 text-gray-500">{p.username ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${roleInfo.className}`}>
                           {roleInfo.label}
