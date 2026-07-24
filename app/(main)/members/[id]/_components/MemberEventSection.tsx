@@ -108,15 +108,15 @@ function EventRow({
         {isProvisional && (
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0">仮</span>
         )}
-        <div className="flex items-baseline gap-1.5 flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
           <Link
             href={`/calendar/${event.id}`}
-            className="font-semibold text-sm text-[#1A3666] hover:underline truncate shrink"
+            className="font-semibold text-sm text-[#1A3666] hover:underline truncate block"
           >
             {event.title}
           </Link>
           {isTournament && isRejected && (
-            <span className="text-xs text-red-500 font-medium whitespace-nowrap shrink-0">
+            <span className="text-xs text-red-500 font-medium">
               ※ゴメンナサイされました
             </span>
           )}
