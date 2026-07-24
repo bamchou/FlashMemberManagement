@@ -408,14 +408,14 @@ export async function addParticipant(
 
   const { error } = await supabase
     .from('event_participants')
-    .insert({
+    .upsert({
       event_id: eventId,
       member_id: memberId,
       registered_by: user.id,
       approval_status,
       participation_category: effectiveCategory,
       fee_snapshot,
-    })
+    }, { onConflict: 'event_id,member_id' })
 
   if (error) return { error: '参加登録に失敗しました' }
   revalidatePath(`/calendar/${eventId}`)
@@ -473,7 +473,7 @@ export async function rejectParticipant(eventId: string, memberId: string): Prom
   const adminSupabase = createAdminClient()
   const { error } = await adminSupabase
     .from('event_participants')
-    .delete()
+    .update({ approval_status: 'rejected' })
     .eq('event_id', eventId)
     .eq('member_id', memberId)
 

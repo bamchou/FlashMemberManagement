@@ -51,14 +51,15 @@ function EventRow({
 }: {
   event: EventRow
   memberId: string
-  approvalStatus: 'approved' | 'pending' | null
+  approvalStatus: 'approved' | 'pending' | 'rejected' | null
 }) {
   const [isPending, startTransition] = useTransition()
   const [pendingCategory, setPendingCategory] = useState<Category | 'cancel' | 'practice' | null>(null)
   const { bg, label } = EVENT_TYPE_STYLE[event.event_type] ?? EVENT_TYPE_STYLE.other
   const isProvisional = event.event_type === 'practice' && event.status === 'provisional'
   const isTournament = event.event_type === 'tournament'
-  const isJoining = approvalStatus !== null
+  const isRejected = approvalStatus === 'rejected'
+  const isJoining = approvalStatus !== null && !isRejected
   const availableButtons = getAvailableButtons(event.singles_fee, event.doubles_fee)
 
   function register(category: Category) {
@@ -91,9 +92,11 @@ function EventRow({
 
   return (
     <div className={`px-3 py-2.5 rounded-lg border transition-colors ${
-      isJoining
-        ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
-        : 'bg-white border-gray-200'
+      isRejected
+        ? 'bg-red-50 border-red-200'
+        : isJoining
+          ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
+          : 'bg-white border-gray-200'
     }`}>
       {/* 1行目: バッジ + タイトル + 日時 */}
       <div className="flex items-center gap-1.5 min-w-0">
@@ -111,7 +114,29 @@ function EventRow({
       </div>
 
       {/* 2行目: ボタン */}
-      <div className="flex flex-wrap gap-1.5 mt-1.5">
+      <div className="flex flex-wrap gap-1.5 mt-1.5 items-center">
+        {/* 大会：ゴメンナサイ済み → 通知＋再申請ボタン */}
+        {isTournament && isRejected && (
+          <>
+            <span className="text-xs font-bold text-red-600 border border-red-300 bg-red-100 px-2.5 py-1 rounded-full shrink-0">
+              ゴメンナサイ
+            </span>
+            {availableButtons.map(btn => (
+              <button
+                key={btn.value}
+                type="button"
+                disabled={isPending}
+                onClick={() => register(btn.value)}
+                className={`text-xs font-bold px-3 py-1 rounded-full border border-gray-400 text-gray-600 hover:border-[#1A3666] hover:text-[#1A3666] transition-colors disabled:opacity-50 ${
+                  pendingCategory === btn.value ? 'opacity-70' : ''
+                }`}
+              >
+                {pendingCategory === btn.value ? '登録中...' : btn.label}
+              </button>
+            ))}
+          </>
+        )}
+
         {!isTournament && (
           <button
             type="button"
@@ -184,7 +209,7 @@ export default function MemberEventSection({
 }: {
   memberId: string
   events: EventRow[]
-  participationStatusMap: Map<string, 'approved' | 'pending'>
+  participationStatusMap: Map<string, 'approved' | 'pending' | 'rejected'>
 }) {
   if (events.length === 0) {
     return (

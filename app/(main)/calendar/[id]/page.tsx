@@ -84,6 +84,7 @@ export default async function EventDetailPage({
     .from('event_participants')
     .select('member_id, approval_status, participation_category')
     .eq('event_id', id)
+    .neq('approval_status', 'rejected')
     .order('created_at', { ascending: true })
 
   const participantMemberIds = (participantRows ?? []).map((p: { member_id: string }) => p.member_id)

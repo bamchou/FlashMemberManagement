@@ -53,7 +53,7 @@ export default async function MemberDetailPage({
 
   // 今後の予定を取得（保護者のみ）
   let upcomingEvents: { id: string; title: string; event_type: string; start_at: string; end_at: string; status: string; singles_fee: number | null; doubles_fee: number | null }[] = []
-  let participationStatusMap = new Map<string, 'approved' | 'pending'>()
+  let participationStatusMap = new Map<string, 'approved' | 'pending' | 'rejected'>()
 
   if (showEventSection) {
     const now = new Date().toISOString()
@@ -73,7 +73,7 @@ export default async function MemberDetailPage({
       .eq('member_id', id)
     participationStatusMap = new Map(
       (participations ?? []).map((p: { event_id: string; approval_status: string }) => [
-        p.event_id, p.approval_status as 'approved' | 'pending'
+        p.event_id, p.approval_status as 'approved' | 'pending' | 'rejected'
       ])
     )
   }
