@@ -39,7 +39,7 @@ function getAvailableButtons(singlesFee: number | null, doublesFee: number | nul
 function formatDate(isoStr: string): string {
   return new Date(isoStr).toLocaleString('ja-JP', {
     timeZone: 'Asia/Tokyo',
-    month: 'long', day: 'numeric', weekday: 'short',
+    month: 'numeric', day: 'numeric', weekday: 'short',
     hour: '2-digit', minute: '2-digit', hour12: false,
   })
 }
@@ -54,7 +54,7 @@ function EventRow({
   approvalStatus: 'approved' | 'pending' | null
 }) {
   const [isPending, startTransition] = useTransition()
-  const [pendingCategory, setPendingCategory] = useState<Category | 'cancel' | null>(null)
+  const [pendingCategory, setPendingCategory] = useState<Category | 'cancel' | 'practice' | null>(null)
   const { bg, label } = EVENT_TYPE_STYLE[event.event_type] ?? EVENT_TYPE_STYLE.other
   const isProvisional = event.event_type === 'practice' && event.status === 'provisional'
   const isTournament = event.event_type === 'tournament'
@@ -78,50 +78,52 @@ function EventRow({
   }
 
   function togglePractice() {
+    setPendingCategory('practice')
     startTransition(async () => {
       if (isJoining) {
         await removeParticipant(event.id, memberId)
       } else {
         await addParticipant(event.id, memberId)
       }
+      setPendingCategory(null)
     })
   }
 
-  const isPracticeOrJoining = !isTournament || isJoining
-
   return (
-    <div className={`p-3 rounded-lg border transition-colors ${
+    <div className={`px-3 py-2.5 rounded-lg border transition-colors ${
       isJoining
         ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
         : 'bg-white border-gray-200'
     }`}>
-      <div className={`flex ${isPracticeOrJoining ? 'items-center' : 'items-start'} gap-3`}>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${bg}`}>{label}</span>
-            {isProvisional && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">仮</span>
-            )}
-          </div>
-          <Link href={`/calendar/${event.id}`} className="font-semibold text-sm text-[#1A3666] hover:underline truncate block">
-            {event.title}
-          </Link>
-          <p className="text-xs text-gray-500 mt-0.5">{formatDate(event.start_at)}</p>
-        </div>
+      {/* 1行目: バッジ + タイトル + 日時 */}
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${bg}`}>{label}</span>
+        {isProvisional && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0">仮</span>
+        )}
+        <Link
+          href={`/calendar/${event.id}`}
+          className="font-semibold text-sm text-[#1A3666] hover:underline truncate flex-1"
+        >
+          {event.title}
+        </Link>
+        <span className="text-xs text-gray-500 shrink-0 whitespace-nowrap">{formatDate(event.start_at)}</span>
+      </div>
 
-        {/* 練習・その他 or 登録済み大会：右端に1ボタン */}
+      {/* 2行目: ボタン */}
+      <div className="flex flex-wrap gap-1.5 mt-1.5">
         {!isTournament && (
           <button
             type="button"
             disabled={isPending}
             onClick={togglePractice}
-            className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 ${
+            className={`text-xs font-bold px-3 py-1 rounded-full transition-colors disabled:opacity-50 ${
               isJoining
                 ? 'bg-green-600 text-white hover:bg-green-700'
                 : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
             }`}
           >
-            {isPending ? '...' : isJoining ? '参加予定（取消）' : '参加登録'}
+            {pendingCategory === 'practice' ? '...' : isJoining ? '参加予定（取消）' : '参加登録'}
           </button>
         )}
 
@@ -130,7 +132,7 @@ function EventRow({
             type="button"
             disabled={isPending}
             onClick={cancel}
-            className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 ${
+            className={`text-xs font-bold px-3 py-1 rounded-full transition-colors disabled:opacity-50 ${
               approvalStatus === 'pending'
                 ? 'bg-orange-500 text-white hover:bg-orange-600'
                 : 'bg-green-600 text-white hover:bg-green-700'
@@ -139,28 +141,23 @@ function EventRow({
             {pendingCategory === 'cancel' ? '...' : approvalStatus === 'pending' ? '承認待ち（取消）' : '参加予定（取消）'}
           </button>
         )}
-      </div>
 
-      {/* 大会：未登録時は種目ボタンを下に並べる */}
-      {isTournament && !isJoining && (
-        <div className="flex flex-wrap gap-2 mt-2.5">
-          {availableButtons.map(btn => (
-            <button
-              key={btn.value}
-              type="button"
-              disabled={isPending}
-              onClick={() => register(btn.value)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-full border-2 border-[#1A3666] transition-colors disabled:opacity-50 ${
-                pendingCategory === btn.value
-                  ? 'bg-[#1A3666] text-white opacity-70'
-                  : 'text-[#1A3666] hover:bg-[#1A3666] hover:text-white'
-              }`}
-            >
-              {pendingCategory === btn.value ? '登録中...' : btn.label}
-            </button>
-          ))}
-        </div>
-      )}
+        {isTournament && !isJoining && availableButtons.map(btn => (
+          <button
+            key={btn.value}
+            type="button"
+            disabled={isPending}
+            onClick={() => register(btn.value)}
+            className={`text-xs font-bold px-3 py-1 rounded-full border border-[#1A3666] transition-colors disabled:opacity-50 ${
+              pendingCategory === btn.value
+                ? 'bg-[#1A3666] text-white opacity-70'
+                : 'text-[#1A3666] hover:bg-[#1A3666] hover:text-white'
+            }`}
+          >
+            {pendingCategory === btn.value ? '登録中...' : btn.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -203,7 +200,6 @@ export default function MemberEventSection({
 
   return (
     <div>
-      {/* 月ナビゲーション */}
       <div className="flex items-center justify-between mb-3">
         <button
           type="button"
@@ -224,7 +220,6 @@ export default function MemberEventSection({
         </button>
       </div>
 
-      {/* 当月の予定 */}
       <div className="space-y-2">
         {monthEvents.map(e => (
           <EventRow
@@ -236,7 +231,6 @@ export default function MemberEventSection({
         ))}
       </div>
 
-      {/* ページ表示 */}
       <p className="text-center text-xs text-gray-400 mt-3">{index + 1} / {groups.length} ヶ月</p>
     </div>
   )
