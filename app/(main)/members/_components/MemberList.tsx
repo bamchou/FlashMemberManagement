@@ -15,9 +15,9 @@ type GenderFilter = '' | '男' | '女'
 const WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日'] as const
 
 function isNewMember(joinDateStr: string): boolean {
-  const oneMonthAgo = new Date()
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
-  return new Date(joinDateStr) >= oneMonthAgo
+  const twoMonthsAgo = new Date()
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2)
+  return new Date(joinDateStr) >= twoMonthsAgo
 }
 
 function formatWithdrawalLabel(withdrawnAt: string): string {

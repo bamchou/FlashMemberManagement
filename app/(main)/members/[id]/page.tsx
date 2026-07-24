@@ -41,9 +41,9 @@ export default async function MemberDetailPage({
   const isPending = member.approval_status === 'pending'
   const isRejected = member.approval_status === 'rejected'
   const isWithdrawn = !!member.withdrawn_at
-  const oneMonthAgo = new Date()
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
-  const isNew = new Date(member.join_date) >= oneMonthAgo
+  const twoMonthsAgo = new Date()
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2)
+  const isNew = new Date(member.join_date) >= twoMonthsAgo
 
   // 承認待ち・取下げメンバーは管理者と担当保護者のみ閲覧可
   if ((isPending || isRejected) && !isAdmin && !isMyMember) notFound()
