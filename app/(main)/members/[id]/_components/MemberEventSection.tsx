@@ -115,14 +115,13 @@ function EventRow({
           >
             {event.title}
           </Link>
-          {isTournament && isRejected && (
-            <span className="text-xs text-red-500 font-medium">
-              ※参加希望がゴメンナサイされました
-            </span>
-          )}
         </div>
         <span className="text-xs text-gray-500 shrink-0 whitespace-nowrap mt-0.5">{formatDate(event.start_at)}</span>
       </div>
+
+      {isTournament && isRejected && (
+        <p className="text-xs text-red-500 font-medium mt-0.5">※参加希望がゴメンナサイされました</p>
+      )}
 
       {/* 2行目: ボタン */}
       <div className="flex flex-wrap gap-1.5 mt-1.5 items-center">
