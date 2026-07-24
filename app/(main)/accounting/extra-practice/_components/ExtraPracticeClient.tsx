@@ -42,18 +42,33 @@ function CountRow({
           type="button"
           disabled={isPending}
           onClick={() => handleChange(1)}
-          className="w-8 h-8 rounded-full border-2 border-[#1A3666] text-[#1A3666] font-bold text-lg flex items-center justify-center hover:bg-[#1A3666] hover:text-white disabled:opacity-30 transition-colors"
+          className={`w-8 h-8 rounded-full border-2 font-bold text-lg flex items-center justify-center transition-colors ${
+            isPending
+              ? 'border-gray-300 text-gray-300 bg-gray-50'
+              : 'border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white'
+          }`}
         >
           ＋
         </button>
-        <span className={`w-6 text-center text-lg font-bold ${count > 0 ? 'text-[#1A3666]' : 'text-gray-300'}`}>
-          {count}
+        <span className="w-6 text-center text-lg font-bold flex items-center justify-center">
+          {isPending ? (
+            <svg className="animate-spin w-5 h-5 text-[#1A3666]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+          ) : (
+            <span className={count > 0 ? 'text-[#1A3666]' : 'text-gray-300'}>{count}</span>
+          )}
         </span>
         <button
           type="button"
           disabled={isPending || count === 0}
           onClick={() => handleChange(-1)}
-          className="w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 font-bold text-lg flex items-center justify-center hover:border-red-400 hover:text-red-500 disabled:opacity-30 transition-colors"
+          className={`w-8 h-8 rounded-full border-2 font-bold text-lg flex items-center justify-center transition-colors ${
+            isPending
+              ? 'border-gray-300 text-gray-300 bg-gray-50'
+              : 'border-gray-300 text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-30'
+          }`}
         >
           −
         </button>
