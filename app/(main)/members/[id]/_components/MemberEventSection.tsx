@@ -98,44 +98,44 @@ function EventRow({
           ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
           : 'bg-white border-gray-200'
     }`}>
-      {/* 1行目: バッジ + タイトル + 日時 */}
+      {/* 1行目: バッジ + タイトル(+ゴメンナサイ注記) + 日時 */}
       <div className="flex items-center gap-1.5 min-w-0">
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${bg}`}>{label}</span>
         {isProvisional && (
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0">仮</span>
         )}
-        <Link
-          href={`/calendar/${event.id}`}
-          className="font-semibold text-sm text-[#1A3666] hover:underline truncate flex-1"
-        >
-          {event.title}
-        </Link>
+        <div className="flex items-baseline gap-1.5 flex-1 min-w-0">
+          <Link
+            href={`/calendar/${event.id}`}
+            className="font-semibold text-sm text-[#1A3666] hover:underline truncate shrink"
+          >
+            {event.title}
+          </Link>
+          {isTournament && isRejected && (
+            <span className="text-[10px] text-red-500 font-medium whitespace-nowrap shrink-0">
+              ※参加希望がゴメンナサイされました
+            </span>
+          )}
+        </div>
         <span className="text-xs text-gray-500 shrink-0 whitespace-nowrap">{formatDate(event.start_at)}</span>
       </div>
 
       {/* 2行目: ボタン */}
       <div className="flex flex-wrap gap-1.5 mt-1.5 items-center">
-        {/* 大会：ゴメンナサイ済み → 通知＋再申請ボタン */}
-        {isTournament && isRejected && (
-          <>
-            <span className="text-xs font-bold text-red-600 border border-red-300 bg-red-100 px-2.5 py-1 rounded-full shrink-0">
-              ゴメンナサイ
-            </span>
-            {availableButtons.map(btn => (
-              <button
-                key={btn.value}
-                type="button"
-                disabled={isPending}
-                onClick={() => register(btn.value)}
-                className={`text-xs font-bold px-3 py-1 rounded-full border border-gray-400 text-gray-600 hover:border-[#1A3666] hover:text-[#1A3666] transition-colors disabled:opacity-50 ${
-                  pendingCategory === btn.value ? 'opacity-70' : ''
-                }`}
-              >
-                {pendingCategory === btn.value ? '登録中...' : btn.label}
-              </button>
-            ))}
-          </>
-        )}
+        {/* 大会：ゴメンナサイ済み → 再申請ボタン */}
+        {isTournament && isRejected && availableButtons.map(btn => (
+          <button
+            key={btn.value}
+            type="button"
+            disabled={isPending}
+            onClick={() => register(btn.value)}
+            className={`text-xs font-bold px-3 py-1 rounded-full border border-gray-400 text-gray-600 hover:border-[#1A3666] hover:text-[#1A3666] transition-colors disabled:opacity-50 ${
+              pendingCategory === btn.value ? 'opacity-70' : ''
+            }`}
+          >
+            {pendingCategory === btn.value ? '登録中...' : btn.label}
+          </button>
+        ))}
 
         {!isTournament && (
           <button
