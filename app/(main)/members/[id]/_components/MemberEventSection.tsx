@@ -103,10 +103,10 @@ function EventRow({
           : 'bg-white border-gray-200'
     }`}>
       {/* 1行目: バッジ + タイトル(+ゴメンナサイ注記) + 日時 */}
-      <div className="flex items-center gap-1.5 min-w-0">
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${bg}`}>{label}</span>
+      <div className="flex items-start gap-1.5 min-w-0">
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${bg}`}>{label}</span>
         {isProvisional && (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0">仮</span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0 mt-0.5">仮</span>
         )}
         <div className="flex-1 min-w-0">
           <Link
@@ -121,7 +121,7 @@ function EventRow({
             </span>
           )}
         </div>
-        <span className="text-xs text-gray-500 shrink-0 whitespace-nowrap">{formatDate(event.start_at)}</span>
+        <span className="text-xs text-gray-500 shrink-0 whitespace-nowrap mt-0.5">{formatDate(event.start_at)}</span>
       </div>
 
       {/* 2行目: ボタン */}
