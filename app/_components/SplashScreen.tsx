@@ -38,14 +38,16 @@ export default function SplashScreen() {
         pointerEvents: fading ? 'none' : 'auto',
       }}
     >
-      {/* 写真を背景に */}
+      {/* 背景色 */}
+      <div className="absolute inset-0 bg-[#1A3666]" />
+      {/* 写真を縮小して全体表示 */}
       <img
         src="/team-photo.png"
         alt=""
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-contain"
       />
-      {/* オーバーレイ */}
-      <div className="absolute inset-0 bg-[#1A3666]/50" />
+      {/* 薄いオーバーレイ */}
+      <div className="absolute inset-0 bg-[#1A3666]/30" />
       {/* ロゴ */}
       <div className="relative text-center">
         <p className="text-white/80 text-lg font-light tracking-[0.3em]">BC</p>
