@@ -1,3 +1,8 @@
+// Chrome requires a fetch handler to show the PWA install prompt
+self.addEventListener('fetch', event => {
+  event.respondWith(fetch(event.request))
+})
+
 self.addEventListener('push', event => {
   if (!event.data) return
   const { title, body, url } = event.data.json()
