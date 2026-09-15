@@ -27,8 +27,6 @@ export default function NotificationButton() {
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return
     setSupported(true)
 
-    navigator.serviceWorker.register('/sw.js').catch(() => {})
-
     ;(async () => {
       try {
         const reg = await navigator.serviceWorker.ready

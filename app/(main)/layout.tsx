@@ -7,6 +7,8 @@ import LogoutButton from './_components/LogoutButton'
 import NotificationButton from './_components/NotificationButton'
 import PullToRefresh from './_components/PullToRefresh'
 import SessionGuard from './_components/SessionGuard'
+import ServiceWorkerRegistrar from './_components/ServiceWorkerRegistrar'
+import InstallBanner from './_components/InstallBanner'
 import type { Role } from '@/lib/types'
 
 export default async function MainLayout({
@@ -76,6 +78,8 @@ export default async function MainLayout({
 
       <PullToRefresh />
       <SessionGuard />
+      <ServiceWorkerRegistrar />
+      <InstallBanner />
 
       {/* メインコンテンツ */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 pb-28 sm:pb-8">
