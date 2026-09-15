@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 export default function InstallBanner() {
   const [show, setShow] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<Event & { prompt?: () => Promise<void>; userChoice?: Promise<{ outcome: string }> } | null>(null)
 
   useEffect(() => {
     const standalone = window.matchMedia('(display-mode: standalone)').matches
@@ -15,15 +16,32 @@ export default function InstallBanner() {
     if (dismissed) return
 
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window & { MSStream?: unknown }).MSStream
-    const android = /Android/.test(navigator.userAgent)
 
     if (ios) {
       setIsIOS(true)
       setShow(true)
-    } else if (android) {
-      // Android shows native prompt automatically — no banner needed
+      return
     }
+
+    // Android/Chrome: wait for beforeinstallprompt
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e as Event & { prompt?: () => Promise<void> })
+      setShow(true)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
+
+  async function handleInstall() {
+    if (!deferredPrompt?.prompt) return
+    await deferredPrompt.prompt()
+    const choice = await deferredPrompt.userChoice
+    if (choice?.outcome === 'accepted') {
+      setShow(false)
+    }
+    setDeferredPrompt(null)
+  }
 
   function dismiss() {
     localStorage.setItem('pwa-install-dismissed', '1')
@@ -45,9 +63,13 @@ export default function InstallBanner() {
               ボタンをタップし、「ホーム画面に追加」を選択してください。
             </p>
           ) : (
-            <p className="text-xs text-white/80 mt-1 leading-relaxed">
-              ブラウザのメニューから「ホーム画面に追加」を選択してください。
-            </p>
+            <button
+              type="button"
+              onClick={handleInstall}
+              className="mt-2 w-full py-1.5 text-sm font-bold bg-[#F5C800] text-[#1A3666] rounded-lg hover:opacity-90 transition-opacity"
+            >
+              ホーム画面に追加
+            </button>
           )}
         </div>
         <button
