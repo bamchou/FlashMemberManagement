@@ -4,6 +4,7 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'BC FLASH メンバー管理',
   description: 'バドミントンクラブ FLASH メンバー管理システム',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
