@@ -59,22 +59,13 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* PWA Splash Screen - CSS only, no JS delay */
+/* PWA Splash Screen */
 #pwa-splash {
-  display: none;
-}
-@media (display-mode: standalone) {
-  #pwa-splash {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: url('/splash.png') center / contain no-repeat #000;
-    animation: pwa-splash-hide 0s 3.5s forwards;
-  }
-  @keyframes pwa-splash-hide {
-    to { visibility: hidden; pointer-events: none; }
-  }
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: url('/splash.png') center / contain no-repeat #000;
+  /* JS側でhide処理。非PWAはscriptが即座にdisplay:noneする */
 }
 
 @media (prefers-reduced-motion: reduce) {
