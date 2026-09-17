@@ -18,8 +18,8 @@ export default function SplashScreen() {
     sessionStorage.setItem('splash-shown', '1')
     setVisible(true)
 
-    const fadeTimer = setTimeout(() => setFading(true), 2000)
-    const hideTimer = setTimeout(() => setVisible(false), 2700)
+    const fadeTimer = setTimeout(() => setFading(true), 3500)
+    const hideTimer = setTimeout(() => setVisible(false), 4500)
 
     return () => {
       clearTimeout(fadeTimer)
@@ -33,7 +33,7 @@ export default function SplashScreen() {
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
       style={{
-        transition: 'opacity 0.7s ease',
+        transition: 'opacity 1s ease',
         opacity: fading ? 0 : 1,
         pointerEvents: fading ? 'none' : 'auto',
       }}
