@@ -59,12 +59,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* PWA Splash Screen — CSS-only, React/JSから完全に独立 */
-@keyframes pwa-splash-hide {
-  0%, 75% { opacity: 1; }
-  100%     { opacity: 0; }
-}
-
+/* PWA Splash Screen
+   - body::before疑似要素なのでReactのDOM管理対象外（ハイドレーション干渉なし）
+   - 初回ロード時はCSSがrender-blockingで最初のペイント前から不透明表示
+   - フェードアウトは <html class="splash-done"> の付与でトリガー（JS制御）
+   - BFCache復帰時はJSがclassを外して再表示する */
 @media (display-mode: standalone) {
   body::before {
     content: '';
@@ -72,8 +71,12 @@ body {
     inset: 0;
     z-index: 9999;
     background: url('/splash.png') center / contain no-repeat #000;
-    animation: pwa-splash-hide 4s ease-in forwards;
+    opacity: 1;
     pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  html.splash-done body::before {
+    opacity: 0;
   }
 }
 
