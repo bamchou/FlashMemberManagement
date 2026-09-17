@@ -25,16 +25,16 @@ export default function RootLayout({
   return (
     <html lang="ja" className="h-full">
       <body className="min-h-full flex flex-col">
-        {/* CSSで即時表示。scriptがコンテンツ描画前に同期実行されPWA判定する */}
-        <div id="pwa-splash" />
         <script dangerouslySetInnerHTML={{ __html: `
 (function(){
-  var el=document.getElementById('pwa-splash');
   var sa=window.matchMedia('(display-mode:standalone)').matches||navigator.standalone===true;
-  if(!sa){el.style.display='none';return;}
-  if(sessionStorage.getItem('sp')){el.style.display='none';return;}
+  if(!sa)return;
+  if(sessionStorage.getItem('sp'))return;
   sessionStorage.setItem('sp','1');
-  setTimeout(function(){el.style.visibility='hidden';el.style.pointerEvents='none';},3500);
+  var el=document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;z-index:9999;background:url(/splash.png) center/contain no-repeat #000;';
+  document.body.appendChild(el);
+  setTimeout(function(){el.style.display='none';},3500);
 })();
         ` }} />
         {children}

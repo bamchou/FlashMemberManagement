@@ -59,14 +59,6 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* PWA Splash Screen */
-#pwa-splash {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: url('/splash.png') center / contain no-repeat #000;
-  /* JS側でhide処理。非PWAはscriptが即座にdisplay:noneする */
-}
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),

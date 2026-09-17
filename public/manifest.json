@@ -2,7 +2,7 @@
   "name": "BC FLASH メンバー管理",
   "short_name": "BC FLASH",
   "description": "バドミントンクラブ FLASH メンバー管理システム",
-  "start_url": "/",
+  "start_url": "/members",
   "display": "standalone",
   "background_color": "#1A3666",
   "theme_color": "#1A3666",
