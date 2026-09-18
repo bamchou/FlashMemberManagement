@@ -64,6 +64,10 @@ body {
    - 初回ロード時はCSSがrender-blockingで最初のペイント前から不透明表示
    - フェードアウトは <html class="splash-done"> の付与でトリガー（JS制御）
    - BFCache復帰時はJSがclassを外して再表示する */
+@keyframes pwa-failsafe-show {
+  to { visibility: visible; }
+}
+
 @media (display-mode: standalone) {
   /* 下地を黒に。body::before描画前の一瞬や、起動直後にWebViewが
      display-modeをbrowser→standaloneへ切り替える1フレームでも
@@ -71,6 +75,14 @@ body {
   html:not(.splash-done),
   html:not(.splash-done) body {
     background-color: #000;
+  }
+  /* splash表示中はアプリ本体を非表示（画像を出してからコンテンツを出す）。
+     visibility:hiddenなのでDOM/hydrationは進むが描画されず、
+     View Transitionのスナップショットにも写らないため漏れ表示が起きない。 */
+  html:not(.splash-done) #app-root {
+    visibility: hidden;
+    /* フェイルセーフ: JSがsplash-doneを付けられなくても6秒で必ず表示 */
+    animation: pwa-failsafe-show 0s linear 6s forwards;
   }
   body::before {
     content: '';

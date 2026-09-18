@@ -27,7 +27,12 @@ export default function RootLayout({
     <html lang="ja" className="h-full">
       <body className="min-h-full flex flex-col">
         <SplashController />
-        {children}
+        {/* PWA起動時はsplash表示中このラッパーをvisibility:hiddenで隠す。
+            コンテンツ自体はDOM/hydrationされるが描画されないため、
+            View Transitionのスナップショット対象にもならず漏れ表示が起きない。 */}
+        <div id="app-root" className="flex-1 flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   )
