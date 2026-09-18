@@ -65,6 +65,13 @@ body {
    - フェードアウトは <html class="splash-done"> の付与でトリガー（JS制御）
    - BFCache復帰時はJSがclassを外して再表示する */
 @media (display-mode: standalone) {
+  /* 下地を黒に。body::before描画前の一瞬や、起動直後にWebViewが
+     display-modeをbrowser→standaloneへ切り替える1フレームでも
+     白い背景が露出しないようにする。フェード完了後はbodyの背景が上に来る。 */
+  html:not(.splash-done),
+  html:not(.splash-done) body {
+    background-color: #000;
+  }
   body::before {
     content: '';
     position: fixed;
