@@ -4,8 +4,15 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendAnnouncementPush } from '@/lib/push/announcements'
 
 export type AnnouncementFormState = { error: string } | undefined
+
+// datetime-local の値 (YYYY-MM-DDTHH:MM) を JST として UTC ISO に変換
+function jstToISO(dtLocal: string): string | null {
+  if (!dtLocal) return null
+  return new Date(dtLocal.slice(0, 16) + ':00+09:00').toISOString()
+}
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -78,6 +85,8 @@ export async function createAnnouncement(
   const target = formData.get('target') as string || 'all'
   const publishStart = formData.get('publish_start') as string
   const publishEnd = formData.get('publish_end') as string
+  const notifyOnPost = formData.get('notify_on_post') !== null
+  const notifyAt = jstToISO(formData.get('notify_at') as string)
 
   if (!title || !content) return { error: 'タイトルと内容は必須です' }
   if (publishStart && publishEnd && publishStart > publishEnd) {
@@ -90,6 +99,8 @@ export async function createAnnouncement(
     target,
     publish_start: publishStart || null,
     publish_end: publishEnd || null,
+    notify_on_post: notifyOnPost,
+    notify_at: notifyAt,
     created_by: user.id,
   }).select('id').single()
 
@@ -98,6 +109,15 @@ export async function createAnnouncement(
   const files = formData.getAll('attachments')
   const uploadErr = await uploadFiles(supabase, 'announcement', newAnn.id, files, user.id)
   if (uploadErr) return { error: uploadErr }
+
+  // 登録時通知（チェックON時）。失敗してもcronが後で拾うため握りつぶす。
+  if (notifyOnPost) {
+    try {
+      await sendAnnouncementPush(newAnn.id, 'posted')
+    } catch (e) {
+      console.error('[createAnnouncement] push error:', e)
+    }
+  }
 
   revalidatePath('/announcements')
   redirect('/announcements')
@@ -116,12 +136,14 @@ export async function updateAnnouncement(
   const target = formData.get('target') as string || 'all'
   const publishStart = formData.get('publish_start') as string
   const publishEnd = formData.get('publish_end') as string
+  const notifyAt = jstToISO(formData.get('notify_at') as string)
 
   if (!title || !content) return { error: 'タイトルと内容は必須です' }
   if (publishStart && publishEnd && publishStart > publishEnd) {
     return { error: '終了日は開始日より後の日付を設定してください' }
   }
 
+  // 編集では通知を送らない。notify_at は保存し、予約通知(cron)側で反映される。
   const { error } = await supabase
     .from('announcements')
     .update({
@@ -130,6 +152,7 @@ export async function updateAnnouncement(
       target,
       publish_start: publishStart || null,
       publish_end: publishEnd || null,
+      notify_at: notifyAt,
     })
     .eq('id', id)
 

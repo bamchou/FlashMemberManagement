@@ -140,6 +140,8 @@ CREATE TABLE public.announcements (
   target text NOT NULL DEFAULT 'all' CHECK (target IN ('all', 'coach', 'member')),
   publish_start timestamptz,
   publish_end timestamptz,
+  notify_on_post boolean NOT NULL DEFAULT false,  -- 登録時にプッシュ通知するか
+  notify_at timestamptz,                          -- 予約通知の日時（この時刻にプッシュ通知）
   created_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -185,6 +187,17 @@ CREATE TABLE public.push_notification_log (
   event_id uuid NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
   sent_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (subscription_id, event_id)
+);
+
+-- push_announcement_log（連絡事項の通知送信済み記録。同一通知の二重送信を防ぐ）
+-- kind: 'posted' = 登録時通知 / 'scheduled' = 予約通知(notify_at)
+CREATE TABLE public.push_announcement_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  subscription_id uuid NOT NULL REFERENCES public.push_subscriptions(id) ON DELETE CASCADE,
+  announcement_id uuid NOT NULL REFERENCES public.announcements(id) ON DELETE CASCADE,
+  kind text NOT NULL CHECK (kind IN ('posted', 'scheduled')),
+  sent_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (subscription_id, announcement_id, kind)
 );
 
 -- event_comments
@@ -266,6 +279,7 @@ ALTER TABLE public.announcement_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coach_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_notification_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.push_announcement_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bib_requests ENABLE ROW LEVEL SECURITY;
@@ -285,6 +299,7 @@ CREATE POLICY "authenticated_all" ON public.announcement_comments FOR ALL TO aut
 CREATE POLICY "authenticated_all" ON public.coach_notes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_subscriptions FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_notification_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.push_announcement_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.calendar_tokens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.bib_requests FOR ALL TO authenticated USING (true) WITH CHECK (true);

@@ -89,6 +89,36 @@ export default function AnnouncementForm() {
         </div>
       </div>
 
+      {/* プッシュ通知 */}
+      <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg p-4 space-y-3">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
+          プッシュ通知（通知先は上の「閲覧対象」に準じます）
+        </p>
+        <label className="flex items-center gap-2.5 cursor-pointer">
+          <input
+            type="checkbox"
+            name="notify_on_post"
+            defaultChecked
+            className="w-4 h-4 accent-[#1A3666]"
+          />
+          <span className="text-sm text-[#1A3666] font-semibold">登録時に通知する</span>
+        </label>
+        <div>
+          <label htmlFor="notify_at" className="block text-xs font-semibold text-[#1A3666] mb-1">
+            予約通知の日時（任意）
+          </label>
+          <input
+            id="notify_at"
+            name="notify_at"
+            type="datetime-local"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            設定した日時になると、あらためて通知を送ります（最大5分程度の誤差あり）。
+          </p>
+        </div>
+      </div>
+
       {/* 添付ファイル */}
       <div>
         <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">添付ファイル</label>

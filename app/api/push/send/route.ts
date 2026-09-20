@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendAnnouncementPush } from '@/lib/push/announcements'
 
 webpush.setVapidDetails(
   process.env.VAPID_SUBJECT!,
@@ -133,9 +134,36 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // --- 連絡事項の通知 ---
+  // cronダウン等を考慮し、1時間の猶予を持たせる（送信済みログで二重送信は防止）
+  const graceStart = new Date(now.getTime() - 60 * 60 * 1000)
+
+  // 予約通知: notify_at が到来した連絡事項
+  const { data: dueScheduled } = await adminSupabase
+    .from('announcements')
+    .select('id')
+    .not('notify_at', 'is', null)
+    .lte('notify_at', now.toISOString())
+    .gte('notify_at', graceStart.toISOString())
+  for (const a of (dueScheduled ?? [])) {
+    sent += await sendAnnouncementPush(a.id, 'scheduled')
+  }
+
+  // 登録時通知のフォールバック: 直近作成でnotify_on_post=trueのもの
+  // （通常はcreateAnnouncement側で即時送信済み。失敗分をここで拾う）
+  const { data: recentPosts } = await adminSupabase
+    .from('announcements')
+    .select('id')
+    .eq('notify_on_post', true)
+    .gte('created_at', graceStart.toISOString())
+  for (const a of (recentPosts ?? [])) {
+    sent += await sendAnnouncementPush(a.id, 'posted')
+  }
+
   // 7日以上前のログを削除
   const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   await adminSupabase.from('push_notification_log').delete().lt('sent_at', cutoff.toISOString())
+  await adminSupabase.from('push_announcement_log').delete().lt('sent_at', cutoff.toISOString())
 
   return NextResponse.json({ sent })
 }

@@ -13,6 +13,13 @@ export default function EditAnnouncementForm({
   announcement: Announcement
   attachments: Attachment[]
 }) {
+  // 保存済みUTC ISO を JST の datetime-local 文字列(YYYY-MM-DDTHH:MM)に変換
+  const notifyAtLocal = announcement.notify_at
+    ? new Date(new Date(announcement.notify_at).getTime() + 9 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 16)
+    : ''
+
   const boundUpdate = updateAnnouncement.bind(null, announcement.id)
   const [state, action, pending] = useActionState<AnnouncementFormState, FormData>(
     boundUpdate,
@@ -104,6 +111,26 @@ export default function EditAnnouncementForm({
             />
           </div>
         </div>
+      </div>
+
+      {/* プッシュ通知（編集では登録時通知は送りません） */}
+      <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg p-4 space-y-2">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
+          プッシュ通知
+        </p>
+        <label htmlFor="notify_at" className="block text-xs font-semibold text-[#1A3666] mb-1">
+          予約通知の日時（任意）
+        </label>
+        <input
+          id="notify_at"
+          name="notify_at"
+          type="datetime-local"
+          defaultValue={notifyAtLocal}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          設定した日時に通知を送ります（最大5分程度の誤差あり）。編集内容自体の通知は送られません。
+        </p>
       </div>
 
       {/* 添付ファイル */}
