@@ -210,7 +210,7 @@ export default function AnnouncementList({
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-mono font-semibold text-gray-400 shrink-0">No.{a.seq}</span>
                         {isUnread && (
-                          <span className="text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full shrink-0">未確認</span>
+                          <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full shrink-0" title="未確認" aria-label="未確認">未</span>
                         )}
                         {typeTab === 'normal' && a.is_pinned && (
                           <span className="text-sm shrink-0" title="ピン止め" aria-label="ピン止め">📌</span>
