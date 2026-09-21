@@ -121,7 +121,7 @@ export default async function AnnouncementDetailPage({
         </div>
 
         <div className="pt-5 border-t border-[#EAE0A8]">
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{announcement.content}</p>
+          <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">{announcement.content}</p>
         </div>
 
         {attachments && attachments.length > 0 && (
