@@ -37,12 +37,17 @@ export default function AnnouncementList({
   announcements,
   role,
   today,
+  readIds = [],
+  currentUserId,
 }: {
   announcements: Announcement[]
   role: Role
   today: string
+  readIds?: string[]
+  currentUserId?: string
 }) {
   const isAdmin = role === 'admin'
+  const readSet = useMemo(() => new Set(readIds), [readIds])
   const [keyword, setKeyword] = useState('')
   const [targetFilter, setTargetFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState(isAdmin ? 'not_ended' : '')
@@ -190,6 +195,7 @@ export default function AnnouncementList({
           {filtered.map(a => {
             const status = getPublishStatus(a, today)
             const targetInfo = TARGET_LABEL[a.target]
+            const isUnread = a.created_by !== currentUserId && !readSet.has(a.id)
             return (
               <div key={a.id} className="relative">
                 <div
@@ -203,8 +209,11 @@ export default function AnnouncementList({
                     <Link href={`/announcements/${a.id}`} className={`block p-5 ${isAdmin ? 'pr-28' : ''}`}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-mono font-semibold text-gray-400 shrink-0">No.{a.seq}</span>
+                        {isUnread && (
+                          <span className="text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full shrink-0">未確認</span>
+                        )}
                         {typeTab === 'normal' && a.is_pinned && (
-                          <span className="text-xs font-bold text-[#1A3666] bg-[#F5C800]/40 border border-[#F5C800] px-1.5 py-0.5 rounded-full shrink-0">📌 ピン止め</span>
+                          <span className="text-sm shrink-0" title="ピン止め" aria-label="ピン止め">📌</span>
                         )}
                         <p className="font-bold text-[#1A3666]">{a.title}</p>
                         {targetInfo && (

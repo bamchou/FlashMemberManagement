@@ -21,11 +21,13 @@ export default async function AnnouncementsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: announcements }] = await Promise.all([
+  const [{ data: profile }, { data: announcements }, { data: readRows }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user!.id).single(),
     supabase.from('announcements').select('*').order('created_at', { ascending: false }),
+    supabase.from('announcement_reads').select('announcement_id').eq('user_id', user!.id),
   ])
 
+  const readIds = (readRows ?? []).map((r: { announcement_id: string }) => r.announcement_id)
   const role = (profile?.role ?? 'member') as Role
   const isAdmin = role === 'admin'
   const today = new Date().toISOString().split('T')[0]
@@ -54,6 +56,8 @@ export default async function AnnouncementsPage() {
         announcements={visibleAnnouncements as Announcement[]}
         role={role}
         today={today}
+        readIds={readIds}
+        currentUserId={user!.id}
       />
     </div>
   )
