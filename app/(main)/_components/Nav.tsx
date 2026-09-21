@@ -75,8 +75,16 @@ const NAV_ITEMS: NavItem[] = [
   },
 ]
 
+function Badge({ count }: { count: number }) {
+  return (
+    <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+      {count > 9 ? '9+' : count}
+    </span>
+  )
+}
+
 /** デスクトップ用: ヘッダー内の横並びナビ */
-export default function Nav({ role }: { role: Role }) {
+export default function Nav({ role, unreadAnnouncements = 0 }: { role: Role; unreadAnnouncements?: number }) {
   const pathname = usePathname()
   const items = NAV_ITEMS.filter(item => item.roles.includes(role))
 
@@ -84,17 +92,19 @@ export default function Nav({ role }: { role: Role }) {
     <nav className="hidden sm:flex items-center gap-1">
       {items.map(item => {
         const active = pathname.startsWith(item.href)
+        const showBadge = item.href === '/announcements' && unreadAnnouncements > 0
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors inline-flex items-center gap-1.5 ${
               active
                 ? 'bg-[#F5C800] text-[#1A3666]'
                 : 'text-white/80 hover:text-white hover:bg-white/10'
             }`}
           >
             {item.label}
+            {showBadge && <Badge count={unreadAnnouncements} />}
           </Link>
         )
       })}
@@ -103,7 +113,7 @@ export default function Nav({ role }: { role: Role }) {
 }
 
 /** モバイル用: 画面下部タブバー（header の外で描画してz-indexを確保） */
-export function MobileNavBar({ role }: { role: Role }) {
+export function MobileNavBar({ role, unreadAnnouncements = 0 }: { role: Role; unreadAnnouncements?: number }) {
   const pathname = usePathname()
   const items = NAV_ITEMS.filter(item => item.roles.includes(role))
 
@@ -114,6 +124,7 @@ export function MobileNavBar({ role }: { role: Role }) {
     >
       {items.map(item => {
         const active = pathname.startsWith(item.href)
+        const showBadge = item.href === '/announcements' && unreadAnnouncements > 0
         return (
           <Link
             key={item.href}
@@ -122,7 +133,14 @@ export function MobileNavBar({ role }: { role: Role }) {
               active ? 'text-[#F5C800]' : 'text-white/60'
             }`}
           >
-            {item.icon}
+            <span className="relative">
+              {item.icon}
+              {showBadge && (
+                <span className="absolute -top-1.5 -right-2">
+                  <Badge count={unreadAnnouncements} />
+                </span>
+              )}
+            </span>
             <span className="text-[10px] font-semibold leading-none">{item.label}</span>
           </Link>
         )

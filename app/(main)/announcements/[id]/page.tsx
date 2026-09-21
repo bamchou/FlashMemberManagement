@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/utils/grade'
 import { isImageFile, toSupabaseImageUrl } from '@/lib/utils/imageUrl'
 import type { Role, AnnouncementComment } from '@/lib/types'
 import CommentSection from './_components/CommentSection'
+import AnnouncementReadMarker from './_components/AnnouncementReadMarker'
 import type { Attachment } from '@/lib/types'
 
 const TARGET_LABEL: Record<string, { label: string; className: string }> = {
@@ -82,6 +83,7 @@ export default async function AnnouncementDetailPage({
 
   return (
     <div className="max-w-2xl space-y-4">
+      <AnnouncementReadMarker id={id} />
       <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline inline-block">
         ← お知らせ一覧に戻る
       </Link>

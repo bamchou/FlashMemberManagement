@@ -164,6 +164,15 @@ CREATE TABLE public.announcement_comments (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- announcement_reads（お知らせの既読管理。未確認バッジ用）
+CREATE TABLE public.announcement_reads (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  announcement_id uuid NOT NULL REFERENCES public.announcements(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (announcement_id, user_id)
+);
+
 -- coach_notes
 CREATE TABLE public.coach_notes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -295,6 +304,7 @@ ALTER TABLE public.tournament_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prefectural_reinforcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcement_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coach_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_notification_log ENABLE ROW LEVEL SECURITY;
@@ -316,6 +326,7 @@ CREATE POLICY "authenticated_all" ON public.tournament_results FOR ALL TO authen
 CREATE POLICY "authenticated_all" ON public.prefectural_reinforcements FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.announcements FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.announcement_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.announcement_reads FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.coach_notes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_subscriptions FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_notification_log FOR ALL TO authenticated USING (true) WITH CHECK (true);

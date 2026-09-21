@@ -41,6 +41,30 @@ export default async function MainLayout({
     member: '一般',
   }
 
+  // 未確認（未読）お知らせ件数を算出（ナビのバッジ用）
+  const role = profile.role as Role
+  const todayJST = new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const [{ data: annRows }, { data: readRows }] = await Promise.all([
+    supabase.from('announcements').select('id, target, publish_start, publish_end, created_by'),
+    supabase.from('announcement_reads').select('announcement_id').eq('user_id', user.id),
+  ])
+  const readSet = new Set((readRows ?? []).map((r: { announcement_id: string }) => r.announcement_id))
+  const unreadAnnouncements = (annRows ?? []).filter((a: {
+    id: string; target: string; publish_start: string | null; publish_end: string | null; created_by: string | null
+  }) => {
+    // 閲覧対象
+    const canView = role === 'admin' || a.target === 'all'
+      || (a.target === 'coach' && role === 'coach')
+      || (a.target === 'member' && role === 'member')
+    if (!canView) return false
+    // 公開期間（現在公開中のみ）
+    if (a.publish_start && todayJST < a.publish_start.slice(0, 10)) return false
+    if (a.publish_end && todayJST > a.publish_end.slice(0, 10)) return false
+    // 自分が作成したものは対象外／既読は対象外
+    if (a.created_by === user.id) return false
+    return !readSet.has(a.id)
+  }).length
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFDF0]">
       <Suspense fallback={null}>
@@ -59,7 +83,7 @@ export default async function MainLayout({
           </div>
 
           {/* ナビゲーション */}
-          <Nav role={profile.role as Role} />
+          <Nav role={role} unreadAnnouncements={unreadAnnouncements} />
 
           {/* ユーザー情報 */}
           <div className="ml-auto flex items-center gap-3 shrink-0">
@@ -78,7 +102,7 @@ export default async function MainLayout({
       </header>
 
       {/* モバイルボトムナビ: header の外で描画して stacking context を分離 */}
-      <MobileNavBar role={profile.role as Role} />
+      <MobileNavBar role={role} unreadAnnouncements={unreadAnnouncements} />
 
       <PullToRefresh />
       <SessionGuard />

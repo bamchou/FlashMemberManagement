@@ -175,6 +175,26 @@ export async function updateAnnouncement(
   redirect(`/announcements/${id}`)
 }
 
+// お知らせを既読にする（全ロール可）。新規に既読化したときのみ newlyRead=true。
+export async function markAnnouncementRead(announcementId: string): Promise<{ newlyRead: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { newlyRead: false }
+
+  const { data: existing } = await supabase
+    .from('announcement_reads')
+    .select('id')
+    .eq('announcement_id', announcementId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (existing) return { newlyRead: false }
+
+  const { error } = await supabase
+    .from('announcement_reads')
+    .insert({ announcement_id: announcementId, user_id: user.id })
+  return { newlyRead: !error }
+}
+
 export async function togglePin(id: string, isPinned: boolean): Promise<void> {
   const { supabase, error: authError } = await requireAdmin()
   if (authError || !supabase) return
