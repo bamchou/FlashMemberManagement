@@ -199,7 +199,7 @@ export default function AnnouncementList({
       ) : (
         <div className="bg-white rounded-xl border border-[#EAE0A8] py-16 text-center">
           <p className="text-gray-400 text-sm">
-            {keyword || targetFilter || statusFilter ? '条件に一致する連絡事項がありません' : '連絡事項はまだありません'}
+            {keyword || targetFilter || statusFilter ? '条件に一致するお知らせがありません' : 'お知らせはまだありません'}
           </p>
         </div>
       )}

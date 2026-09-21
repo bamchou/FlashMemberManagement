@@ -74,7 +74,7 @@ export async function sendAnnouncementPush(
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
         JSON.stringify({
-          title: '連絡事項',
+          title: 'お知らせ',
           body: ann.title,
           url: `/announcements/${ann.id}`,
         })

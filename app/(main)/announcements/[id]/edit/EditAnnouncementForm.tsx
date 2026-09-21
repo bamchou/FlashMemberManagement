@@ -28,7 +28,7 @@ export default function EditAnnouncementForm({
   const router = useRouter()
 
   async function handleDelete() {
-    if (!confirm('この連絡事項を削除しますか？\nこの操作は元に戻せません。')) return
+    if (!confirm('このお知らせを削除しますか？\nこの操作は元に戻せません。')) return
     await deleteAnnouncement(announcement.id)
   }
 
@@ -77,6 +77,23 @@ export default function EditAnnouncementForm({
           <option value="all">全員</option>
           <option value="coach">指導者のみ</option>
           <option value="member">保護者のみ</option>
+        </select>
+      </div>
+
+      {/* お知らせ種別 */}
+      <div>
+        <label htmlFor="announcement_type" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          お知らせ種別<span className="text-red-500 ml-1">*</span>
+        </label>
+        <select
+          id="announcement_type"
+          name="announcement_type"
+          required
+          defaultValue={announcement.announcement_type}
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        >
+          <option value="normal">通常お知らせ</option>
+          <option value="always">常時お知らせ</option>
         </select>
       </div>
 
@@ -185,7 +202,7 @@ export default function EditAnnouncementForm({
           onClick={handleDelete}
           className="w-full text-sm text-red-500 hover:text-red-700 py-2 transition-colors"
         >
-          この連絡事項を削除する
+          このお知らせを削除する
         </button>
       </div>
     </form>

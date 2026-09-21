@@ -39,7 +39,7 @@ export default async function AnnouncementsPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-[#1A3666]">連絡事項</h1>
+        <h1 className="text-xl font-bold text-[#1A3666]">お知らせ</h1>
         {isAdmin && (
           <Link
             href="/announcements/new"

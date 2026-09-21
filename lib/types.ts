@@ -79,6 +79,7 @@ export type Announcement = {
   title: string
   content: string
   target: 'all' | 'coach' | 'member'
+  announcement_type: 'normal' | 'always'
   publish_start: string | null
   publish_end: string | null
   notify_on_post: boolean

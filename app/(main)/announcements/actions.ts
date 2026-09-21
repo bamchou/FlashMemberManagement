@@ -83,6 +83,7 @@ export async function createAnnouncement(
   const title = (formData.get('title') as string).trim()
   const content = (formData.get('content') as string).trim()
   const target = formData.get('target') as string || 'all'
+  const announcementType = formData.get('announcement_type') as string || 'normal'
   const publishStart = formData.get('publish_start') as string
   const publishEnd = formData.get('publish_end') as string
   const notifyOnPost = formData.get('notify_on_post') !== null
@@ -97,6 +98,7 @@ export async function createAnnouncement(
     title,
     content,
     target,
+    announcement_type: announcementType,
     publish_start: publishStart || null,
     publish_end: publishEnd || null,
     notify_on_post: notifyOnPost,
@@ -104,7 +106,7 @@ export async function createAnnouncement(
     created_by: user.id,
   }).select('id').single()
 
-  if (error || !newAnn) return { error: '連絡事項の登録に失敗しました' }
+  if (error || !newAnn) return { error: 'お知らせの登録に失敗しました' }
 
   const files = formData.getAll('attachments')
   const uploadErr = await uploadFiles(supabase, 'announcement', newAnn.id, files, user.id)
@@ -134,6 +136,7 @@ export async function updateAnnouncement(
   const title = (formData.get('title') as string).trim()
   const content = (formData.get('content') as string).trim()
   const target = formData.get('target') as string || 'all'
+  const announcementType = formData.get('announcement_type') as string || 'normal'
   const publishStart = formData.get('publish_start') as string
   const publishEnd = formData.get('publish_end') as string
   const notifyAt = jstToISO(formData.get('notify_at') as string)
@@ -150,13 +153,14 @@ export async function updateAnnouncement(
       title,
       content,
       target,
+      announcement_type: announcementType,
       publish_start: publishStart || null,
       publish_end: publishEnd || null,
       notify_at: notifyAt,
     })
     .eq('id', id)
 
-  if (error) return { error: '連絡事項の更新に失敗しました' }
+  if (error) return { error: 'お知らせの更新に失敗しました' }
 
   const files = formData.getAll('attachments')
   const uploadErr = await uploadFiles(supabase, 'announcement', id, files, user.id)

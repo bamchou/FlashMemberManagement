@@ -138,6 +138,7 @@ CREATE TABLE public.announcements (
   title text NOT NULL,
   content text NOT NULL,
   target text NOT NULL DEFAULT 'all' CHECK (target IN ('all', 'coach', 'member')),
+  announcement_type text NOT NULL DEFAULT 'normal' CHECK (announcement_type IN ('normal', 'always')),  -- normal=通常お知らせ / always=常時お知らせ
   publish_start timestamptz,
   publish_end timestamptz,
   notify_on_post boolean NOT NULL DEFAULT false,  -- 登録時にプッシュ通知するか

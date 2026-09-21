@@ -58,6 +58,23 @@ export default function AnnouncementForm() {
         </select>
       </div>
 
+      {/* お知らせ種別 */}
+      <div>
+        <label htmlFor="announcement_type" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          お知らせ種別<span className="text-red-500 ml-1">*</span>
+        </label>
+        <select
+          id="announcement_type"
+          name="announcement_type"
+          required
+          defaultValue="normal"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        >
+          <option value="normal">通常お知らせ</option>
+          <option value="always">常時お知らせ</option>
+        </select>
+      </div>
+
       {/* 公開期間 */}
       <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg p-4 space-y-3">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">

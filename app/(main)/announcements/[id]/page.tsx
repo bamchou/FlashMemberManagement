@@ -64,10 +64,10 @@ export default async function AnnouncementDetailPage({
     return (
       <div className="max-w-2xl">
         <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
-          ← 連絡事項一覧に戻る
+          ← お知らせ一覧に戻る
         </Link>
         <div className="bg-white rounded-xl border border-[#EAE0A8] py-16 text-center">
-          <p className="text-gray-400 text-sm">この連絡事項は閲覧できません</p>
+          <p className="text-gray-400 text-sm">このお知らせは閲覧できません</p>
         </div>
       </div>
     )
@@ -78,7 +78,7 @@ export default async function AnnouncementDetailPage({
   return (
     <div className="max-w-2xl space-y-4">
       <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline inline-block">
-        ← 連絡事項一覧に戻る
+        ← お知らせ一覧に戻る
       </Link>
 
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">

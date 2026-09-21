@@ -134,11 +134,11 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // --- 連絡事項の通知 ---
+  // --- お知らせの通知 ---
   // cronダウン等を考慮し、1時間の猶予を持たせる（送信済みログで二重送信は防止）
   const graceStart = new Date(now.getTime() - 60 * 60 * 1000)
 
-  // 予約通知: notify_at が到来した連絡事項
+  // 予約通知: notify_at が到来したお知らせ
   const { data: dueScheduled } = await adminSupabase
     .from('announcements')
     .select('id')
