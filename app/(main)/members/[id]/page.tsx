@@ -134,10 +134,12 @@ export default async function MemberDetailPage({
             <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">性別</dt>
             <dd className="text-[#1A3666] font-medium">{member.gender ?? '未設定'}</dd>
           </div>
-          <div>
-            <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">生年月日</dt>
-            <dd className="text-[#1A3666] font-medium">{formatDate(member.birth_date)}</dd>
-          </div>
+          {isMyMember && (
+            <div>
+              <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">生年月日</dt>
+              <dd className="text-[#1A3666] font-medium">{formatDate(member.birth_date)}</dd>
+            </div>
+          )}
           <div>
             <dt className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-0.5">加入年月</dt>
             <dd className="text-[#1A3666] font-medium">{formatYearMonth(member.join_date)}</dd>
