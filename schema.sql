@@ -144,6 +144,7 @@ CREATE TABLE public.announcements (
   announcement_type text NOT NULL DEFAULT 'normal' CHECK (announcement_type IN ('normal', 'always')),  -- normal=通常お知らせ / always=常時お知らせ
   publish_start timestamptz,
   publish_end timestamptz,
+  entry_deadline date,  -- 申し込み期限日（この日を過ぎるとコメント投稿不可）
   notify_on_post boolean NOT NULL DEFAULT false,  -- 登録時にプッシュ通知するか
   notify_at timestamptz,                          -- 予約通知の日時（この時刻にプッシュ通知）
   created_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,

@@ -168,11 +168,13 @@ export default function CommentSection({
   comments,
   currentUserId,
   role,
+  commentClosed = false,
 }: {
   announcementId: string
   comments: AnnouncementComment[]
   currentUserId: string
   role: Role
+  commentClosed?: boolean
 }) {
   const isAdmin = role === 'admin'
 
@@ -183,7 +185,13 @@ export default function CommentSection({
       </h2>
 
       <div className="pb-4 mb-4 border-b border-[#EAE0A8]">
-        <CommentForm announcementId={announcementId} />
+        {commentClosed ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-500 font-semibold text-center">
+            申し込み期限を過ぎたため、コメントの投稿はできません
+          </div>
+        ) : (
+          <CommentForm announcementId={announcementId} />
+        )}
       </div>
 
       <div className="space-y-3">

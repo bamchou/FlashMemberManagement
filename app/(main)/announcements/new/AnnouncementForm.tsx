@@ -107,6 +107,22 @@ export default function AnnouncementForm() {
         </div>
       </div>
 
+      {/* 申し込み期限日 */}
+      <div>
+        <label htmlFor="entry_deadline" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
+          申し込み期限日（任意）
+        </label>
+        <input
+          id="entry_deadline"
+          name="entry_deadline"
+          type="date"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          設定すると、この日を過ぎた翌日からコメントの投稿ができなくなります。
+        </p>
+      </div>
+
       {/* プッシュ通知 */}
       <div className="bg-[#FFFDF0] border border-[#EAE0A8] rounded-lg p-4 space-y-3">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">

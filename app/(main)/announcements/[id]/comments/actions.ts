@@ -11,6 +11,19 @@ export async function createComment(announcementId: string, content: string): Pr
   const trimmed = content.trim()
   if (!trimmed) return { error: 'コメントを入力してください' }
 
+  // 申し込み期限チェック（JST基準）。期限日の翌日から投稿不可。
+  const { data: ann } = await supabase
+    .from('announcements')
+    .select('entry_deadline')
+    .eq('id', announcementId)
+    .single()
+  if (ann?.entry_deadline) {
+    const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    if (todayJST > ann.entry_deadline) {
+      return { error: '申し込み期限を過ぎているため、コメントできません' }
+    }
+  }
+
   const { error } = await supabase.from('announcement_comments').insert({
     announcement_id: announcementId,
     user_id: user.id,

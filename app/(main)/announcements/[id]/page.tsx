@@ -76,6 +76,10 @@ export default async function AnnouncementDetailPage({
 
   const targetInfo = TARGET_LABEL[announcement.target]
 
+  // 申し込み期限（JST基準）。期限日の翌日からコメント投稿不可。
+  const todayJST = new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const commentClosed = !!announcement.entry_deadline && todayJST > announcement.entry_deadline
+
   return (
     <div className="max-w-2xl space-y-4">
       <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline inline-block">
@@ -101,6 +105,16 @@ export default async function AnnouncementDetailPage({
             <p className="text-xs text-gray-400 mt-1">
               公開期間: {announcement.publish_start ? formatDate(announcement.publish_start) : '開始日なし'} 〜 {announcement.publish_end ? formatDate(announcement.publish_end) : '終了日なし'}
             </p>
+          )}
+          {announcement.entry_deadline && (
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-[#1A3666] bg-[#F5C800]/20 border border-[#F5C800]/50 px-2 py-0.5 rounded-full">
+                申し込み期限: {formatDate(announcement.entry_deadline)}
+              </span>
+              {commentClosed && (
+                <span className="text-xs font-bold text-red-500 border border-red-300 px-2 py-0.5 rounded-full">締切済み</span>
+              )}
+            </div>
           )}
         </div>
 
@@ -167,6 +181,7 @@ export default async function AnnouncementDetailPage({
         comments={(comments ?? []) as AnnouncementComment[]}
         currentUserId={user!.id}
         role={role}
+        commentClosed={commentClosed}
       />
     </div>
   )

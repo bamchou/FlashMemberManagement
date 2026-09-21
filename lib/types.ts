@@ -83,6 +83,7 @@ export type Announcement = {
   announcement_type: 'normal' | 'always'
   publish_start: string | null
   publish_end: string | null
+  entry_deadline: string | null
   notify_on_post: boolean
   notify_at: string | null
   created_by: string | null

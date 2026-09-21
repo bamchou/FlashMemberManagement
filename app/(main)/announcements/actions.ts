@@ -86,6 +86,7 @@ export async function createAnnouncement(
   const announcementType = formData.get('announcement_type') as string || 'normal'
   const publishStart = formData.get('publish_start') as string
   const publishEnd = formData.get('publish_end') as string
+  const entryDeadline = (formData.get('entry_deadline') as string)?.trim() || null
   const notifyOnPost = formData.get('notify_on_post') !== null
   const notifyAt = jstToISO(formData.get('notify_at') as string)
 
@@ -101,6 +102,7 @@ export async function createAnnouncement(
     announcement_type: announcementType,
     publish_start: publishStart || null,
     publish_end: publishEnd || null,
+    entry_deadline: entryDeadline,
     notify_on_post: notifyOnPost,
     notify_at: notifyAt,
     created_by: user.id,
@@ -139,6 +141,7 @@ export async function updateAnnouncement(
   const announcementType = formData.get('announcement_type') as string || 'normal'
   const publishStart = formData.get('publish_start') as string
   const publishEnd = formData.get('publish_end') as string
+  const entryDeadline = (formData.get('entry_deadline') as string)?.trim() || null
   const notifyAt = jstToISO(formData.get('notify_at') as string)
 
   if (!title || !content) return { error: 'タイトルと内容は必須です' }
@@ -156,6 +159,7 @@ export async function updateAnnouncement(
       announcement_type: announcementType,
       publish_start: publishStart || null,
       publish_end: publishEnd || null,
+      entry_deadline: entryDeadline,
       notify_at: notifyAt,
     })
     .eq('id', id)
