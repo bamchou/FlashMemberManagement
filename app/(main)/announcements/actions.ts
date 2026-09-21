@@ -175,6 +175,15 @@ export async function updateAnnouncement(
   redirect(`/announcements/${id}`)
 }
 
+export async function togglePin(id: string, isPinned: boolean): Promise<void> {
+  const { supabase, error: authError } = await requireAdmin()
+  if (authError || !supabase) return
+
+  await supabase.from('announcements').update({ is_pinned: isPinned }).eq('id', id)
+  revalidatePath('/announcements')
+  revalidatePath(`/announcements/${id}`)
+}
+
 export async function deleteAnnouncement(id: string): Promise<void> {
   const { supabase, error: authError } = await requireAdmin()
   if (authError || !supabase) return

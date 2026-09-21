@@ -81,6 +81,7 @@ export type Announcement = {
   content: string
   target: 'all' | 'coach' | 'member'
   announcement_type: 'normal' | 'always'
+  is_pinned: boolean
   publish_start: string | null
   publish_end: string | null
   entry_deadline: string | null

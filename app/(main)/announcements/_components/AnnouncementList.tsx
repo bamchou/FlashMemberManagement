@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { formatDate } from '@/lib/utils/grade'
 import type { Role, Announcement } from '@/lib/types'
 import DeleteButton from './DeleteButton'
+import PinButton from './PinButton'
 
 function getPublishStatus(a: Announcement, today: string): 'active' | 'before' | 'ended' {
   if (a.publish_start && today < a.publish_start) return 'before'
@@ -45,9 +46,20 @@ export default function AnnouncementList({
   const [keyword, setKeyword] = useState('')
   const [targetFilter, setTargetFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState(isAdmin ? 'not_ended' : '')
+  const [typeTab, setTypeTab] = useState<'normal' | 'always'>('normal')
+
+  const normalCount = useMemo(
+    () => announcements.filter(a => (a.announcement_type ?? 'normal') === 'normal').length,
+    [announcements]
+  )
+  const alwaysCount = useMemo(
+    () => announcements.filter(a => a.announcement_type === 'always').length,
+    [announcements]
+  )
 
   const filtered = useMemo(() => {
-    return announcements.filter(a => {
+    const list = announcements.filter(a => {
+      if ((a.announcement_type ?? 'normal') !== typeTab) return false
       if (targetFilter && a.target !== targetFilter) return false
       if (statusFilter === 'not_ended' && getPublishStatus(a, today) === 'ended') return false
       else if (statusFilter && statusFilter !== 'not_ended' && getPublishStatus(a, today) !== statusFilter) return false
@@ -57,10 +69,37 @@ export default function AnnouncementList({
       }
       return true
     })
-  }, [announcements, targetFilter, statusFilter, keyword, today])
+    // 通常タブはピン止めを上部に固定（それ以外は元の並び=登録日時の新しい順を維持）
+    if (typeTab === 'normal') {
+      return list.slice().sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned))
+    }
+    return list
+  }, [announcements, typeTab, targetFilter, statusFilter, keyword, today])
 
   return (
     <div>
+      {/* お知らせ種別タブ */}
+      <div className="flex gap-1 mb-4 border-b border-[#EAE0A8]">
+        {([
+          { key: 'normal', label: '通常', count: normalCount },
+          { key: 'always', label: '常時', count: alwaysCount },
+        ] as const).map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setTypeTab(tab.key)}
+            className={`px-5 py-2 text-sm font-semibold border-b-2 transition-colors ${
+              typeTab === tab.key
+                ? 'border-[#1A3666] text-[#1A3666]'
+                : 'border-transparent text-gray-400 hover:text-[#1A3666]'
+            }`}
+          >
+            {tab.label}
+            <span className="ml-1.5 text-xs text-gray-400">({tab.count})</span>
+          </button>
+        ))}
+      </div>
+
       {/* フィルタエリア */}
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 mb-4 space-y-3">
         {/* キーワード検索 */}
@@ -161,9 +200,12 @@ export default function AnnouncementList({
                   }`}
                 >
                   <div className="bg-white rounded-[10px]">
-                    <Link href={`/announcements/${a.id}`} className={`block p-5 ${isAdmin ? 'pr-20' : ''}`}>
+                    <Link href={`/announcements/${a.id}`} className={`block p-5 ${isAdmin ? 'pr-28' : ''}`}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-mono font-semibold text-gray-400 shrink-0">No.{a.seq}</span>
+                        {typeTab === 'normal' && a.is_pinned && (
+                          <span className="text-xs font-bold text-[#1A3666] bg-[#F5C800]/40 border border-[#F5C800] px-1.5 py-0.5 rounded-full shrink-0">📌 ピン止め</span>
+                        )}
                         <p className="font-bold text-[#1A3666]">{a.title}</p>
                         {targetInfo && (
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${targetInfo.className}`}>
@@ -190,6 +232,7 @@ export default function AnnouncementList({
                     {status === 'ended' && (
                       <span className="text-xs font-semibold bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">公開終了</span>
                     )}
+                    {typeTab === 'normal' && <PinButton id={a.id} isPinned={a.is_pinned} />}
                     <DeleteButton id={a.id} title={a.title} />
                   </div>
                 )}

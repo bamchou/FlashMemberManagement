@@ -142,6 +142,7 @@ CREATE TABLE public.announcements (
   content text NOT NULL,
   target text NOT NULL DEFAULT 'all' CHECK (target IN ('all', 'coach', 'member')),
   announcement_type text NOT NULL DEFAULT 'normal' CHECK (announcement_type IN ('normal', 'always')),  -- normal=通常お知らせ / always=常時お知らせ
+  is_pinned boolean NOT NULL DEFAULT false,  -- 通常お知らせのピン止め（上部固定表示）
   publish_start timestamptz,
   publish_end timestamptz,
   entry_deadline date,  -- 申し込み期限日（この日を過ぎるとコメント投稿不可）
