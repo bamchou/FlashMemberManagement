@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { upsertAttendance, removeAttendance } from '../../actions'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 export type Attendee = {
   userId: string
@@ -113,9 +114,10 @@ export default function HeadcountSection({
               type="button"
               disabled={isPending}
               onClick={save}
-              className="py-2 px-5 bg-[#1A3666] text-white text-sm font-bold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 py-2 px-5 bg-[#1A3666] text-white text-sm font-bold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
             >
-              {isPending ? '...' : isRegistered ? '更新する' : '登録する'}
+              {isPending && <Spinner className="w-4 h-4" />}
+              {isPending ? '処理中...' : isRegistered ? '更新する' : '登録する'}
             </button>
             {isRegistered && (
               <button

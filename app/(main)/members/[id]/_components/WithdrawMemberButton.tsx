@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { withdrawMember } from '../../withdrawal-actions'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 export default function WithdrawMemberButton({ memberId, memberName }: { memberId: string; memberName: string }) {
   const [isPending, startTransition] = useTransition()
@@ -28,8 +29,9 @@ export default function WithdrawMemberButton({ memberId, memberName }: { memberI
         type="button"
         onClick={handleWithdraw}
         disabled={isPending}
-        className="text-sm font-semibold text-red-600 border border-red-300 px-4 py-2 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 border border-red-300 px-4 py-2 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
       >
+        {isPending && <Spinner className="w-3.5 h-3.5" />}
         {isPending ? '処理中...' : '退会処理'}
       </button>
       {error && <p className="text-red-600 text-xs w-full mt-1">{error}</p>}

@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react'
 import { deleteUser } from '../actions'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 export default function DeleteUserButton({ userId, username }: { userId: string; username: string | null }) {
   const [isPending, startTransition] = useTransition()
@@ -19,8 +20,9 @@ export default function DeleteUserButton({ userId, username }: { userId: string;
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+      className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
     >
+      {isPending && <Spinner className="w-3 h-3" />}
       {isPending ? '削除中...' : '削除'}
     </button>
   )

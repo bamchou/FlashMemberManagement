@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from 'react'
 import Link from 'next/link'
 import { createEvent } from '../actions'
+import Spinner from '@/app/(main)/_components/Spinner'
 import type { AccompanimentFeeSetting } from '@/lib/types'
 
 const EVENT_TYPES = [
@@ -505,8 +506,9 @@ export default function EventForm({
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="flex-1 py-2.5 bg-[#1A3666] text-white text-sm font-semibold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 bg-[#1A3666] text-white text-sm font-semibold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
         >
+          {isPending && <Spinner className="w-4 h-4" />}
           {isPending ? '登録中...' : '登録する'}
         </button>
       </div>

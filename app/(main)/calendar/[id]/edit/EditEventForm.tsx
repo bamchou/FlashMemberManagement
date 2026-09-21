@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { updateEvent } from '../../actions'
 import type { CalendarEvent, AccompanimentFeeSetting, Attachment } from '@/lib/types'
 import AttachmentList from '@/app/(main)/_components/AttachmentList'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 const PAYMENT_METHODS = [
   '口座振替', 'クレジットカード', 'コンビニ支払', 'ATM支払', 'ネットバンク', '電子マネー',
@@ -595,8 +596,9 @@ export default function EditEventForm({
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="flex-1 py-2.5 bg-[#1A3666] text-white text-sm font-semibold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 bg-[#1A3666] text-white text-sm font-semibold rounded-lg hover:bg-[#2A52A0] disabled:opacity-50 transition-colors"
         >
+          {isPending && <Spinner className="w-4 h-4" />}
           {isPending ? '更新中...' : '更新する'}
         </button>
       </div>

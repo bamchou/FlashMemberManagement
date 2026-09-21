@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createAnnouncement, type AnnouncementFormState } from '../actions'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 export default function AnnouncementForm() {
   const [state, action, pending] = useActionState<AnnouncementFormState, FormData>(
@@ -166,8 +167,9 @@ export default function AnnouncementForm() {
         <button
           type="submit"
           disabled={pending}
-          className="flex-1 bg-[#1A3666] text-white font-bold py-2.5 rounded-lg text-sm hover:bg-[#2A52A0] transition-colors disabled:opacity-60"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#1A3666] text-white font-bold py-2.5 rounded-lg text-sm hover:bg-[#2A52A0] transition-colors disabled:opacity-60"
         >
+          {pending && <Spinner className="w-4 h-4" />}
           {pending ? '登録中...' : '登録する'}
         </button>
       </div>

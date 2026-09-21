@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { updateAnnouncement, deleteAnnouncement, type AnnouncementFormState } from '../../actions'
 import type { Announcement, Attachment } from '@/lib/types'
 import AttachmentList from '@/app/(main)/_components/AttachmentList'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 export default function EditAnnouncementForm({
   announcement,
@@ -190,8 +191,9 @@ export default function EditAnnouncementForm({
         <button
           type="submit"
           disabled={pending}
-          className="flex-1 bg-[#1A3666] text-white font-bold py-2.5 rounded-lg text-sm hover:bg-[#2A52A0] transition-colors disabled:opacity-60"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#1A3666] text-white font-bold py-2.5 rounded-lg text-sm hover:bg-[#2A52A0] transition-colors disabled:opacity-60"
         >
+          {pending && <Spinner className="w-4 h-4" />}
           {pending ? '更新中...' : '更新する'}
         </button>
       </div>

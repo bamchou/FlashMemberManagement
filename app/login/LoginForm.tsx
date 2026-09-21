@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { login, type LoginState } from './actions'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 export default function LoginForm() {
   const [state, action, pending] = useActionState<LoginState, FormData>(login, undefined)
@@ -48,8 +49,9 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-[#1A3666] text-white font-bold py-3 rounded-lg text-sm hover:bg-[#2A52A0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+        className="w-full inline-flex items-center justify-center gap-1.5 bg-[#1A3666] text-white font-bold py-3 rounded-lg text-sm hover:bg-[#2A52A0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2"
       >
+        {pending && <Spinner className="w-4 h-4" />}
         {pending ? 'ログイン中...' : 'ログイン'}
       </button>
     </form>
