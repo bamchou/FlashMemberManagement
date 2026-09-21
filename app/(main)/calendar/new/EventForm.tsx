@@ -73,10 +73,7 @@ export default function EventForm({
   const [description, setDescription] = useState('')
   const [isGamePractice, setIsGamePractice] = useState(false)
 
-  // イベント固有
-  const [eventPaymentAmount, setEventPaymentAmount] = useState('')
-
-  // 親睦会固有（大人・子供の参加費）
+  // イベント・親睦会の参加費（大人・子供）
   const [adultFee, setAdultFee] = useState('')
   const [childFee, setChildFee] = useState('')
 
@@ -156,11 +153,6 @@ export default function EventForm({
 
     if (eventType === 'event' || eventType === 'social') {
       if (venue.trim()) fd.set('venue', venue)
-    }
-    if (eventType === 'event') {
-      if (eventPaymentAmount) fd.set('event_payment_amount', eventPaymentAmount)
-    }
-    if (eventType === 'social') {
       if (adultFee) fd.set('adult_fee', adultFee)
       if (childFee) fd.set('child_fee', childFee)
     }
@@ -346,53 +338,36 @@ export default function EventForm({
               className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
             />
           </div>
-          {eventType === 'social' ? (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費（大人）</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    value={adultFee}
-                    onChange={e => setAdultFee(e.target.value)}
-                    placeholder="0"
-                    className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費（子供）</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    value={childFee}
-                    onChange={e => setChildFee(e.target.value)}
-                    placeholder="0"
-                    className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
-                </div>
-              </div>
-            </div>
-          ) : (
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費</label>
-              <div className="relative max-w-[200px]">
+              <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費（大人）</label>
+              <div className="relative">
                 <input
                   type="number"
                   min="0"
-                  value={eventPaymentAmount}
-                  onChange={e => setEventPaymentAmount(e.target.value)}
+                  value={adultFee}
+                  onChange={e => setAdultFee(e.target.value)}
                   placeholder="0"
                   className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
               </div>
             </div>
-          )}
+            <div>
+              <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費（子供）</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  value={childFee}
+                  onChange={e => setChildFee(e.target.value)}
+                  placeholder="0"
+                  className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

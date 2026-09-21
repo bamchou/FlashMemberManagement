@@ -312,7 +312,7 @@ export default async function EventDetailPage({
               </div>
             </div>
           )}
-          {e.event_type === 'social' ? (
+          {(e.event_type === 'social' || e.event_type === 'event') ? (
             (e.adult_fee != null || e.child_fee != null || e.payment_amount != null) && (
               <div className="flex items-start gap-3">
                 <span className="text-gray-400 w-5 mt-0.5 shrink-0">
@@ -331,7 +331,7 @@ export default async function EventDetailPage({
               </div>
             )
           ) : (
-            (e.payment_method || (e.event_type === 'event' && e.payment_amount != null)) && (
+            (e.payment_method) && (
               <div className="flex items-start gap-3">
                 <span className="text-gray-400 w-5 mt-0.5 shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
