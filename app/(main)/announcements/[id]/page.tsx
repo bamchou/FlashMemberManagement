@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatDate } from '@/lib/utils/grade'
+import { isImageFile, toSupabaseImageUrl } from '@/lib/utils/imageUrl'
 import type { Role, AnnouncementComment } from '@/lib/types'
 import CommentSection from './_components/CommentSection'
 import type { Attachment } from '@/lib/types'
@@ -91,7 +92,11 @@ export default async function AnnouncementDetailPage({
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-400 mt-1">{formatDate(announcement.created_at.split('T')[0])}</p>
+          <p className="text-sm text-gray-400 mt-1">
+            <span className="font-mono text-gray-400">No.{announcement.seq}</span>
+            <span className="mx-1.5">·</span>
+            {formatDate(announcement.created_at.split('T')[0])}
+          </p>
           {isAdmin && (announcement.publish_start || announcement.publish_end) && (
             <p className="text-xs text-gray-400 mt-1">
               公開期間: {announcement.publish_start ? formatDate(announcement.publish_start) : '開始日なし'} 〜 {announcement.publish_end ? formatDate(announcement.publish_end) : '終了日なし'}
@@ -107,26 +112,40 @@ export default async function AnnouncementDetailPage({
           <div className="mt-5 pt-5 border-t border-[#EAE0A8]">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">添付ファイル</p>
             <div className="space-y-2">
-              {(attachments as Attachment[]).map(att => (
-                <a
-                  key={att.id}
-                  href={att.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-[#1A3666] hover:bg-[#F5F8FF] transition-colors"
-                >
-                  {att.file_name.endsWith('.pdf') ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                  <span className="text-sm text-[#1A3666] truncate">{att.file_name}</span>
-                </a>
-              ))}
+              {(attachments as Attachment[]).map(att => {
+                const image = isImageFile(att.file_name)
+                const thumb = image ? (toSupabaseImageUrl(att.file_url, 600) ?? att.file_url) : null
+                return (
+                  <a
+                    key={att.id}
+                    href={att.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:border-[#1A3666] hover:bg-[#F5F8FF] transition-colors"
+                  >
+                    {image && thumb && (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={thumb}
+                        alt={att.file_name}
+                        className="w-full max-h-72 object-contain bg-white"
+                      />
+                    )}
+                    <div className="flex items-center gap-2 p-2.5">
+                      {image ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      )}
+                      <span className="text-sm text-[#1A3666] truncate">{att.file_name}</span>
+                    </div>
+                  </a>
+                )
+              })}
             </div>
           </div>
         )}

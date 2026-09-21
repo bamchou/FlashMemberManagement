@@ -3,6 +3,7 @@
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteAttachment } from '../attachments/actions'
+import { isImageFile, toSupabaseImageUrl } from '@/lib/utils/imageUrl'
 import type { Attachment } from '@/lib/types'
 
 function getFileIcon(fileName: string) {
@@ -56,7 +57,18 @@ export default function AttachmentList({
     <div className="space-y-2">
       {attachments.map(att => (
         <div key={att.id} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
-          <span className="shrink-0">{getFileIcon(att.file_name)}</span>
+          {isImageFile(att.file_name) ? (
+            <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={toSupabaseImageUrl(att.file_url, 120) ?? att.file_url}
+                alt={att.file_name}
+                className="w-10 h-10 object-cover rounded border border-gray-200 bg-white"
+              />
+            </a>
+          ) : (
+            <span className="shrink-0">{getFileIcon(att.file_name)}</span>
+          )}
           <a
             href={att.file_url}
             target="_blank"

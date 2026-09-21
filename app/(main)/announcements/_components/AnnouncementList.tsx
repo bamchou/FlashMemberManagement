@@ -163,6 +163,7 @@ export default function AnnouncementList({
                   <div className="bg-white rounded-[10px]">
                     <Link href={`/announcements/${a.id}`} className={`block p-5 ${isAdmin ? 'pr-20' : ''}`}>
                       <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-mono font-semibold text-gray-400 shrink-0">No.{a.seq}</span>
                         <p className="font-bold text-[#1A3666]">{a.title}</p>
                         {targetInfo && (
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${targetInfo.className}`}>

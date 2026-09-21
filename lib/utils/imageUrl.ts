@@ -1,3 +1,12 @@
+const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'avif']
+
+/** ファイル名の拡張子から画像ファイルかどうかを判定する */
+export function isImageFile(fileName: string | null | undefined): boolean {
+  if (!fileName) return false
+  const ext = fileName.split('.').pop()?.toLowerCase()
+  return !!ext && IMAGE_EXTENSIONS.includes(ext)
+}
+
 /**
  * Supabase StorageのURLをImgproxyの画像変換エンドポイントに変換する。
  * ImgproxyはデフォルトでsRGBに変換するため、HDR/P3画像のViewTransition輝度問題を防ぐ。

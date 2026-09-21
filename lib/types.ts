@@ -76,6 +76,7 @@ export type PrefecturalReinforcement = {
 
 export type Announcement = {
   id: string
+  seq: number
   title: string
   content: string
   target: 'all' | 'coach' | 'member'
