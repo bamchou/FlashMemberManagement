@@ -1,4 +1,4 @@
-import { ViewTransition } from 'react'
+import { ViewTransition, Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
@@ -9,6 +9,7 @@ import PullToRefresh from './_components/PullToRefresh'
 import SessionGuard from './_components/SessionGuard'
 import ServiceWorkerRegistrar from './_components/ServiceWorkerRegistrar'
 import InstallBanner from './_components/InstallBanner'
+import NavigationProgress from './_components/NavigationProgress'
 import type { Role } from '@/lib/types'
 
 export default async function MainLayout({
@@ -42,6 +43,9 @@ export default async function MainLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFDF0]">
+      <Suspense fallback={null}>
+        <NavigationProgress />
+      </Suspense>
       {/* ヘッダー */}
       <header className="bg-[#1A3666] shadow-md" style={{ viewTransitionName: 'site-header' }}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
