@@ -117,6 +117,7 @@ export type EventAttendance = {
   user_id: string
   adult_count: number
   child_count: number
+  is_paid: boolean
   created_at: string
   updated_at: string
 }

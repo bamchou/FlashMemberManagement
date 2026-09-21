@@ -53,6 +53,17 @@ const MENU_GROUPS: MenuGroup[] = [
         ),
       },
       {
+        href: '/accounting/event-fees',
+        label: '懇親会・イベント参加費管理',
+        description: '親睦会・イベントの参加人数と参加費・支払状況を管理します',
+        comingSoon: false,
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        ),
+      },
+      {
         href: '/accounting/extra-practice',
         label: '追加練習管理',
         description: '追加で練習参加したメンバーの回数を月ごとに記録します',

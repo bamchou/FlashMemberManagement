@@ -221,6 +221,7 @@ CREATE TABLE public.event_attendances (
   user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   adult_count integer NOT NULL DEFAULT 0,
   child_count integer NOT NULL DEFAULT 0,
+  is_paid boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (event_id, user_id)
