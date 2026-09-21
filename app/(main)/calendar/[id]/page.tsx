@@ -312,22 +312,42 @@ export default async function EventDetailPage({
               </div>
             </div>
           )}
-          {(e.payment_method || ((e.event_type === 'event' || e.event_type === 'social') && e.payment_amount != null)) && (
-            <div className="flex items-start gap-3">
-              <span className="text-gray-400 w-5 mt-0.5 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-              </span>
-              <div className="text-sm text-[#1A3666]">
-                {e.payment_method && <p>{e.payment_method}</p>}
-                {e.payment_amount != null && (
-                  <p className={e.payment_method ? 'text-gray-500 text-xs mt-0.5' : ''}>
-                    {e.event_type === 'practice' ? '使用料金額' : '参加費'} {e.payment_amount.toLocaleString()} 円
-                  </p>
-                )}
+          {e.event_type === 'social' ? (
+            (e.adult_fee != null || e.child_fee != null || e.payment_amount != null) && (
+              <div className="flex items-start gap-3">
+                <span className="text-gray-400 w-5 mt-0.5 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </span>
+                <div className="text-sm text-[#1A3666] space-y-0.5">
+                  {(e.adult_fee ?? e.payment_amount) != null && (
+                    <p>参加費（大人） {(e.adult_fee ?? e.payment_amount)!.toLocaleString()} 円</p>
+                  )}
+                  {e.child_fee != null && (
+                    <p>参加費（子供） {e.child_fee.toLocaleString()} 円</p>
+                  )}
+                </div>
               </div>
-            </div>
+            )
+          ) : (
+            (e.payment_method || (e.event_type === 'event' && e.payment_amount != null)) && (
+              <div className="flex items-start gap-3">
+                <span className="text-gray-400 w-5 mt-0.5 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </span>
+                <div className="text-sm text-[#1A3666]">
+                  {e.payment_method && <p>{e.payment_method}</p>}
+                  {e.payment_amount != null && (
+                    <p className={e.payment_method ? 'text-gray-500 text-xs mt-0.5' : ''}>
+                      {e.event_type === 'practice' ? '使用料金額' : '参加費'} {e.payment_amount.toLocaleString()} 円
+                    </p>
+                  )}
+                </div>
+              </div>
+            )
           )}
         </div>
 

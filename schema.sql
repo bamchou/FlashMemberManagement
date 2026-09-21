@@ -90,6 +90,8 @@ CREATE TABLE public.events (
   venue text,
   singles_fee integer,
   doubles_fee integer,
+  adult_fee integer,   -- 親睦会: 大人の参加費
+  child_fee integer,   -- 親睦会: 子供の参加費
   accompaniment_type text,
   accompaniment_fee_per_person integer,
   created_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,

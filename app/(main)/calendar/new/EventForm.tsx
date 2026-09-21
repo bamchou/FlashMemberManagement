@@ -76,6 +76,10 @@ export default function EventForm({
   // イベント固有
   const [eventPaymentAmount, setEventPaymentAmount] = useState('')
 
+  // 親睦会固有（大人・子供の参加費）
+  const [adultFee, setAdultFee] = useState('')
+  const [childFee, setChildFee] = useState('')
+
   // 大会固有
   const [venue, setVenue] = useState('')
   const [entryDeadline, setEntryDeadline] = useState('')
@@ -97,6 +101,16 @@ export default function EventForm({
         setStartAt(`${date}T19:30`)
         setEndAt(`${date}T21:30`)
       }
+    }
+  }
+
+  // 開始日時を変更したら、終了日時の日付を開始日時と同じ日付に合わせる（時刻は維持）
+  function handleStartAtChange(newStart: string) {
+    setStartAt(newStart)
+    const newDate = newStart.slice(0, 10)
+    if (newDate) {
+      const endTime = endAt.slice(11) || '21:30'
+      setEndAt(`${newDate}T${endTime}`)
     }
   }
 
@@ -142,7 +156,13 @@ export default function EventForm({
 
     if (eventType === 'event' || eventType === 'social') {
       if (venue.trim()) fd.set('venue', venue)
+    }
+    if (eventType === 'event') {
       if (eventPaymentAmount) fd.set('event_payment_amount', eventPaymentAmount)
+    }
+    if (eventType === 'social') {
+      if (adultFee) fd.set('adult_fee', adultFee)
+      if (childFee) fd.set('child_fee', childFee)
     }
 
     if (eventType === 'tournament') {
@@ -293,7 +313,7 @@ export default function EventForm({
             <input
               type="datetime-local"
               value={startAt}
-              onChange={e => setStartAt(e.target.value)}
+              onChange={e => handleStartAtChange(e.target.value)}
               className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
             />
           </div>
@@ -326,20 +346,53 @@ export default function EventForm({
               className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費</label>
-            <div className="relative max-w-[200px]">
-              <input
-                type="number"
-                min="0"
-                value={eventPaymentAmount}
-                onChange={e => setEventPaymentAmount(e.target.value)}
-                placeholder="0"
-                className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+          {eventType === 'social' ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費（大人）</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    value={adultFee}
+                    onChange={e => setAdultFee(e.target.value)}
+                    placeholder="0"
+                    className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費（子供）</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    value={childFee}
+                    onChange={e => setChildFee(e.target.value)}
+                    placeholder="0"
+                    className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-semibold text-[#1A3666] mb-1.5">参加費</label>
+              <div className="relative max-w-[200px]">
+                <input
+                  type="number"
+                  min="0"
+                  value={eventPaymentAmount}
+                  onChange={e => setEventPaymentAmount(e.target.value)}
+                  placeholder="0"
+                  className="w-full px-3.5 py-2.5 pr-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
