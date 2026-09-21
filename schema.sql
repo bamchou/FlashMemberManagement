@@ -214,6 +214,18 @@ CREATE TABLE public.event_comments (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- event_attendances（親睦会・イベントの「大人〇人・子供〇人」人数登録）
+CREATE TABLE public.event_attendances (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id uuid NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  adult_count integer NOT NULL DEFAULT 0,
+  child_count integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (event_id, user_id)
+);
+
 -- calendar_tokens
 CREATE TABLE public.calendar_tokens (
   user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -285,6 +297,7 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_notification_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_announcement_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bib_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coach_monthly_payments ENABLE ROW LEVEL SECURITY;
@@ -305,6 +318,7 @@ CREATE POLICY "authenticated_all" ON public.push_subscriptions FOR ALL TO authen
 CREATE POLICY "authenticated_all" ON public.push_notification_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_announcement_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.event_attendances FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.calendar_tokens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.bib_requests FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.coach_monthly_payments FOR ALL TO authenticated USING (true) WITH CHECK (true);

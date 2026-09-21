@@ -111,6 +111,16 @@ export type EventComment = {
   profiles?: { display_name: string | null; username: string | null }
 }
 
+export type EventAttendance = {
+  id: string
+  event_id: string
+  user_id: string
+  adult_count: number
+  child_count: number
+  created_at: string
+  updated_at: string
+}
+
 export type EventType = 'practice' | 'tournament' | 'event' | 'social' | 'other'
 
 export type CalendarEvent = {

@@ -7,6 +7,7 @@ import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
 import DeleteEventButton from './_components/DeleteEventButton'
 import ToggleEventVisibilityButton from './_components/ToggleEventVisibilityButton'
 import ParticipantSection from './_components/ParticipantSection'
+import HeadcountSection, { type Attendee } from './_components/HeadcountSection'
 import EventCommentSection from './_components/EventCommentSection'
 
 
@@ -149,6 +150,44 @@ export default async function EventDetailPage({
     })
     isCoachAttending = coachIds.includes(user!.id)
   }
+
+  // 親睦会・イベントの人数登録（大人・子供）
+  const isHeadcountType = e.event_type === 'social' || e.event_type === 'event'
+  let attendees: Attendee[] = []
+  let myAdult = 0
+  let myChild = 0
+  if (isHeadcountType) {
+    const { data: attRows } = await adminSupabase
+      .from('event_attendances')
+      .select('user_id, adult_count, child_count')
+      .eq('event_id', id)
+      .order('created_at', { ascending: true })
+    const rows = (attRows ?? []) as { user_id: string; adult_count: number; child_count: number }[]
+    const uids = rows.map(r => r.user_id)
+    let nameMap: Record<string, string> = {}
+    if (uids.length > 0) {
+      const { data: profs } = await adminSupabase
+        .from('profiles')
+        .select('id, display_name, username')
+        .in('id', uids)
+      nameMap = Object.fromEntries(
+        (profs ?? []).map((p: { id: string; display_name: string | null; username: string | null }) =>
+          [p.id, p.display_name ?? p.username ?? '不明'])
+      )
+    }
+    attendees = rows.map(r => ({
+      userId: r.user_id,
+      name: nameMap[r.user_id] ?? '不明',
+      adult: r.adult_count,
+      child: r.child_count,
+      isSelf: r.user_id === user!.id,
+    }))
+    const mine = rows.find(r => r.user_id === user!.id)
+    myAdult = mine?.adult_count ?? 0
+    myChild = mine?.child_count ?? 0
+  }
+  const attAdultFee = e.adult_fee ?? e.payment_amount ?? null
+  const attChildFee = e.child_fee ?? null
 
   // 大会の帯同費を取得
   let accompFeePerPerson = 0
@@ -372,22 +411,35 @@ export default async function EventDetailPage({
         )}
       </div>
 
-      {/* 参加メンバーセクション */}
-      <ParticipantSection
-        eventId={id}
-        eventType={e.event_type}
-        eventStatus={e.status}
-        participants={participants}
-        myMembers={myMembers}
-        role={role}
-        singlesFee={e.singles_fee}
-        doublesFee={e.doubles_fee}
-        accompFeePerPerson={accompFeePerPerson}
-        deadlinePassed={deadlinePassed}
-        coachAttendances={coachAttendances}
-        isCoachAttending={isCoachAttending}
-        isPast={isPast}
-      />
+      {/* 参加登録セクション：親睦会・イベントは人数登録、それ以外はメンバー参加 */}
+      {isHeadcountType ? (
+        <HeadcountSection
+          eventId={id}
+          myAdult={myAdult}
+          myChild={myChild}
+          attendees={attendees}
+          adultFee={attAdultFee}
+          childFee={attChildFee}
+          isAdminOrCoach={isAdminOrCoach}
+          isPast={isPast}
+        />
+      ) : (
+        <ParticipantSection
+          eventId={id}
+          eventType={e.event_type}
+          eventStatus={e.status}
+          participants={participants}
+          myMembers={myMembers}
+          role={role}
+          singlesFee={e.singles_fee}
+          doublesFee={e.doubles_fee}
+          accompFeePerPerson={accompFeePerPerson}
+          deadlinePassed={deadlinePassed}
+          coachAttendances={coachAttendances}
+          isCoachAttending={isCoachAttending}
+          isPast={isPast}
+        />
+      )}
 
       {/* コメントセクション */}
       <EventCommentSection

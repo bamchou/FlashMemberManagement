@@ -609,3 +609,75 @@ export async function toggleEventVisibility(id: string, isVisible: boolean): Pro
   revalidatePath('/calendar')
   revalidatePath(`/calendar/${id}`)
 }
+
+// 親睦会・イベントの人数登録（大人・子供）。本人分をupsert。両方0なら削除。
+export async function upsertAttendance(
+  eventId: string,
+  adultCount: number,
+  childCount: number,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const adult = Math.max(0, Math.floor(Number(adultCount) || 0))
+  const child = Math.max(0, Math.floor(Number(childCount) || 0))
+
+  const [{ data: event }, { data: profile }] = await Promise.all([
+    supabase.from('events').select('event_type, end_at, is_all_day').eq('id', eventId).single(),
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
+  ])
+
+  if (!event) return { error: '予定が見つかりません' }
+  if (event.event_type !== 'social' && event.event_type !== 'event') {
+    return { error: 'この予定は人数登録の対象ではありません' }
+  }
+  if (profile?.role !== 'admin' && isEventPast(event.end_at, event.is_all_day)) {
+    return { error: '終了した予定のため変更できません' }
+  }
+
+  // 両方0なら登録削除
+  if (adult === 0 && child === 0) {
+    const { error } = await supabase
+      .from('event_attendances')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('user_id', user.id)
+    if (error) return { error: '登録の取り消しに失敗しました' }
+    revalidatePath(`/calendar/${eventId}`)
+    return {}
+  }
+
+  const { error } = await supabase
+    .from('event_attendances')
+    .upsert(
+      { event_id: eventId, user_id: user.id, adult_count: adult, child_count: child, updated_at: new Date().toISOString() },
+      { onConflict: 'event_id,user_id' }
+    )
+  if (error) return { error: '人数の登録に失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}
+
+export async function removeAttendance(eventId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '認証エラー' }
+
+  const [{ data: event }, { data: profile }] = await Promise.all([
+    supabase.from('events').select('end_at, is_all_day').eq('id', eventId).single(),
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
+  ])
+  if (event && profile?.role !== 'admin' && isEventPast(event.end_at, event.is_all_day)) {
+    return { error: '終了した予定のため変更できません' }
+  }
+
+  const { error } = await supabase
+    .from('event_attendances')
+    .delete()
+    .eq('event_id', eventId)
+    .eq('user_id', user.id)
+  if (error) return { error: '登録の取り消しに失敗しました' }
+  revalidatePath(`/calendar/${eventId}`)
+  return {}
+}

@@ -65,7 +65,10 @@ export default async function MemberDetailPage({
       .eq('is_visible', true)
       .order('start_at', { ascending: true })
       .limit(200)
-    upcomingEvents = eventsData ?? []
+    // 親睦会・イベントは人数登録方式のため、メンバー単位の参加登録からは除外
+    upcomingEvents = (eventsData ?? []).filter(
+      (ev: { event_type: string }) => ev.event_type !== 'social' && ev.event_type !== 'event'
+    )
 
     const { data: participations } = await adminSupabase
       .from('event_participants')
