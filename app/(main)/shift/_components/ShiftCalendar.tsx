@@ -47,13 +47,14 @@ function formatDateTime(iso: string): string {
 }
 
 export default function ShiftCalendar({
-  year, month, role, currentUserId, coaches, practices,
+  year, month, role, currentUserId, coaches, nameMap, practices,
 }: {
   year: number
   month: number
   role: Role
   currentUserId: string
   coaches: ShiftCoach[]
+  nameMap: Record<string, string>
   practices: ShiftPractice[]
 }) {
   const router = useRouter()
@@ -62,7 +63,7 @@ export default function ShiftCalendar({
   const [isPending, startTransition] = useTransition()
   const todayStr = toDateStr(new Date())
 
-  const coachName = (id: string) => coaches.find(c => c.id === id)?.name ?? '不明'
+  const coachName = (id: string) => nameMap[id] ?? '不明'
 
   // 日付→練習
   const byDate: Record<string, ShiftPractice[]> = {}

@@ -64,6 +64,24 @@ export default async function ShiftPage({
     }
   }
 
+  // 回答者（コーチ一覧に無い管理者等を含む）の名前も解決する
+  const nameMap: Record<string, string> = Object.fromEntries(coaches.map(c => [c.id, c.name]))
+  const responderIds = new Set<string>()
+  for (const b of Object.values(byEvent)) {
+    b.available.forEach(id => responderIds.add(id))
+    b.unavailable.forEach(id => responderIds.add(id))
+  }
+  const missingIds = [...responderIds].filter(id => !(id in nameMap))
+  if (missingIds.length > 0) {
+    const { data: extra } = await admin
+      .from('profiles')
+      .select('id, display_name, username')
+      .in('id', missingIds)
+    for (const p of (extra ?? []) as { id: string; display_name: string | null; username: string | null }[]) {
+      nameMap[p.id] = p.display_name ?? p.username ?? '不明'
+    }
+  }
+
   const practices: ShiftPractice[] = rows.map(e => {
     const b = byEvent[e.id] ?? { available: [], unavailable: [] }
     const myStatus: 'available' | 'unavailable' | null =
@@ -92,6 +110,7 @@ export default async function ShiftPage({
         role={role}
         currentUserId={user!.id}
         coaches={coaches}
+        nameMap={nameMap}
         practices={practices}
       />
     </div>
