@@ -177,6 +177,7 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
     payment_amount: null,
     accompaniment_type, accompaniment_fee_per_person,
     entry_deadline, is_game_practice,
+    needs_coach: event_type === 'practice', // 練習はデフォルトで参加要請ON
     created_by: user.id,
   }).select('id').single()
 

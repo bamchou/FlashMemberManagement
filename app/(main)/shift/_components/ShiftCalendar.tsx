@@ -108,8 +108,8 @@ export default function ShiftCalendar({
       </div>
 
       <p className="text-xs text-gray-500 mb-3">
-        練習をタップして{isAdmin ? 'コーチ募集の設定と参加可否の回答' : '参加可否を回答'}ができます。
-        <span className="ml-1">🙋=募集中 / ⭕=参加可 / ❌=不可</span>
+        練習をタップして{isAdmin ? '参加要請の設定と参加可否の回答' : '参加可否を回答'}ができます。
+        <span className="ml-1">🙋=参加要請中 / ⭕=参加可 / ❌=不可</span>
       </p>
 
       {/* カレンダー本体 */}
@@ -186,10 +186,10 @@ export default function ShiftCalendar({
                 {selected.status === 'provisional' && <span className="ml-2 text-orange-500 font-bold">仮登録</span>}
               </p>
 
-              {/* 管理者: コーチ募集トグル */}
+              {/* 管理者: 参加要請トグル */}
               {isAdmin && (
                 <div className="mb-4 flex items-center justify-between bg-[#F5F8FF] border border-[#D0DCF5] rounded-lg px-4 py-3">
-                  <span className="text-sm font-semibold text-[#1A3666]">🙋 コーチ募集</span>
+                  <span className="text-sm font-semibold text-[#1A3666]">🙋 参加要請</span>
                   <button
                     type="button"
                     disabled={isPending}

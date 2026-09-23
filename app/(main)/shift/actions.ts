@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// 管理者: 練習の「コーチ募集」フラグを切り替え
+// 管理者: 練習の「参加要請」フラグを切り替え
 export async function toggleCoachWanted(eventId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
