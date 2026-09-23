@@ -92,6 +92,7 @@ CREATE TABLE public.events (
   doubles_fee integer,
   adult_fee integer,   -- 親睦会: 大人の参加費
   child_fee integer,   -- 親睦会: 子供の参加費
+  needs_coach boolean NOT NULL DEFAULT false,  -- 練習: コーチ募集フラグ（シフト表用）
   accompaniment_type text,
   accompaniment_fee_per_person integer,
   created_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
@@ -225,6 +226,16 @@ CREATE TABLE public.event_comments (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- event_coach_attendances（コーチの練習参加。status: available=参加可 / unavailable=参加不可）
+CREATE TABLE public.event_coach_attendances (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id uuid NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+  coach_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  status text NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'unavailable')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (event_id, coach_id)
+);
+
 -- event_attendances（親睦会・イベントの「大人〇人・子供〇人」人数登録）
 CREATE TABLE public.event_attendances (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -310,6 +321,7 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_notification_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_announcement_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_coach_attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bib_requests ENABLE ROW LEVEL SECURITY;
@@ -332,6 +344,7 @@ CREATE POLICY "authenticated_all" ON public.push_subscriptions FOR ALL TO authen
 CREATE POLICY "authenticated_all" ON public.push_notification_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.push_announcement_log FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.event_coach_attendances FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_attendances FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.calendar_tokens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.bib_requests FOR ALL TO authenticated USING (true) WITH CHECK (true);

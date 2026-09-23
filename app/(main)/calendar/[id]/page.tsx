@@ -138,6 +138,7 @@ export default async function EventDetailPage({
     .from('event_coach_attendances')
     .select('coach_id')
     .eq('event_id', id)
+    .eq('status', 'available')
   if (attendances && attendances.length > 0) {
     const coachIds = attendances.map((a: { coach_id: string }) => a.coach_id)
     const { data: coachProfiles } = await adminSupabase
