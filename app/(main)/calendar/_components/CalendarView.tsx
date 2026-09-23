@@ -320,7 +320,7 @@ export default function CalendarView({
                   return (
                     <div
                       key={dateStr}
-                      className={`border-r border-[#EAE0A8] min-h-[90px] p-1 ${
+                      className={`border-r border-[#EAE0A8] min-h-[90px] px-0.5 py-1 ${
                         isToday ? 'bg-white' : ''
                       } ${!isThisMonth ? 'bg-gray-50/40' : ''}`}
                     >
@@ -355,10 +355,10 @@ export default function CalendarView({
                             <Link
                               key={e.id}
                               href={`/calendar/${e.id}`}
-                              className={`block text-[10px] font-semibold px-1 py-0.5 rounded truncate leading-tight ${bg} ${isHidden ? 'opacity-40' : ''}`}
+                              className={`block text-[10px] sm:text-[11px] font-semibold px-0.5 sm:px-1 py-0.5 rounded truncate leading-tight ${bg} ${isHidden ? 'opacity-40' : ''}`}
                               title={`${label} ${e.is_all_day ? '終日' : formatTime(e.start_at)} ${e.title}${e.created_by && creatorMap[e.created_by] ? ` (${creatorMap[e.created_by]})` : ''}`}
                             >
-                              {isHidden && '🚫 '}{isProvisional && '仮 '}{e.is_game_practice && '🏸 '}{childEventSet.has(e.id) && '★ '}<span className="hidden sm:inline">{e.is_all_day ? '終日 ' : `${formatTime(e.start_at)} `}</span>{e.title}{e.created_by && creatorMap[e.created_by] ? ` ・${creatorMap[e.created_by]}` : ''}
+                              {isHidden && '🚫 '}{isProvisional && '仮 '}{e.is_game_practice && '🏸 '}{childEventSet.has(e.id) && '★ '}<span className="hidden sm:inline">{e.is_all_day ? '終日 ' : `${formatTime(e.start_at)} `}</span>{e.title}{e.created_by && creatorMap[e.created_by] && <span className="hidden sm:inline"> ・{creatorMap[e.created_by]}</span>}
                             </Link>
                           )
                         })}
