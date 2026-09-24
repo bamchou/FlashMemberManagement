@@ -1,9 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { CalendarEvent, Role } from '@/lib/types'
 import { getHolidayName } from '@/lib/utils/holidays'
+import { useProgressNavigate } from '@/app/(main)/_components/useProgressNavigate'
+import Spinner from '@/app/(main)/_components/Spinner'
 import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
 
 const DOW_LABELS = ['日', '月', '火', '水', '木', '金', '土']
@@ -56,19 +57,19 @@ export default function AgendaView({
   onSwitchMobileView?: (view: 'agenda' | 'grid') => void
 }) {
   const childEventSet = new Set(childEventIds ?? [])
-  const router = useRouter()
+  const { navigate, isNavigating } = useProgressNavigate()
   const todayStr = toDateStr(new Date())
 
   function goPrev() {
     const prev = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 }
-    router.push(`/calendar?year=${prev.y}&month=${prev.m}`)
+    navigate(`/calendar?year=${prev.y}&month=${prev.m}`)
   }
   function goNext() {
     const next = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 }
-    router.push(`/calendar?year=${next.y}&month=${next.m}`)
+    navigate(`/calendar?year=${next.y}&month=${next.m}`)
   }
   function goToday() {
-    router.push('/calendar')
+    navigate('/calendar')
   }
 
   // 当月の全日付
@@ -86,8 +87,9 @@ export default function AgendaView({
           >
             ‹
           </button>
-          <h1 className="text-xl font-bold text-[#1A3666] min-w-[120px] text-center">
+          <h1 className="text-xl font-bold text-[#1A3666] min-w-[120px] text-center inline-flex items-center justify-center gap-1.5">
             {year}年{month}月
+            {isNavigating && <Spinner className="w-4 h-4" />}
           </h1>
           <button
             onClick={goNext}
@@ -128,8 +130,8 @@ export default function AgendaView({
         </div>
       </div>
 
-      {/* 全日付リスト */}
-      <div className="space-y-1">
+      {/* 全日付リスト（月送り中は薄く表示） */}
+      <div className={`space-y-1 transition-opacity ${isNavigating ? 'opacity-50' : ''}`}>
         {days.map(day => {
           const dateStr = toDateStr(day)
           const dow = day.getDay()

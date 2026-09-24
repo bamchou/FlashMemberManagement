@@ -1,9 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { CalendarEvent, Role } from '@/lib/types'
 import { getHolidayName } from '@/lib/utils/holidays'
+import { useProgressNavigate } from '@/app/(main)/_components/useProgressNavigate'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
 export { EVENT_TYPE_STYLE }
@@ -124,7 +125,7 @@ export default function CalendarView({
   onSwitchMobileView?: (view: 'agenda' | 'grid') => void
 }) {
   const childEventSet = new Set(childEventIds ?? [])
-  const router = useRouter()
+  const { navigate, isNavigating } = useProgressNavigate()
   const todayStr = toDateStr(new Date())
 
   // カレンダーグリッド生成
@@ -141,13 +142,13 @@ export default function CalendarView({
 
   function goPrev() {
     const prev = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 }
-    router.push(`/calendar?year=${prev.y}&month=${prev.m}`)
+    navigate(`/calendar?year=${prev.y}&month=${prev.m}`)
   }
   function goNext() {
     const next = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 }
-    router.push(`/calendar?year=${next.y}&month=${next.m}`)
+    navigate(`/calendar?year=${next.y}&month=${next.m}`)
   }
-  function goToday() { router.push('/calendar') }
+  function goToday() { navigate('/calendar') }
 
   return (
     <div>
@@ -160,8 +161,9 @@ export default function CalendarView({
           >
             ‹
           </button>
-          <h1 className="text-xl font-bold text-[#1A3666] min-w-[120px] text-center">
+          <h1 className="text-xl font-bold text-[#1A3666] min-w-[120px] text-center inline-flex items-center justify-center gap-1.5">
             {year}年{month}月
+            {isNavigating && <Spinner className="w-4 h-4" />}
           </h1>
           <button
             onClick={goNext}
@@ -218,8 +220,8 @@ export default function CalendarView({
         </div>
       </div>
 
-      {/* カレンダー本体 */}
-      <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
+      {/* カレンダー本体（月送り中は薄く表示） */}
+      <div className={`bg-white rounded-xl border border-[#EAE0A8] overflow-hidden transition-opacity ${isNavigating ? 'opacity-50' : ''}`}>
         {/* 曜日ヘッダー */}
         <div className="grid grid-cols-7 border-b border-[#EAE0A8]">
           {DOW.map((d, i) => (

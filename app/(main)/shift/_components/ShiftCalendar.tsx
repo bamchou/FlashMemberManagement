@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import type { Role } from '@/lib/types'
 import { getHolidayName } from '@/lib/utils/holidays'
 import { toggleCoachWanted, setCoachAvailability } from '../actions'
+import { useProgressNavigate } from '@/app/(main)/_components/useProgressNavigate'
+import Spinner from '@/app/(main)/_components/Spinner'
 
 export type ShiftCoach = { id: string; name: string }
 export type ShiftPractice = {
@@ -81,7 +83,8 @@ export default function ShiftCalendar({
   const weeks: (Date | null)[][] = []
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
 
-  function nav(y: number, m: number) { router.push(`/shift?year=${y}&month=${m}`) }
+  const { navigate, isNavigating } = useProgressNavigate()
+  function nav(y: number, m: number) { navigate(`/shift?year=${y}&month=${m}`) }
   function goPrev() { const p = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 }; nav(p.y, p.m) }
   function goNext() { const n = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 }; nav(n.y, n.m) }
 
@@ -100,9 +103,12 @@ export default function ShiftCalendar({
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <button onClick={goPrev} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 text-[#1A3666] text-xl font-bold transition-colors">‹</button>
-          <h1 className="text-xl font-bold text-[#1A3666] min-w-[120px] text-center">{year}年{month}月</h1>
+          <h1 className="text-xl font-bold text-[#1A3666] min-w-[120px] text-center inline-flex items-center justify-center gap-1.5">
+            {year}年{month}月
+            {isNavigating && <Spinner className="w-4 h-4" />}
+          </h1>
           <button onClick={goNext} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 text-[#1A3666] text-xl font-bold transition-colors">›</button>
-          <button onClick={() => router.push('/shift')} className="text-xs font-semibold text-[#1A3666] border border-[#1A3666] px-3 py-1 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors">今月</button>
+          <button onClick={() => navigate('/shift')}className="text-xs font-semibold text-[#1A3666] border border-[#1A3666] px-3 py-1 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors">今月</button>
         </div>
         <p className="text-sm font-bold text-[#1A3666]">コーチシフト表</p>
       </div>
@@ -112,8 +118,8 @@ export default function ShiftCalendar({
         <span className="ml-1">🙋=参加要請中 / ⭕=参加可 / ❌=不可</span>
       </p>
 
-      {/* カレンダー本体 */}
-      <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
+      {/* カレンダー本体（月送り中は薄く表示） */}
+      <div className={`bg-white rounded-xl border border-[#EAE0A8] overflow-hidden transition-opacity ${isNavigating ? 'opacity-50' : ''}`}>
         <div className="grid grid-cols-7 border-b border-[#EAE0A8]">
           {DOW.map((d, i) => (
             <div key={d} className={`py-2 text-center text-sm font-bold ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-[#1A3666]'}`}>{d}</div>

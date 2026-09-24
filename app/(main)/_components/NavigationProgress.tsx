@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { NAV_PROGRESS_EVENT } from './useProgressNavigate'
 
 /**
  * 画面遷移中に画面上部へ進捗バーを表示する（レンタルサーバーが遅いときの
@@ -16,7 +17,20 @@ export default function NavigationProgress() {
   const [visible, setVisible] = useState(false)
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const hideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const safetyRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const visibleRef = useRef(false)
+
+  function finish() {
+    if (!visibleRef.current) return
+    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null }
+    if (safetyRef.current) { clearTimeout(safetyRef.current); safetyRef.current = null }
+    setProgress(100)
+    hideRef.current = setTimeout(() => {
+      visibleRef.current = false
+      setVisible(false)
+      setProgress(0)
+    }, 250)
+  }
 
   function start() {
     if (hideRef.current) { clearTimeout(hideRef.current); hideRef.current = null }
@@ -31,7 +45,17 @@ export default function NavigationProgress() {
         return Math.min(90, p + inc)
       })
     }, 220)
+    // 安全策: URLが変わらないまま終わった場合でも20秒で消す
+    if (safetyRef.current) clearTimeout(safetyRef.current)
+    safetyRef.current = setTimeout(finish, 20000)
   }
+
+  // ボタン等からのプログラム遷移（startNavigationProgress）で開始
+  useEffect(() => {
+    const onStart = () => start()
+    window.addEventListener(NAV_PROGRESS_EVENT, onStart)
+    return () => window.removeEventListener(NAV_PROGRESS_EVENT, onStart)
+  }, [])
 
   // リンククリックで開始
   useEffect(() => {
@@ -55,14 +79,7 @@ export default function NavigationProgress() {
 
   // URLが変わったら完了
   useEffect(() => {
-    if (!visibleRef.current) return
-    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null }
-    setProgress(100)
-    hideRef.current = setTimeout(() => {
-      visibleRef.current = false
-      setVisible(false)
-      setProgress(0)
-    }, 250)
+    finish()
   }, [pathname, searchParams])
 
   if (!visible) return null
