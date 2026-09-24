@@ -257,6 +257,24 @@ function UnapproveButton({ eventId, memberId }: { eventId: string; memberId: str
   )
 }
 
+// 参加予定者一覧で、自分の子の参加を取り消すボタン（保護者用）
+function CancelParticipationButton({ eventId, memberId }: { eventId: string; memberId: string }) {
+  const [isPending, startTransition] = useTransition()
+  return (
+    <button
+      type="button"
+      disabled={isPending}
+      onClick={() => {
+        if (!confirm('参加を取り消しますか？')) return
+        startTransition(async () => { await removeParticipant(eventId, memberId) })
+      }}
+      className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white text-red-500 border border-red-300 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 shrink-0"
+    >
+      {isPending ? '...' : '参加取消'}
+    </button>
+  )
+}
+
 export default function ParticipantSection({
   eventId, eventType, eventStatus, participants, myMembers, role,
   singlesFee, doublesFee, accompFeePerPerson, deadlinePassed = false,
@@ -277,6 +295,8 @@ export default function ParticipantSection({
   isPast?: boolean
 }) {
   const participantMap = new Map(participants.map(p => [p.member_id, p]))
+  const myMemberIds = new Set(myMembers.map(m => m.id))
+  const unjoinedMembers = myMembers.filter(m => !participantMap.has(m.id))
   const canRegister = role === 'member'
   const isPractice = eventType === 'practice'
   const isPracticeConfirmed = !isPractice || eventStatus === 'confirmed'
@@ -329,73 +349,50 @@ export default function ParticipantSection({
         </div>
       )}
 
-      {/* 参加登録セクション（保護者のみ） */}
+      {/* 参加登録セクション（保護者のみ）: 未参加の子だけを表示。参加取消は下の参加予定者一覧から行う */}
       {canRegister && (
-        <div className="mb-5">
-          <p className="text-xs font-semibold text-gray-500 mb-2">参加するメンバーを選択</p>
-          {!isPracticeConfirmed ? (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm text-orange-600 font-semibold">
-              練習が確定してから参加登録できます
-            </div>
-          ) : isPast ? (
-            <div className="space-y-2">
-              {myMembers.map(m => {
-                const entry = participantMap.get(m.id)
-                return (
-                  <RegisterBlock
-                    key={m.id}
-                    eventId={eventId}
-                    memberId={m.id}
-                    isTournament={isTournament}
-                    isJoining={!!entry}
-                    isPending={entry?.approval_status === 'pending'}
-                    name={m.full_name}
-                    photoUrl={m.photo_url}
-                    category={entry?.participation_category ?? null}
-                    singlesFee={singlesFee}
-                    doublesFee={doublesFee}
-                    accompFeePerPerson={accompFeePerPerson}
-                    isPast={true}
-                  />
-                )
-              })}
-              <p className="text-xs text-gray-400 mt-1">終了した予定のため参加の変更はできません</p>
-            </div>
-          ) : isTournament && deadlinePassed ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600 font-semibold">
+        !isPracticeConfirmed ? (
+          <div className="mb-5 bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm text-orange-600 font-semibold">
+            練習が確定してから参加登録できます
+          </div>
+        ) : isPast ? (
+          <p className="mb-4 text-xs text-gray-400">終了した予定のため参加の変更はできません</p>
+        ) : myMembers.length === 0 ? (
+          <p className="mb-5 text-sm text-gray-400 bg-gray-50 rounded-lg px-4 py-3">
+            メンバーを登録して管理者に承認されると、参加登録ができます。
+          </p>
+        ) : unjoinedMembers.length > 0 ? (
+          isTournament && deadlinePassed ? (
+            <div className="mb-5 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600 font-semibold">
               申込締切日を過ぎているため、参加登録できません
             </div>
-          ) : myMembers.length > 0 ? (
-            <div className="space-y-2">
-              {myMembers.map(m => {
-                const entry = participantMap.get(m.id)
-                return (
+          ) : (
+            <div className="mb-5">
+              <p className="text-xs font-semibold text-gray-500 mb-2">参加するメンバーを選択</p>
+              <div className="space-y-2">
+                {unjoinedMembers.map(m => (
                   <RegisterBlock
                     key={m.id}
                     eventId={eventId}
                     memberId={m.id}
                     isTournament={isTournament}
-                    isJoining={!!entry}
-                    isPending={entry?.approval_status === 'pending'}
+                    isJoining={false}
+                    isPending={false}
                     name={m.full_name}
                     photoUrl={m.photo_url}
-                    category={entry?.participation_category ?? null}
+                    category={null}
                     singlesFee={singlesFee}
                     doublesFee={doublesFee}
                     accompFeePerPerson={accompFeePerPerson}
                   />
-                )
-              })}
+                ))}
+              </div>
+              {isTournament && (
+                <p className="text-xs text-orange-500 mt-2">※ 大会参加は管理者・指導者の承認後に確定します</p>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-4 py-3">
-              メンバーを登録して管理者に承認されると、参加登録ができます。
-            </p>
-          )}
-          {isTournament && !deadlinePassed && !isPast && myMembers.length > 0 && (
-            <p className="text-xs text-orange-500 mt-2">※ 大会参加は管理者・指導者の承認後に確定します</p>
-          )}
-        </div>
+          )
+        ) : null
       )}
 
       {/* 参加者一覧 */}
@@ -439,6 +436,9 @@ export default function ParticipantSection({
                 )}
                 {p.approval_status === 'approved' && isAdminOrCoach && isTournament && (
                   <UnapproveButton eventId={eventId} memberId={p.member_id} />
+                )}
+                {canRegister && !isPast && myMemberIds.has(p.member_id) && (
+                  <CancelParticipationButton eventId={eventId} memberId={p.member_id} />
                 )}
               </div>
               )
