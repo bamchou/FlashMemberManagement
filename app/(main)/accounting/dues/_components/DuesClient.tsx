@@ -55,19 +55,21 @@ function MemberDuesRow({
       `月謝: ¥${summary.liveTotalFee.toLocaleString()}`
     )) return
     startTransition(async () => {
-      await confirmDues(summary.id, year, month, {
+      const r = await confirmDues(summary.id, year, month, {
         baseFee: summary.baseFee!,
         totalFee: summary.liveTotalFee!,
         frequencySnapshot: summary.frequency,
         practiceDaysSnapshot: summary.practiceDays,
       })
+      if (r?.error) alert(r.error)
     })
   }
 
   function handleUnconfirm() {
     if (!confirm(`${summary.name}さんの確定を取り消しますか？`)) return
     startTransition(async () => {
-      await unconfirmDues(summary.id, year, month)
+      const r = await unconfirmDues(summary.id, year, month)
+      if (r?.error) alert(r.error)
     })
   }
 
@@ -75,14 +77,16 @@ function MemberDuesRow({
     if (!summary.snapshot) return
     if (!confirm(`${summary.name}さんの${year}年${month}月分（¥${summary.snapshot.totalFee.toLocaleString()}）を支払い済みにしますか？`)) return
     startTransition(async () => {
-      await markDuesPaid(summary.id, year, month, summary.snapshot!.totalFee)
+      const r = await markDuesPaid(summary.id, year, month, summary.snapshot!.totalFee)
+      if (r?.error) alert(r.error)
     })
   }
 
   function handleUnpay() {
     if (!confirm(`${summary.name}さんの支払い済み記録を取り消しますか？`)) return
     startTransition(async () => {
-      await markDuesUnpaid(summary.id, year, month)
+      const r = await markDuesUnpaid(summary.id, year, month)
+      if (r?.error) alert(r.error)
     })
   }
 
@@ -283,7 +287,7 @@ function BulkConfirmButton({
     if (!ok) return
 
     startTransition(async () => {
-      await confirmAllDues(
+      const r = await confirmAllDues(
         year,
         month,
         unconfirmed.map(s => ({
@@ -294,6 +298,7 @@ function BulkConfirmButton({
           practiceDaysSnapshot: s.practiceDays,
         }))
       )
+      if (r?.error) alert(r.error)
     })
   }
 

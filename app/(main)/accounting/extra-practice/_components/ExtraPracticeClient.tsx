@@ -28,6 +28,11 @@ function CountRow({
     setCount(optimistic)
     startTransition(async () => {
       const result = await changeExtraPractice(member.id, year, month, delta)
+      if (result.error) {
+        setCount(count) // 楽観的更新を元に戻す
+        alert(result.error)
+        return
+      }
       if (result.count !== undefined) setCount(result.count)
     })
   }

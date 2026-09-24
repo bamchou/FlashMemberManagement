@@ -83,6 +83,7 @@ export default async function CoachPayPage({
         .from('event_coach_attendances')
         .select('coach_id, event_id')
         .in('event_id', eventIds)
+        .eq('status', 'available') // シフト表の「参加不可」は除外
     : { data: [] }
 
   // 大会イベントの参加メンバー数（承認済みのみ）

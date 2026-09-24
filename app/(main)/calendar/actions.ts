@@ -575,12 +575,20 @@ export async function toggleCoachAttendance(eventId: string): Promise<{ error?: 
 
   const { data: existing } = await adminSupabase
     .from('event_coach_attendances')
-    .select('id')
+    .select('id, status')
     .eq('event_id', eventId)
     .eq('coach_id', user.id)
     .maybeSingle()
 
-  if (existing) {
+  if (existing && existing.status === 'unavailable') {
+    // シフト表で「参加不可」と回答済み → 参加に切り替える
+    const { error } = await adminSupabase
+      .from('event_coach_attendances')
+      .update({ status: 'available' })
+      .eq('event_id', eventId)
+      .eq('coach_id', user.id)
+    if (error) return { error: '参加登録に失敗しました' }
+  } else if (existing) {
     const { error } = await adminSupabase
       .from('event_coach_attendances')
       .delete()

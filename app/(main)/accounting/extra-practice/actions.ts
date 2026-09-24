@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { closedMonthError } from '@/lib/accounting/closing'
 
 
 export async function changeExtraPractice(
@@ -17,6 +18,9 @@ export async function changeExtraPractice(
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { error: '権限がありません' }
+
+  const lockError = await closedMonthError(year, month)
+  if (lockError) return { error: lockError }
 
   const admin = createAdminClient()
 

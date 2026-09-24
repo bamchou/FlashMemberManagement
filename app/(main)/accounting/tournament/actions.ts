@@ -5,10 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { closedMonthErrorForEvent } from '@/lib/accounting/closing'
 
-// 親睦会・イベントの参加費支払状態を切り替え（管理者のみ）
-export async function toggleAttendancePaid(
+// 大会参加費の支払状態を切り替え（管理者のみ）
+export async function toggleTournamentPaid(
   eventId: string,
-  userId: string,
+  memberId: string,
   currentPaid: boolean,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
@@ -22,13 +22,14 @@ export async function toggleAttendancePaid(
   if (lockError) return { error: lockError }
 
   const admin = createAdminClient()
-  await admin
-    .from('event_attendances')
-    .update({ is_paid: !currentPaid, updated_at: new Date().toISOString() })
+  const { error } = await admin
+    .from('event_participants')
+    .update({ is_paid: !currentPaid })
     .eq('event_id', eventId)
-    .eq('user_id', userId)
+    .eq('member_id', memberId)
+  if (error) return { error: '更新に失敗しました' }
 
-  revalidatePath('/accounting/event-fees')
-  revalidatePath(`/calendar/${eventId}`)
+  revalidatePath('/accounting/tournament')
+  revalidatePath(`/accounting/tournament/${eventId}`)
   return {}
 }

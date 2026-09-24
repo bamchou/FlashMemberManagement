@@ -41,14 +41,16 @@ function CoachRow({
   function handlePay() {
     if (!confirm(`${summary.name}さんの${year}年${month}月分（¥${summary.totalAmount.toLocaleString()}）を支払い済みにしますか？`)) return
     startTransition(async () => {
-      await markCoachPaid(summary.id, year, month, summary.totalAmount)
+      const r = await markCoachPaid(summary.id, year, month, summary.totalAmount)
+      if (r?.error) alert(r.error)
     })
   }
 
   function handleUnpay() {
     if (!confirm(`${summary.name}さんの支払い済み記録を取り消しますか？`)) return
     startTransition(async () => {
-      await markCoachUnpaid(summary.id, year, month)
+      const r = await markCoachUnpaid(summary.id, year, month)
+      if (r?.error) alert(r.error)
     })
   }
 

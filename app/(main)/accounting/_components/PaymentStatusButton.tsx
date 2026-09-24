@@ -15,7 +15,8 @@ export default function PaymentStatusButton({
 
   function handleClick() {
     startTransition(async () => {
-      await togglePaymentStatus(eventId, status)
+      const res = await togglePaymentStatus(eventId, status)
+      if (res?.error) alert(res.error)
     })
   }
 

@@ -88,8 +88,8 @@ const MENU_GROUPS: MenuGroup[] = [
       {
         href: '/accounting/expenses',
         label: '経費管理',
-        description: 'シャトル・備品・大会費など経費を管理します',
-        comingSoon: true,
+        description: 'シャトル・備品・大会費など経費を領収書付きで管理します',
+        comingSoon: false,
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
@@ -160,13 +160,24 @@ const MENU_GROUPS: MenuGroup[] = [
     ],
   },
   {
-    label: '年次',
+    label: '締め',
     items: [
       {
+        href: '/accounting/closing',
+        label: '月次締め',
+        description: '月ごとの収入・支出を確認して締め、金額を確定します',
+        comingSoon: false,
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        ),
+      },
+      {
         href: '/accounting/report',
-        label: '確定申告レポート',
-        description: '年間の収支をまとめてCSVダウンロードできます',
-        comingSoon: true,
+        label: '年間集計（確定申告）',
+        description: '締めた月の収支を年間でまとめ、CSVで書き出せます',
+        comingSoon: false,
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

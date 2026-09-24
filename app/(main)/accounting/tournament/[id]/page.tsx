@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import TournamentPaidButton from '../_components/TournamentPaidButton'
 
 function formatDate(isoStr: string): string {
   return new Date(isoStr).toLocaleDateString('ja-JP', {
@@ -34,6 +35,7 @@ type ParticipantRow = {
   member_id: string
   participation_category: string | null
   fee_snapshot: number | null
+  is_paid: boolean
 }
 
 type ChildRow = {
@@ -41,6 +43,7 @@ type ChildRow = {
   memberName: string
   category: string | null
   fee: number | null
+  isPaid: boolean
 }
 
 type GuardianGroup = {
@@ -76,7 +79,7 @@ export default async function TournamentDetailPage({
       .single(),
     adminSupabase
       .from('event_participants')
-      .select('member_id, participation_category, fee_snapshot')
+      .select('member_id, participation_category, fee_snapshot, is_paid')
       .eq('event_id', id)
       .order('created_at', { ascending: true }),
   ])
@@ -114,10 +117,10 @@ export default async function TournamentDetailPage({
     }
   }
 
-  const totalFee = rows.reduce((sum, r) => {
-    const fee = r.fee_snapshot ?? calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson) ?? 0
-    return sum + fee
-  }, 0)
+  const feeOf = (r: ParticipantRow) =>
+    r.fee_snapshot ?? calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson) ?? 0
+  const totalFee = rows.reduce((sum, r) => sum + feeOf(r), 0)
+  const paidFee = rows.filter(r => r.is_paid).reduce((sum, r) => sum + feeOf(r), 0)
 
   // 保護者別グループ
   let guardianGroups: GuardianGroup[] = []
@@ -144,7 +147,7 @@ export default async function TournamentDetailPage({
       const gname = gid !== NO_GUARDIAN ? (guardianNameMap[gid] ?? '不明') : '保護者なし'
       const fee = r.fee_snapshot ?? calcFee(r.participation_category, event.singles_fee, event.doubles_fee, accompFeePerPerson)
       if (!groupMap[gid]) groupMap[gid] = { guardianId: gid, guardianName: gname, children: [], totalFee: 0 }
-      groupMap[gid].children.push({ memberId: r.member_id, memberName: info?.name ?? '不明', category: r.participation_category, fee })
+      groupMap[gid].children.push({ memberId: r.member_id, memberName: info?.name ?? '不明', category: r.participation_category, fee, isPaid: r.is_paid })
       groupMap[gid].totalFee += fee ?? 0
     }
     guardianGroups = Object.values(groupMap).sort((a, b) => {
@@ -198,7 +201,7 @@ export default async function TournamentDetailPage({
       </div>
 
       {/* サマリーカード */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
           <p className="text-xs font-semibold text-gray-400 mb-1">参加人数</p>
           <p className="text-lg font-bold text-[#1A3666]">{rows.length}<span className="text-sm font-normal ml-0.5">名</span></p>
@@ -206,6 +209,11 @@ export default async function TournamentDetailPage({
         <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
           <p className="text-xs font-semibold text-gray-400 mb-1">参加費合計</p>
           <p className="text-lg font-bold text-[#1A3666]">¥{totalFee.toLocaleString()}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 text-center">
+          <p className="text-xs font-semibold text-gray-400 mb-1">支払済み</p>
+          <p className="text-lg font-bold text-green-700">¥{paidFee.toLocaleString()}</p>
+          <p className="text-[11px] text-orange-600 mt-0.5">未払い ¥{(totalFee - paidFee).toLocaleString()}</p>
         </div>
       </div>
 
@@ -254,6 +262,7 @@ export default async function TournamentDetailPage({
                       <th className="text-left px-4 py-3 font-semibold text-gray-500 text-xs">名前</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-500 text-xs">参加種目</th>
                       <th className="text-right px-4 py-3 font-semibold text-gray-500 text-xs">参加費（帯同費含む）</th>
+                      <th className="text-right px-4 py-3 font-semibold text-gray-500 text-xs">支払</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EAE0A8]">
@@ -269,6 +278,9 @@ export default async function TournamentDetailPage({
                           </td>
                           <td className="px-4 py-3 text-right font-semibold text-[#1A3666]">
                             {fee != null ? `¥${fee.toLocaleString()}` : '—'}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <TournamentPaidButton eventId={id} memberId={r.member_id} isPaid={r.is_paid} />
                           </td>
                         </tr>
                       )
@@ -288,9 +300,12 @@ export default async function TournamentDetailPage({
                           {r.participation_category ? (CATEGORY_LABEL[r.participation_category] ?? '—') : '—'}
                         </p>
                       </div>
-                      <p className="text-sm font-bold text-[#1A3666] shrink-0">
-                        {fee != null ? `¥${fee.toLocaleString()}` : '—'}
-                      </p>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <p className="text-sm font-bold text-[#1A3666]">
+                          {fee != null ? `¥${fee.toLocaleString()}` : '—'}
+                        </p>
+                        <TournamentPaidButton eventId={id} memberId={r.member_id} isPaid={r.is_paid} />
+                      </div>
                     </div>
                   )
                 })}
@@ -340,6 +355,7 @@ export default async function TournamentDetailPage({
                         <th className="text-left px-4 py-2.5 font-semibold text-gray-500 text-xs">名前</th>
                         <th className="text-left px-4 py-2.5 font-semibold text-gray-500 text-xs">参加種目</th>
                         <th className="text-right px-4 py-2.5 font-semibold text-gray-500 text-xs">参加費（帯同費含む）</th>
+                        <th className="text-right px-4 py-2.5 font-semibold text-gray-500 text-xs">支払</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#EAE0A8]">
@@ -351,6 +367,9 @@ export default async function TournamentDetailPage({
                           </td>
                           <td className="px-4 py-3 text-right font-semibold text-[#1A3666]">
                             {c.fee != null ? `¥${c.fee.toLocaleString()}` : '—'}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <TournamentPaidButton eventId={id} memberId={c.memberId} isPaid={c.isPaid} />
                           </td>
                         </tr>
                       ))}
@@ -368,9 +387,12 @@ export default async function TournamentDetailPage({
                           {c.category ? (CATEGORY_LABEL[c.category] ?? '—') : '—'}
                         </p>
                       </div>
-                      <p className="text-sm font-bold text-[#1A3666] shrink-0">
-                        {c.fee != null ? `¥${c.fee.toLocaleString()}` : '—'}
-                      </p>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <p className="text-sm font-bold text-[#1A3666]">
+                          {c.fee != null ? `¥${c.fee.toLocaleString()}` : '—'}
+                        </p>
+                        <TournamentPaidButton eventId={id} memberId={c.memberId} isPaid={c.isPaid} />
+                      </div>
                     </div>
                   ))}
                 </div>

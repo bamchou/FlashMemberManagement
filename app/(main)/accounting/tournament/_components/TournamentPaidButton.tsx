@@ -1,15 +1,15 @@
 'use client'
 
 import { useTransition } from 'react'
-import { toggleAttendancePaid } from '../actions'
+import { toggleTournamentPaid } from '../actions'
 
-export default function PaidButton({
+export default function TournamentPaidButton({
   eventId,
-  userId,
+  memberId,
   isPaid,
 }: {
   eventId: string
-  userId: string
+  memberId: string
   isPaid: boolean
 }) {
   const [isPending, startTransition] = useTransition()
@@ -19,7 +19,7 @@ export default function PaidButton({
       type="button"
       disabled={isPending}
       onClick={() => startTransition(async () => {
-        const res = await toggleAttendancePaid(eventId, userId, isPaid)
+        const res = await toggleTournamentPaid(eventId, memberId, isPaid)
         if (res?.error) alert(res.error)
       })}
       className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50 shrink-0 ${

@@ -66,6 +66,7 @@ export default async function CoachPayPrintPage({
         .from('event_coach_attendances')
         .select('coach_id, event_id')
         .in('event_id', eventIds)
+        .eq('status', 'available') // シフト表の「参加不可」は除外
     : { data: [] }
 
   const tournamentEventIds = (events ?? [])
