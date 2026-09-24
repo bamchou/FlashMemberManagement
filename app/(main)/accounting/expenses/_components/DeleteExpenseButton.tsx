@@ -12,7 +12,7 @@ export default function DeleteExpenseButton({ id, label }: { id: string; label: 
       type="button"
       disabled={isPending}
       onClick={() => {
-        if (!confirm(`「${label}」を削除しますか？\n領収書のファイルも削除されます。`)) return
+        if (!confirm(`明細「${label}」を削除しますか？\n（この領収書の最後の明細を削除すると、領収書のファイルも削除されます）`)) return
         startTransition(async () => {
           const res = await deleteExpense(id)
           if (res?.error) alert(res.error)

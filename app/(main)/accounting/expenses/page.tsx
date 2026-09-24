@@ -15,6 +15,16 @@ type ExpenseRow = {
   memo: string | null
   receipt_url: string | null
   receipt_name: string | null
+  receipt_group_id: string | null
+}
+
+type ReceiptGroup = {
+  key: string
+  expense_date: string
+  receipt_url: string | null
+  receipt_name: string | null
+  lines: ExpenseRow[]
+  total: number
 }
 
 function formatDay(dateStr: string): string {
@@ -47,7 +57,7 @@ export default async function ExpensesPage({
   const [{ data }, closed] = await Promise.all([
     admin
       .from('expenses')
-      .select('id, expense_date, category, amount, memo, receipt_url, receipt_name')
+      .select('id, expense_date, category, amount, memo, receipt_url, receipt_name, receipt_group_id')
       .gte('expense_date', dateFrom)
       .lt('expense_date', dateTo)
       .order('expense_date', { ascending: true })
@@ -58,6 +68,19 @@ export default async function ExpensesPage({
   const total = rows.reduce((s, r) => s + r.amount, 0)
   const byCategory: Record<string, number> = {}
   for (const r of rows) byCategory[r.category] = (byCategory[r.category] ?? 0) + r.amount
+
+  // 領収書ごとにまとめる（旧データは1明細＝1領収書）
+  const groupMap = new Map<string, ReceiptGroup>()
+  for (const r of rows) {
+    const key = r.receipt_group_id ?? r.id
+    const g = groupMap.get(key) ?? {
+      key, expense_date: r.expense_date, receipt_url: r.receipt_url, receipt_name: r.receipt_name, lines: [], total: 0,
+    }
+    g.lines.push(r)
+    g.total += r.amount
+    groupMap.set(key, g)
+  }
+  const groups = [...groupMap.values()]
 
   // 登録フォームの日付初期値: 表示中の月が今月なら今日、それ以外は月初
   const todayJST = nowJST.toISOString().slice(0, 10)
@@ -112,41 +135,48 @@ export default async function ExpensesPage({
       <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
         <div className="px-5 py-3 border-b border-[#EAE0A8] bg-[#F5C800]/10 flex items-center justify-between">
           <h2 className="text-sm font-bold text-[#1A3666]">{month}月の経費一覧</h2>
-          <span className="text-xs text-gray-500">{rows.length} 件</span>
+          <span className="text-xs text-gray-500">領収書 {groups.length} 枚・明細 {rows.length} 件</span>
         </div>
-        {rows.length === 0 ? (
+        {groups.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">この月の経費はまだありません</p>
         ) : (
           <div className="divide-y divide-[#EAE0A8]">
-            {rows.map(r => {
-              const image = isImageFile(r.receipt_name)
+            {groups.map(g => {
+              const image = isImageFile(g.receipt_name)
               return (
-                <div key={r.id} className="flex items-center gap-3 px-5 py-3">
-                  {r.receipt_url ? (
-                    <a href={r.receipt_url} target="_blank" rel="noopener noreferrer" className="shrink-0" title="領収書を開く">
-                      {image ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
-                          src={toSupabaseImageUrl(r.receipt_url, 120) ?? r.receipt_url}
-                          alt="領収書"
-                          className="w-10 h-10 object-cover rounded border border-gray-200 bg-white"
-                        />
-                      ) : (
-                        <span className="w-10 h-10 flex items-center justify-center rounded border border-gray-200 text-[10px] font-bold text-red-500">PDF</span>
-                      )}
-                    </a>
-                  ) : (
-                    <span className="w-10 h-10 flex items-center justify-center rounded border border-dashed border-gray-200 text-[10px] text-gray-300 shrink-0">なし</span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500">
-                      {formatDay(r.expense_date)}
-                      <span className="ml-2 font-semibold text-gray-600">{r.category}</span>
-                    </p>
-                    {r.memo && <p className="text-sm text-[#1A3666] truncate">{r.memo}</p>}
+                <div key={g.key} className="px-5 py-3">
+                  {/* 領収書ヘッダー */}
+                  <div className="flex items-center gap-3 mb-2">
+                    {g.receipt_url ? (
+                      <a href={g.receipt_url} target="_blank" rel="noopener noreferrer" className="shrink-0" title="領収書を開く">
+                        {image ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={toSupabaseImageUrl(g.receipt_url, 120) ?? g.receipt_url}
+                            alt="領収書"
+                            className="w-10 h-10 object-cover rounded border border-gray-200 bg-white"
+                          />
+                        ) : (
+                          <span className="w-10 h-10 flex items-center justify-center rounded border border-gray-200 text-[10px] font-bold text-red-500">PDF</span>
+                        )}
+                      </a>
+                    ) : (
+                      <span className="w-10 h-10 flex items-center justify-center rounded border border-dashed border-gray-200 text-[10px] text-gray-300 shrink-0">なし</span>
+                    )}
+                    <p className="text-sm font-semibold text-gray-600 flex-1">{formatDay(g.expense_date)}</p>
+                    <p className="text-sm font-bold text-[#1A3666] shrink-0">¥{g.total.toLocaleString()}</p>
                   </div>
-                  <p className="text-sm font-bold text-[#1A3666] shrink-0">¥{r.amount.toLocaleString()}</p>
-                  {!closed && <DeleteExpenseButton id={r.id} label={`${r.category} ¥${r.amount.toLocaleString()}`} />}
+                  {/* 明細 */}
+                  <div className="ml-[3.25rem] space-y-1">
+                    {g.lines.map(r => (
+                      <div key={r.id} className="flex items-center gap-2 text-sm">
+                        <span className="text-[11px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded shrink-0">{r.category}</span>
+                        <span className="text-[#1A3666] truncate flex-1 min-w-0">{r.memo ?? ''}</span>
+                        <span className="text-gray-700 shrink-0">¥{r.amount.toLocaleString()}</span>
+                        {!closed && <DeleteExpenseButton id={r.id} label={`${r.category} ¥${r.amount.toLocaleString()}`} />}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )
             })}
