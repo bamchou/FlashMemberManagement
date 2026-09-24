@@ -49,6 +49,7 @@ export default function AnnouncementList({
   const isAdmin = role === 'admin'
   const readSet = useMemo(() => new Set(readIds), [readIds])
   const [keyword, setKeyword] = useState('')
+  const [noQuery, setNoQuery] = useState('')
   const [targetFilter, setTargetFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState(isAdmin ? 'not_ended' : '')
   const [typeTab, setTypeTab] = useState<'normal' | 'always'>('normal')
@@ -63,11 +64,17 @@ export default function AnnouncementList({
   )
 
   const filtered = useMemo(() => {
+    const no = noQuery.trim()
     const list = announcements.filter(a => {
-      if ((a.announcement_type ?? 'normal') !== typeTab) return false
-      if (targetFilter && a.target !== targetFilter) return false
-      if (statusFilter === 'not_ended' && getPublishStatus(a, today) === 'ended') return false
-      else if (statusFilter && statusFilter !== 'not_ended' && getPublishStatus(a, today) !== statusFilter) return false
+      if (no) {
+        // No検索は番号の直接指定なので、タブ・対象・公開状態の絞り込みより優先して探す
+        if (a.seq !== Number(no)) return false
+      } else {
+        if ((a.announcement_type ?? 'normal') !== typeTab) return false
+        if (targetFilter && a.target !== targetFilter) return false
+        if (statusFilter === 'not_ended' && getPublishStatus(a, today) === 'ended') return false
+        else if (statusFilter && statusFilter !== 'not_ended' && getPublishStatus(a, today) !== statusFilter) return false
+      }
       if (keyword.trim()) {
         const kw = keyword.trim().toLowerCase()
         if (!a.title.toLowerCase().includes(kw) && !a.content.toLowerCase().includes(kw)) return false
@@ -79,7 +86,7 @@ export default function AnnouncementList({
       return list.slice().sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned))
     }
     return list
-  }, [announcements, typeTab, targetFilter, statusFilter, keyword, today])
+  }, [announcements, typeTab, targetFilter, statusFilter, keyword, noQuery, today])
 
   return (
     <div>
@@ -107,29 +114,60 @@ export default function AnnouncementList({
 
       {/* フィルタエリア */}
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-4 mb-4 space-y-3">
-        {/* キーワード検索 */}
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-            </svg>
-          </span>
-          <input
-            type="text"
-            value={keyword}
-            onChange={e => setKeyword(e.target.value)}
-            placeholder="タイトル・本文を検索"
-            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
-          />
-          {keyword && (
-            <button
-              type="button"
-              onClick={() => setKeyword('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              ×
-            </button>
-          )}
+        {/* No検索 */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="ann-no" className="text-xs font-semibold text-gray-500 w-24 shrink-0">No</label>
+          <div className="relative w-32">
+            <input
+              id="ann-no"
+              type="text"
+              inputMode="numeric"
+              value={noQuery}
+              onChange={e => setNoQuery(e.target.value.replace(/[^0-9]/g, ''))}
+              placeholder="例: 5"
+              className="w-full px-3 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+            />
+            {noQuery && (
+              <button
+                type="button"
+                onClick={() => setNoQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Noをクリア"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* タイトル・本文検索 */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="ann-keyword" className="text-xs font-semibold text-gray-500 w-24 shrink-0">タイトル・本文</label>
+          <div className="relative flex-1 min-w-0">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              </svg>
+            </span>
+            <input
+              id="ann-keyword"
+              type="text"
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+              placeholder="キーワードを入力"
+              className="w-full pl-9 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent"
+            />
+            {keyword && (
+              <button
+                type="button"
+                onClick={() => setKeyword('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="キーワードをクリア"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 対象フィルタ（管理者のみ） */}
@@ -176,12 +214,12 @@ export default function AnnouncementList({
       </div>
 
       {/* 件数表示 */}
-      {(keyword || targetFilter || statusFilter) && (
+      {(keyword || noQuery || targetFilter || statusFilter) && (
         <p className="text-xs text-gray-500 mb-3">
           {filtered.length} 件表示
           <button
             type="button"
-            onClick={() => { setKeyword(''); setTargetFilter(''); setStatusFilter('') }}
+            onClick={() => { setKeyword(''); setNoQuery(''); setTargetFilter(''); setStatusFilter('') }}
             className="ml-2 text-[#1A3666] underline hover:no-underline"
           >
             フィルタをリセット
@@ -212,7 +250,7 @@ export default function AnnouncementList({
                         {isUnread && (
                           <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full shrink-0" title="未確認" aria-label="未確認">未</span>
                         )}
-                        {typeTab === 'normal' && a.is_pinned && (
+                        {(a.announcement_type ?? 'normal') === 'normal' && a.is_pinned && (
                           <span className="text-sm shrink-0" title="ピン止め" aria-label="ピン止め">📌</span>
                         )}
                         <p className="font-bold text-[#1A3666]">{a.title}</p>
@@ -241,7 +279,7 @@ export default function AnnouncementList({
                     {status === 'ended' && (
                       <span className="text-xs font-semibold bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">公開終了</span>
                     )}
-                    {typeTab === 'normal' && <PinButton id={a.id} isPinned={a.is_pinned} />}
+                    {(a.announcement_type ?? 'normal') === 'normal' && <PinButton id={a.id} isPinned={a.is_pinned} />}
                     <DeleteButton id={a.id} title={a.title} />
                   </div>
                 )}
@@ -252,7 +290,7 @@ export default function AnnouncementList({
       ) : (
         <div className="bg-white rounded-xl border border-[#EAE0A8] py-16 text-center">
           <p className="text-gray-400 text-sm">
-            {keyword || targetFilter || statusFilter ? '条件に一致するお知らせがありません' : 'お知らせはまだありません'}
+            {keyword || noQuery || targetFilter || statusFilter ? '条件に一致するお知らせがありません' : 'お知らせはまだありません'}
           </p>
         </div>
       )}
