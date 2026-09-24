@@ -151,7 +151,7 @@ function EventRow({
                 : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
             }`}
           >
-            {pendingCategory === 'practice' ? '...' : isJoining ? '参加予定（取消）' : '参加登録'}
+            {pendingCategory === 'practice' ? '...' : isJoining ? '参加取消' : '参加登録'}
           </button>
         )}
 
@@ -166,7 +166,7 @@ function EventRow({
                 : 'bg-green-600 text-white hover:bg-green-700'
             }`}
           >
-            {pendingCategory === 'cancel' ? '...' : approvalStatus === 'pending' ? '承認待ち（取消）' : '参加予定（取消）'}
+            {pendingCategory === 'cancel' ? '...' : approvalStatus === 'pending' ? '参加取消' : '参加取消'}
           </button>
         )}
 

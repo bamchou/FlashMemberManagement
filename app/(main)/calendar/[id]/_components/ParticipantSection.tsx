@@ -147,7 +147,7 @@ function RegisterBlock({
                 : 'bg-green-600 text-white hover:bg-green-700'
             }`}
           >
-            {isTransitioning ? '...' : isPendingApproval ? '承認待ち（取消）' : '参加予定（取消）'}
+            {isTransitioning ? '...' : isPendingApproval ? '参加取消' : '参加取消'}
           </button>
         )}
       </div>
@@ -211,7 +211,7 @@ function CoachToggleButton({ eventId, isAttending, isPractice }: { eventId: stri
           : 'bg-white border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white'
       }`}
     >
-      {isPending ? '...' : isAttending ? '参加予定（取消）' : isPractice ? '練習に参加する' : '参加する'}
+      {isPending ? '...' : isAttending ? '参加取消' : isPractice ? '練習に参加する' : '参加する'}
     </button>
   )
 }
