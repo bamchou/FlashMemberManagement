@@ -24,8 +24,8 @@ export default async function GymCandidatesPage() {
       <Link href="/shift" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
         ← シフトに戻る
       </Link>
-      <h1 className="text-xl font-bold text-[#1A3666] mb-2">体育館予約候補</h1>
-      <p className="text-sm text-gray-500 mb-5">
+      <h1 className="text-xl font-bold text-[#1A3666] mb-1">体育館予約候補</h1>
+      <p className="text-xs text-gray-500 mb-4">
         曜日ごとに第1〜第4候補の体育館・面数・予約時間を管理します。体育館名を空にして保存するとその候補は削除されます。
       </p>
 
@@ -35,7 +35,7 @@ export default async function GymCandidatesPage() {
         </p>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {[0, 1, 2, 3, 4, 5, 6].map(w => (
           <WeekdayCandidates
             key={w}
@@ -45,7 +45,7 @@ export default async function GymCandidatesPage() {
               .map(c => ({
                 priority: c.priority,
                 gym_name: c.gym_name,
-                courts: c.courts ?? '',
+                courts: c.courts != null ? String(c.courts) : '',
                 start_time: c.start_time?.slice(0, 5) ?? '',
                 end_time: c.end_time?.slice(0, 5) ?? '',
               }))}

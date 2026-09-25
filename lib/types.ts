@@ -130,7 +130,7 @@ export type GymCandidate = {
   weekday: number        // 0=日 … 6=土
   priority: number       // 1〜4（第○候補）
   gym_name: string
-  courts: string | null  // 面数（例: 6面 / 全面 / 中体育室3面）
+  courts: number | null  // 面数
   start_time: string | null  // 'HH:MM:SS'
   end_time: string | null
   updated_at: string

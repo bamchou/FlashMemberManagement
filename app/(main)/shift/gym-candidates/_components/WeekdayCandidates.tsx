@@ -32,12 +32,6 @@ export default function WeekdayCandidates({
     setError(null)
   }
 
-  // 1つ上の候補と同じ時刻をコピー
-  function copyTimeFromAbove(i: number) {
-    if (i === 0) return
-    update(i, { start_time: rows[i - 1].start_time, end_time: rows[i - 1].end_time })
-  }
-
   function save() {
     setError(null)
     setMessage(null)
@@ -52,78 +46,68 @@ export default function WeekdayCandidates({
     })
   }
 
-  const inputCls = 'w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white'
+  const inputCls = 'px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3666] focus:border-transparent bg-white'
 
   return (
     <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
-      <div className="px-5 py-2.5 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between">
+      <div className="px-4 py-1.5 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between">
         <h2 className={`text-sm font-bold ${color}`}>{DOW[weekday]}</h2>
-        {isEmpty && <span className="text-xs text-gray-400">なし（今は練習のない曜日）</span>}
+        {isEmpty && <span className="text-xs text-gray-400">なし</span>}
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="px-3 py-2.5 space-y-1.5">
         {rows.map((r, i) => (
-          <div key={r.priority} className="grid grid-cols-[3.5rem_1fr] gap-2 items-start">
-            <span className="text-xs font-bold text-gray-500 pt-2">第{r.priority}候補</span>
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-2">
-              <input
-                aria-label={`${DOW[weekday]} 第${r.priority}候補の体育館名`}
-                type="text"
-                lang="ja"
-                placeholder="体育館名（例: 託麻SC）"
-                value={r.gym_name}
-                onChange={e => update(i, { gym_name: e.target.value })}
-                className={inputCls}
-              />
+          <div key={r.priority} className="flex items-center gap-x-2 gap-y-1 flex-wrap">
+            <span className="text-xs font-bold text-gray-500 w-7 shrink-0">第{r.priority}</span>
+            <input
+              aria-label={`${DOW[weekday]} 第${r.priority}候補の体育館名`}
+              type="text"
+              lang="ja"
+              placeholder="体育館名"
+              value={r.gym_name}
+              onChange={e => update(i, { gym_name: e.target.value })}
+              className={`${inputCls} flex-1 min-w-[9rem]`}
+            />
+            <div className="flex items-center gap-1 shrink-0 ml-9 sm:ml-0">
               <input
                 aria-label={`${DOW[weekday]} 第${r.priority}候補の面数`}
                 type="text"
-                lang="ja"
-                placeholder="面数（例: 6面）"
+                inputMode="numeric"
+                maxLength={2}
                 value={r.courts}
-                onChange={e => update(i, { courts: e.target.value })}
-                className={inputCls}
+                onChange={e => update(i, { courts: e.target.value.replace(/[^0-9０-９]/g, '').replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0) - 0xFEE0)) })}
+                className={`${inputCls} w-10 text-center`}
               />
-              <div className="flex items-center gap-1.5 sm:col-span-2 flex-wrap">
-                <input
-                  aria-label={`${DOW[weekday]} 第${r.priority}候補の開始時刻`}
-                  type="time"
-                  value={r.start_time}
-                  onChange={e => update(i, { start_time: e.target.value })}
-                  className={`${inputCls} w-28`}
-                />
-                <span className="text-gray-400 text-sm">〜</span>
-                <input
-                  aria-label={`${DOW[weekday]} 第${r.priority}候補の終了時刻`}
-                  type="time"
-                  value={r.end_time}
-                  onChange={e => update(i, { end_time: e.target.value })}
-                  className={`${inputCls} w-28`}
-                />
-                {i > 0 && (rows[i - 1].start_time || rows[i - 1].end_time) && (
-                  <button
-                    type="button"
-                    onClick={() => copyTimeFromAbove(i)}
-                    className="text-[11px] text-[#1A3666] underline hover:no-underline ml-1"
-                  >
-                    上と同じ時刻
-                  </button>
-                )}
-              </div>
+              <span className="text-sm text-gray-600 mr-2">面</span>
+              <input
+                aria-label={`${DOW[weekday]} 第${r.priority}候補の開始時刻`}
+                type="time"
+                value={r.start_time}
+                onChange={e => update(i, { start_time: e.target.value })}
+                className={`${inputCls} w-[6.5rem]`}
+              />
+              <span className="text-gray-400 text-sm">～</span>
+              <input
+                aria-label={`${DOW[weekday]} 第${r.priority}候補の終了時刻`}
+                type="time"
+                value={r.end_time}
+                onChange={e => update(i, { end_time: e.target.value })}
+                className={`${inputCls} w-[6.5rem]`}
+              />
             </div>
           </div>
         ))}
 
-        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">{error}</p>}
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 pt-0.5">
           {message && !dirty && <span className="text-sm text-green-700">{message}</span>}
           {dirty && <span className="text-xs text-orange-600">未保存の変更があります</span>}
           <button
             type="button"
             onClick={save}
             disabled={isPending || !dirty}
-            className="inline-flex items-center gap-1.5 bg-[#1A3666] text-white text-sm font-bold px-5 py-2 rounded-lg hover:bg-[#2A52A0] transition-colors disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 bg-[#1A3666] text-white text-sm font-bold px-4 py-1.5 rounded-lg hover:bg-[#2A52A0] transition-colors disabled:opacity-40"
           >
             {isPending && <Spinner className="w-4 h-4" />}
             {isPending ? '保存中...' : '保存する'}

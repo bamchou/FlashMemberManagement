@@ -243,7 +243,7 @@ CREATE TABLE public.gym_candidates (
   weekday integer NOT NULL CHECK (weekday BETWEEN 0 AND 6),
   priority integer NOT NULL CHECK (priority BETWEEN 1 AND 4),
   gym_name text NOT NULL,
-  courts text,
+  courts integer,   -- 面数
   start_time time,
   end_time time,
   updated_at timestamptz NOT NULL DEFAULT now(),

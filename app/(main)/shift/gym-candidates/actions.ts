@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export type CandidateInput = {
   priority: number
   gym_name: string
-  courts: string
+  courts: string // 数字 または ''
   start_time: string // 'HH:MM' または ''
   end_time: string
 }
@@ -28,7 +28,7 @@ export async function saveWeekdayCandidates(
   if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) return { error: '曜日が不正です' }
 
   const upserts: {
-    weekday: number; priority: number; gym_name: string; courts: string | null
+    weekday: number; priority: number; gym_name: string; courts: number | null
     start_time: string | null; end_time: string | null; updated_at: string
   }[] = []
   const deletes: number[] = []
@@ -47,11 +47,12 @@ export async function saveWeekdayCandidates(
       deletes.push(p)
       continue
     }
+    if (courts && !/^\d{1,2}$/.test(courts)) return { error: `第${p}候補：面数は数字で入力してください` }
     if ((start && !TIME.test(start)) || (end && !TIME.test(end))) return { error: `第${p}候補：時刻が不正です` }
     if (start && end && end.slice(0, 5) <= start.slice(0, 5)) return { error: `第${p}候補：終了時刻は開始時刻より後にしてください` }
 
     upserts.push({
-      weekday, priority: p, gym_name: name, courts: courts || null,
+      weekday, priority: p, gym_name: name, courts: courts ? parseInt(courts, 10) : null,
       start_time: start || null, end_time: end || null, updated_at: now,
     })
   }
