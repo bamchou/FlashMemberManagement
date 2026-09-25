@@ -21,6 +21,8 @@ export default function WeekdayCandidates({
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  // 候補が1件も無い曜日は折りたたんだ状態で表示
+  const [open, setOpen] = useState(() => initial.some(r => r.gym_name.trim()))
 
   const dirty = JSON.stringify(rows) !== JSON.stringify(saved)
   const isEmpty = saved.every(r => !r.gym_name.trim())
@@ -50,12 +52,23 @@ export default function WeekdayCandidates({
 
   return (
     <div className="bg-white rounded-xl border border-[#EAE0A8] overflow-hidden">
-      <div className="px-4 py-1.5 bg-[#F5C800]/10 border-b border-[#EAE0A8] flex items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className={`w-full px-4 py-1.5 bg-[#F5C800]/10 hover:bg-[#F5C800]/20 flex items-center gap-2 text-left transition-colors ${open ? 'border-b border-[#EAE0A8]' : ''}`}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
         <h2 className={`text-sm font-bold ${color}`}>{DOW[weekday]}</h2>
-        {isEmpty && <span className="text-xs text-gray-400">なし</span>}
-      </div>
+        <span className="ml-auto flex items-center gap-2">
+          {dirty && <span className="text-xs text-orange-600">未保存</span>}
+          <span className="text-xs text-gray-400">{isEmpty ? 'なし' : `${saved.filter(r => r.gym_name.trim()).length}件`}</span>
+        </span>
+      </button>
 
-      <div className="px-3 pb-2.5">
+      <div className={`px-3 pb-2.5 ${open ? '' : 'hidden'}`}>
         <div className="divide-y divide-gray-200">
         {rows.map((r, i) => {
           // スマホは体育館名の横、PCは終了時間の右（右寄せ）に表示
