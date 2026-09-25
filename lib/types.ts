@@ -136,6 +136,15 @@ export type GymCandidate = {
   updated_at: string
 }
 
+export type GymReservationAssignment = {
+  id: string
+  target_date: string   // YYYY-MM-DD
+  assignee_id: string
+  assigned_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 export type EventType = 'practice' | 'tournament' | 'event' | 'social' | 'other'
 
 export type CalendarEvent = {

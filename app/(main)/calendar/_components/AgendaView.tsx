@@ -6,6 +6,7 @@ import { getHolidayName } from '@/lib/utils/holidays'
 import { useProgressNavigate } from '@/app/(main)/_components/useProgressNavigate'
 import Spinner from '@/app/(main)/_components/Spinner'
 import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
+import { GymDutyCard, type GymDuty } from './GymDutyBadge'
 
 const DOW_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
@@ -43,6 +44,7 @@ export default function AgendaView({
   currentUserId,
   creatorMap = {},
   childEventIds,
+  gymDuties = {},
   mobileView,
   onSwitchMobileView,
 }: {
@@ -53,6 +55,7 @@ export default function AgendaView({
   currentUserId: string
   creatorMap?: Record<string, string>
   childEventIds?: string[]
+  gymDuties?: Record<string, GymDuty>
   mobileView?: 'agenda' | 'grid'
   onSwitchMobileView?: (view: 'agenda' | 'grid') => void
 }) {
@@ -180,6 +183,13 @@ export default function AgendaView({
                 </div>
                 <span className="text-gray-300 text-base font-bold">＋</span>
               </Link>
+
+              {/* 体育館予約の担当 */}
+              {gymDuties[dateStr] && (
+                <div className={`pl-3 pr-1 ${dayEvents.length > 0 ? 'pb-1.5' : 'pb-2'}`}>
+                  <GymDutyCard date={dateStr} duty={gymDuties[dateStr]} />
+                </div>
+              )}
 
               {/* その日のイベント */}
               {dayEvents.length > 0 && (

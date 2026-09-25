@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import type { CalendarEvent, Role } from '@/lib/types'
 import CalendarView from './CalendarView'
 import AgendaView from './AgendaView'
+import type { GymDuty } from './GymDutyBadge'
 
 const STORAGE_KEY = 'calendar-mobile-view'
 
@@ -15,6 +16,7 @@ export default function CalendarContainer({
   currentUserId,
   creatorMap,
   childEventIds,
+  gymDuties,
 }: {
   year: number
   month: number
@@ -23,6 +25,7 @@ export default function CalendarContainer({
   currentUserId: string
   creatorMap: Record<string, string>
   childEventIds?: string[]
+  gymDuties?: Record<string, GymDuty>
 }) {
   const [mobileView, setMobileViewState] = useState<'agenda' | 'grid'>('grid')
 
@@ -36,7 +39,7 @@ export default function CalendarContainer({
     localStorage.setItem(STORAGE_KEY, view)
   }
 
-  const props = { year, month, events, role, currentUserId, creatorMap, childEventIds }
+  const props = { year, month, events, role, currentUserId, creatorMap, childEventIds, gymDuties }
 
   return (
     <>

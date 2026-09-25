@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import type { Role, CalendarEvent } from '@/lib/types'
 import { Suspense } from 'react'
 import CalendarContainer from './_components/CalendarContainer'
+import type { GymDuty } from './_components/GymDutyBadge'
 import { RememberListUrl } from '@/app/(main)/_components/ListReturn'
 
 export default async function CalendarPage({
@@ -81,6 +82,29 @@ export default async function CalendarPage({
     }
   }
 
+  // 体育館予約の担当（管理者は全員分、それ以外は自分の分だけ）
+  const ymd = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  let dutyQuery = adminSupabase
+    .from('gym_reservation_assignments')
+    .select('target_date, assignee_id')
+    .gte('target_date', ymd(fetchStart))
+    .lte('target_date', ymd(fetchEnd))
+  if (role !== 'admin') dutyQuery = dutyQuery.eq('assignee_id', user!.id)
+  const { data: dutyRows } = await dutyQuery
+  const duties = (dutyRows ?? []) as { target_date: string; assignee_id: string }[]
+  const dutyNameIds = [...new Set(duties.map(d => d.assignee_id))]
+  const { data: dutyProfiles } = dutyNameIds.length > 0
+    ? await adminSupabase.from('profiles').select('id, display_name, username').in('id', dutyNameIds)
+    : { data: [] }
+  const dutyNameMap: Record<string, string> = Object.fromEntries(
+    ((dutyProfiles ?? []) as { id: string; display_name: string | null; username: string | null }[])
+      .map(p => [p.id, p.display_name ?? p.username ?? '不明']),
+  )
+  const gymDuties: Record<string, GymDuty> = Object.fromEntries(
+    duties.map(d => [d.target_date, { isMine: d.assignee_id === user!.id, name: dutyNameMap[d.assignee_id] ?? '不明' }]),
+  )
+
   return (
     <div className="w-full">
       <Suspense fallback={null}>
@@ -94,6 +118,7 @@ export default async function CalendarPage({
         currentUserId={user!.id}
         creatorMap={creatorMap}
         childEventIds={childEventIds}
+        gymDuties={gymDuties}
       />
     </div>
   )

@@ -5,6 +5,7 @@ import type { CalendarEvent, Role } from '@/lib/types'
 import { getHolidayName } from '@/lib/utils/holidays'
 import { useProgressNavigate } from '@/app/(main)/_components/useProgressNavigate'
 import Spinner from '@/app/(main)/_components/Spinner'
+import { GymDutyCellBadge, type GymDuty } from './GymDutyBadge'
 
 import { EVENT_TYPE_STYLE } from '../_utils/eventTypeStyle'
 export { EVENT_TYPE_STYLE }
@@ -111,6 +112,7 @@ export default function CalendarView({
   currentUserId,
   creatorMap = {},
   childEventIds,
+  gymDuties = {},
   mobileView,
   onSwitchMobileView,
 }: {
@@ -121,6 +123,7 @@ export default function CalendarView({
   currentUserId: string
   creatorMap?: Record<string, string>
   childEventIds?: string[]
+  gymDuties?: Record<string, GymDuty>
   mobileView?: 'agenda' | 'grid'
   onSwitchMobileView?: (view: 'agenda' | 'grid') => void
 }) {
@@ -349,6 +352,7 @@ export default function CalendarView({
                         )}
                       </div>
                       <div className="space-y-0.5">
+                        {gymDuties[dateStr] && <GymDutyCellBadge date={dateStr} duty={gymDuties[dateStr]} />}
                         {dayEvents.slice(0, 3).map(e => {
                           const { bg, label } = EVENT_TYPE_STYLE[e.event_type] ?? EVENT_TYPE_STYLE.other
                           const isHidden = !e.is_visible

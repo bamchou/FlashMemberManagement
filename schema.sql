@@ -250,6 +250,16 @@ CREATE TABLE public.gym_candidates (
   UNIQUE (weekday, priority)
 );
 
+-- gym_reservation_assignments（体育館予約の担当者割当。日付ごとに1人）
+CREATE TABLE public.gym_reservation_assignments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  target_date date NOT NULL UNIQUE,
+  assignee_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  assigned_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- event_attendances（親睦会・イベントの「大人〇人・子供〇人」人数登録）
 CREATE TABLE public.event_attendances (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -338,6 +348,7 @@ ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_coach_attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gym_candidates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gym_reservation_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bib_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coach_monthly_payments ENABLE ROW LEVEL SECURITY;
@@ -362,6 +373,7 @@ CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authentica
 CREATE POLICY "authenticated_all" ON public.event_coach_attendances FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_attendances FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.gym_candidates FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.gym_reservation_assignments FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.calendar_tokens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.bib_requests FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.coach_monthly_payments FOR ALL TO authenticated USING (true) WITH CHECK (true);
