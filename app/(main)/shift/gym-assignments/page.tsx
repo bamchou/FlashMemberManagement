@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { GymCandidate } from '@/lib/types'
 import { formatCandidate, weekdayOf } from '@/lib/gymCandidates'
-import AssignmentList, { type AssignmentDay, type AssigneeOption } from './_components/AssignmentList'
+import AssignmentList, { type AssignmentDay, type AssigneeOption, type CandidateOption, type SlotValue } from './_components/AssignmentList'
 
 export default async function GymAssignmentsPage({
   searchParams,
@@ -31,11 +31,11 @@ export default async function GymAssignmentsPage({
     admin.from('gym_candidates').select('*').order('weekday').order('priority'),
     admin
       .from('gym_reservation_assignments')
-      .select('target_date, slot, assignee_id')
+      .select('target_date, slot, assignee_id, gym_candidate_id')
       .gte('target_date', monthStart)
       .lte('target_date', monthEnd),
   ])
-  const assignments = (assignRows ?? []) as { target_date: string; slot: number; assignee_id: string }[]
+  const assignments = (assignRows ?? []) as { target_date: string; slot: number; assignee_id: string; gym_candidate_id: string | null }[]
 
   // 選べる人：予約アカウントを持っている人（＋この月にすでに割り当てられている人）
   const assignedIds = [...new Set(assignments.map(a => a.assignee_id))]
@@ -48,13 +48,14 @@ export default async function GymAssignmentsPage({
     .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
   const candidates = (candRows ?? []) as GymCandidate[]
-  const byWeekday: Record<number, string[]> = {}
-  for (const c of candidates) (byWeekday[c.weekday] ??= []).push(formatCandidate(c))
+  const byWeekday: Record<number, CandidateOption[]> = {}
+  for (const c of candidates) (byWeekday[c.weekday] ??= []).push({ id: c.id, label: `第${c.priority} ${formatCandidate(c)}` })
 
-  const slotsByDate: Record<string, string[]> = {}
+  const emptySlots = (): SlotValue[] => [0, 1, 2].map(() => ({ assigneeId: '', candidateId: '' }))
+  const slotsByDate: Record<string, SlotValue[]> = {}
   for (const a of assignments) {
-    const s = (slotsByDate[a.target_date] ??= ['', '', ''])
-    if (a.slot >= 1 && a.slot <= 3) s[a.slot - 1] = a.assignee_id
+    const s = (slotsByDate[a.target_date] ??= emptySlots())
+    if (a.slot >= 1 && a.slot <= 3) s[a.slot - 1] = { assigneeId: a.assignee_id, candidateId: a.gym_candidate_id ?? '' }
   }
 
   // 候補のある曜日の日付と、割当済みの日付を並べる
@@ -64,7 +65,7 @@ export default async function GymAssignmentsPage({
     const wd = weekdayOf(date)
     const cands = byWeekday[wd] ?? []
     if (cands.length === 0 && !slotsByDate[date]) continue
-    days.push({ date, weekday: wd, candidates: cands, slots: slotsByDate[date] ?? ['', '', ''] })
+    days.push({ date, weekday: wd, candidates: cands, slots: slotsByDate[date] ?? emptySlots() })
   }
 
   return (

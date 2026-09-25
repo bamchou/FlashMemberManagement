@@ -24,10 +24,10 @@ export default async function GymReservationDutyPage({
   const admin = createAdminClient()
   const { data: assignRows } = await admin
     .from('gym_reservation_assignments')
-    .select('slot, assignee_id')
+    .select('slot, assignee_id, gym_candidate_id')
     .eq('target_date', date)
     .order('slot')
-  const assignments = (assignRows ?? []) as { slot: number; assignee_id: string }[]
+  const assignments = (assignRows ?? []) as { slot: number; assignee_id: string; gym_candidate_id: string | null }[]
 
   const [y, m, d] = date.split('-').map(Number)
   const calendarUrl = `/calendar?year=${y}&month=${m}`
@@ -44,13 +44,8 @@ export default async function GymReservationDutyPage({
     ((assigneeRows ?? []) as { id: string; display_name: string | null; username: string | null }[])
       .map(p => [p.id, p.display_name ?? p.username ?? '不明']),
   )
-  // 担当者ごとの件数（アカウントを複数使う人は ×2 など）
-  const assignees = assigneeIds.map(id => ({
-    id,
-    name: nameMap[id] ?? '不明',
-    count: assignments.filter(a => a.assignee_id === id).length,
-  }))
   const candidates = (candRows ?? []) as GymCandidate[]
+  const candidateMap = new Map(candidates.map(c => [c.id, c]))
   const holiday = getHolidayName(date)
 
   return (
@@ -66,26 +61,39 @@ export default async function GymReservationDutyPage({
             {y}年{m}月{d}日（{WEEKDAY_LABELS[wd]}）
             {holiday && <span className="text-sm text-red-400 ml-2">{holiday}</span>}
           </h1>
-          <p className="text-sm text-gray-700 mt-1">
-            予約担当：
-            {assignees.map((a, i) => (
-              <span key={a.id}>
-                {i > 0 && '、'}
-                <span className="font-bold">{a.name}</span>
-                {a.count > 1 && <span className="text-xs ml-0.5">×{a.count}</span>}
-                {a.id === user!.id && <span className="text-xs font-bold text-sky-700">（あなた）</span>}
-              </span>
-            ))}
-          </p>
-          {mineCount > 0 && (
-            <p className="text-xs text-sky-800 mt-1">
-              あなたは{mineCount > 1 ? `${mineCount}アカウントで予約を担当します` : '予約を担当します'}
-            </p>
+          {mineCount > 1 && (
+            <p className="text-xs text-sky-800 mt-1">あなたは{mineCount}アカウントで予約を担当します</p>
           )}
         </div>
 
+        <div className="px-5 py-4 border-b border-gray-200">
+          <p className="text-xs font-bold text-gray-400 mb-2">予約担当</p>
+          <ol className="divide-y divide-gray-200">
+            {assignments.map(a => {
+              const cand = a.gym_candidate_id ? candidateMap.get(a.gym_candidate_id) : undefined
+              const isMine = a.assignee_id === user!.id
+              return (
+                <li key={a.slot} className={`py-2 grid grid-cols-[1rem_1fr] gap-x-2 ${isMine ? 'bg-sky-50 -mx-2 px-2 rounded-md' : ''}`}>
+                  <span className="text-xs font-bold text-gray-400 pt-0.5">{a.slot}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#1A3666]">
+                      {nameMap[a.assignee_id] ?? '不明'}
+                      {isMine && <span className="text-xs text-sky-700 ml-1">（あなた）</span>}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {cand
+                        ? <>第{cand.priority}候補　{formatCandidate(cand)}</>
+                        : <span className="text-gray-400">体育館は未指定</span>}
+                    </p>
+                  </div>
+                </li>
+              )
+            })}
+          </ol>
+        </div>
+
         <div className="px-5 py-4">
-          <p className="text-xs font-bold text-gray-400 mb-2">予約候補</p>
+          <p className="text-xs font-bold text-gray-400 mb-2">この曜日の予約候補</p>
           {candidates.length === 0 ? (
             <p className="text-sm text-gray-400">この曜日の候補は登録されていません</p>
           ) : (

@@ -142,6 +142,7 @@ export type GymReservationAssignment = {
   target_date: string   // YYYY-MM-DD
   slot: number          // 1〜3（1日最大3人）
   assignee_id: string
+  gym_candidate_id: string | null  // 予約する体育館（候補）
   assigned_by: string | null
   created_at: string
   updated_at: string

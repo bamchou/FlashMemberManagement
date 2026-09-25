@@ -257,6 +257,7 @@ CREATE TABLE public.gym_reservation_assignments (
   target_date date NOT NULL,
   slot integer NOT NULL DEFAULT 1 CHECK (slot BETWEEN 1 AND 3),  -- 1日最大3人
   assignee_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  gym_candidate_id uuid REFERENCES public.gym_candidates(id) ON DELETE SET NULL, -- 予約する体育館
   assigned_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),

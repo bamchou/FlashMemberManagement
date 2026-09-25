@@ -87,12 +87,14 @@ export default async function CalendarPage({
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   let dutyQuery = adminSupabase
     .from('gym_reservation_assignments')
-    .select('target_date, assignee_id')
+    .select('target_date, assignee_id, gym_candidates(gym_name)')
     .gte('target_date', ymd(fetchStart))
     .lte('target_date', ymd(fetchEnd))
   if (role !== 'admin') dutyQuery = dutyQuery.eq('assignee_id', user!.id)
   const { data: dutyRows } = await dutyQuery
-  const duties = (dutyRows ?? []) as { target_date: string; assignee_id: string }[]
+  const duties = (dutyRows ?? []) as unknown as {
+    target_date: string; assignee_id: string; gym_candidates: { gym_name: string } | null
+  }[]
   const dutyNameIds = [...new Set(duties.map(d => d.assignee_id))]
   const { data: dutyProfiles } = dutyNameIds.length > 0
     ? await adminSupabase.from('profiles').select('id, display_name, username').in('id', dutyNameIds)
@@ -103,8 +105,11 @@ export default async function CalendarPage({
   )
   const gymDuties: Record<string, GymDuty> = {}
   for (const d of duties) {
-    const g = (gymDuties[d.target_date] ??= { mineCount: 0, names: [] })
-    if (d.assignee_id === user!.id) g.mineCount++
+    const g = (gymDuties[d.target_date] ??= { mineCount: 0, names: [], myGyms: [] })
+    if (d.assignee_id === user!.id) {
+      g.mineCount++
+      if (d.gym_candidates?.gym_name) g.myGyms.push(d.gym_candidates.gym_name)
+    }
     const name = dutyNameMap[d.assignee_id] ?? '不明'
     if (!g.names.includes(name)) g.names.push(name)
   }

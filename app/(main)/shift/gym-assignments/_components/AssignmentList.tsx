@@ -7,11 +7,15 @@ import { useProgressNavigate } from '@/app/(main)/_components/useProgressNavigat
 import Spinner from '@/app/(main)/_components/Spinner'
 import { setGymAssignment } from '../actions'
 
+export type SlotValue = { assigneeId: string; candidateId: string }  // '' = 未指定
+
+export type CandidateOption = { id: string; label: string }  // label 例: 第1 託麻SC 6面 9:00〜12:00
+
 export type AssignmentDay = {
-  date: string          // YYYY-MM-DD
+  date: string                   // YYYY-MM-DD
   weekday: number
-  candidates: string[]  // 第1〜第4候補の表示文字列
-  slots: string[]       // 枠1〜3の担当者ID（'' = 未割当）
+  candidates: CandidateOption[]  // その曜日の第1〜第4候補
+  slots: SlotValue[]             // 枠1〜3
 }
 
 export type AssigneeOption = { id: string; name: string; accounts: number }
@@ -23,9 +27,9 @@ function DayRow({
   onChange,
 }: {
   day: AssignmentDay
-  slots: string[]
+  slots: SlotValue[]
   people: AssigneeOption[]
-  onChange: (slotIdx: number, assigneeId: string) => Promise<string | null>
+  onChange: (slotIdx: number, value: SlotValue) => Promise<string | null>
 }) {
   const [error, setError] = useState<string | null>(null)
   const [pendingSlot, setPendingSlot] = useState<number | null>(null)
@@ -35,66 +39,70 @@ function DayRow({
   const holiday = getHolidayName(day.date)
   const color = day.weekday === 0 || holiday ? 'text-red-500' : day.weekday === 6 ? 'text-blue-500' : 'text-[#1A3666]'
 
-  function change(slotIdx: number, next: string) {
+  function change(slotIdx: number, value: SlotValue) {
     setError(null)
     setPendingSlot(slotIdx)
     startTransition(async () => {
-      const err = await onChange(slotIdx, next)
+      const err = await onChange(slotIdx, value)
       if (err) setError(err)
       setPendingSlot(null)
     })
   }
+
+  const selectCls = 'w-full min-w-0 pl-1.5 pr-5 py-1.5 border rounded-md text-xs sm:text-sm truncate focus:outline-none focus:ring-2 focus:ring-[#1A3666] disabled:opacity-50'
+  const filled = 'border-sky-300 bg-sky-50 text-[#1A3666] font-semibold'
+  const empty = 'border-gray-300 bg-white text-gray-400'
 
   return (
     <div className="py-2.5 grid grid-cols-[3.5rem_1fr] gap-x-2">
       <div className={`text-sm font-bold ${color} leading-tight pt-1.5`}>
         {m}/{d}
         <span className="text-xs ml-0.5">({WEEKDAY_LABELS[day.weekday]})</span>
+        {holiday && <p className="text-[10px] font-normal text-red-400 mt-0.5">{holiday}</p>}
       </div>
-      <div className="min-w-0">
-        <div className="grid grid-cols-3 gap-1.5">
-          {slots.map((value, idx) => {
-            // この日の他の枠での使用数がアカウント数に達している人は選べない
-            const usedElsewhere = (id: string) => slots.filter((v, j) => j !== idx && v === id).length
-            const options = people.filter(p => p.id === value || usedElsewhere(p.id) < p.accounts)
-            return (
-              <div key={idx} className="relative min-w-0">
-                <select
-                  aria-label={`${m}月${d}日の予約担当 ${idx + 1}人目`}
-                  value={value}
-                  onChange={e => change(idx, e.target.value)}
-                  disabled={isPending}
-                  className={`w-full min-w-0 pl-1.5 pr-5 py-1.5 border rounded-md text-xs sm:text-sm truncate focus:outline-none focus:ring-2 focus:ring-[#1A3666] ${
-                    value ? 'border-sky-300 bg-sky-50 text-[#1A3666] font-semibold' : 'border-gray-300 bg-white text-gray-400'
-                  }`}
-                >
-                  <option value="">未割当</option>
-                  {options.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}{p.accounts > 1 ? `（${p.accounts}）` : ''}
-                    </option>
-                  ))}
-                </select>
-                {pendingSlot === idx && (
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#1A3666] pointer-events-none">
-                    <Spinner className="w-3.5 h-3.5" />
-                  </span>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        {holiday && <p className="text-[11px] text-red-400 mt-1">{holiday}</p>}
-        {day.candidates.length > 0 ? (
-          <ol className="mt-1 text-[11px] text-gray-500 space-y-0.5">
-            {day.candidates.map((c, i) => (
-              <li key={i} className="truncate">第{i + 1} {c}</li>
-            ))}
-          </ol>
-        ) : (
-          <p className="mt-1 text-[11px] text-gray-400">この曜日の候補は登録されていません</p>
+      <div className="min-w-0 space-y-1.5">
+        {slots.map((slot, idx) => {
+          // この日の他の枠での使用数がアカウント数に達している人は選べない
+          const usedElsewhere = (id: string) => slots.filter((v, j) => j !== idx && v.assigneeId === id).length
+          const options = people.filter(p => p.id === slot.assigneeId || usedElsewhere(p.id) < p.accounts)
+          return (
+            <div key={idx} className="grid grid-cols-[0.75rem_1fr_1fr] gap-1.5 items-center">
+              <span className="text-xs font-bold text-gray-400 text-center">
+                {pendingSlot === idx ? <Spinner className="w-3 h-3 text-[#1A3666]" /> : idx + 1}
+              </span>
+              <select
+                aria-label={`${m}月${d}日 ${idx + 1}人目の予約担当者`}
+                value={slot.assigneeId}
+                onChange={e => change(idx, { ...slot, assigneeId: e.target.value })}
+                disabled={isPending}
+                className={`${selectCls} ${slot.assigneeId ? filled : empty}`}
+              >
+                <option value="">担当者：未割当</option>
+                {options.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}{p.accounts > 1 ? `（${p.accounts}）` : ''}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label={`${m}月${d}日 ${idx + 1}人目が予約する体育館`}
+                value={slot.candidateId}
+                onChange={e => change(idx, { ...slot, candidateId: e.target.value })}
+                disabled={isPending || !slot.assigneeId}
+                className={`${selectCls} ${slot.candidateId ? filled : empty}`}
+              >
+                <option value="">体育館：未指定</option>
+                {day.candidates.map(c => (
+                  <option key={c.id} value={c.id}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+          )
+        })}
+        {day.candidates.length === 0 && (
+          <p className="text-[11px] text-gray-400">この曜日の候補は登録されていません</p>
         )}
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
     </div>
   )
@@ -112,17 +120,19 @@ export default function AssignmentList({
   people: AssigneeOption[]
 }) {
   const { navigate, isNavigating } = useProgressNavigate()
-  const [slotsByDate, setSlotsByDate] = useState<Record<string, string[]>>(
+  const [slotsByDate, setSlotsByDate] = useState<Record<string, SlotValue[]>>(
     () => Object.fromEntries(days.map(d => [d.date, d.slots])),
   )
   const prev = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 }
   const next = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 }
 
-  async function changeSlot(date: string, slotIdx: number, assigneeId: string): Promise<string | null> {
+  async function changeSlot(date: string, slotIdx: number, value: SlotValue): Promise<string | null> {
+    // 担当者を外したら体育館の指定も消える
+    const saved: SlotValue = value.assigneeId ? value : { assigneeId: '', candidateId: '' }
     const before = slotsByDate[date]
-    const updated = before.map((v, j) => (j === slotIdx ? assigneeId : v))
+    const updated = before.map((v, j) => (j === slotIdx ? saved : v))
     setSlotsByDate(s => ({ ...s, [date]: updated }))
-    const res = await setGymAssignment(date, slotIdx + 1, assigneeId)
+    const res = await setGymAssignment(date, slotIdx + 1, saved.assigneeId, saved.candidateId)
     if (res?.error) {
       setSlotsByDate(s => ({ ...s, [date]: before }))
       return res.error
@@ -130,9 +140,9 @@ export default function AssignmentList({
     return null
   }
 
-  const allSlots = Object.values(slotsByDate).flat()
-  const filledCount = allSlots.filter(Boolean).length
-  const monthlyCount = (id: string) => allSlots.filter(v => v === id).length
+  const allAssignees = Object.values(slotsByDate).flat().map(s => s.assigneeId)
+  const filledCount = allAssignees.filter(Boolean).length
+  const monthlyCount = (id: string) => allAssignees.filter(v => v === id).length
 
   return (
     <div>
@@ -148,7 +158,7 @@ export default function AssignmentList({
         </div>
       </div>
       <p className="text-xs text-gray-500 mb-4">
-        1日に3人まで割り当てられます。担当者を選ぶとすぐに保存され、割り当てられた人はカレンダーで確認できます。
+        1日に3人まで割り当てられ、担当者の右で予約する体育館を指定できます。選ぶとすぐに保存され、割り当てられた人はカレンダーで確認できます。
         名前の後ろの（数字）は予約アカウント数で、その数まで同じ日に重ねて割り当てられます。
       </p>
 
@@ -188,7 +198,7 @@ export default function AssignmentList({
                 day={day}
                 slots={slotsByDate[day.date]}
                 people={people}
-                onChange={(idx, id) => changeSlot(day.date, idx, id)}
+                onChange={(idx, value) => changeSlot(day.date, idx, value)}
               />
             ))}
           </div>

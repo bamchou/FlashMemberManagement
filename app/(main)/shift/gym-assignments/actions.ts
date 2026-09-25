@@ -5,13 +5,14 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
- * 日付の予約担当（枠1〜3）を設定する。assigneeId が空なら割当を解除。
+ * 日付の予約担当（枠1〜3）と予約する体育館を設定する。assigneeId が空なら割当を解除。
  * 同じ人を同じ日に割り当てられるのは、その人の予約アカウント数まで。
  */
 export async function setGymAssignment(
   targetDate: string,
   slot: number,
   assigneeId: string,
+  candidateId: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -31,6 +32,14 @@ export async function setGymAssignment(
       .eq('slot', slot)
     if (error) return { error: '解除に失敗しました' }
   } else {
+    // 体育館はその日の曜日の候補から選ぶ
+    if (candidateId) {
+      const [y, m, d] = targetDate.split('-').map(Number)
+      const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+      const { data: cand } = await admin.from('gym_candidates').select('weekday').eq('id', candidateId).maybeSingle()
+      if (!cand || cand.weekday !== weekday) return { error: 'この曜日の候補ではない体育館です' }
+    }
+
     const [{ data: person }, { data: others }] = await Promise.all([
       admin.from('profiles').select('display_name, username, gym_account_count').eq('id', assigneeId).single(),
       admin
@@ -53,6 +62,7 @@ export async function setGymAssignment(
         target_date: targetDate,
         slot,
         assignee_id: assigneeId,
+        gym_candidate_id: candidateId || null,
         assigned_by: user.id,
         updated_at: new Date().toISOString(),
       },
