@@ -161,6 +161,8 @@ export async function updateAnnouncement(
       publish_end: publishEnd || null,
       entry_deadline: entryDeadline,
       notify_at: notifyAt,
+      updated_by: user.id,
+      updated_at: new Date().toISOString(),
     })
     .eq('id', id)
 

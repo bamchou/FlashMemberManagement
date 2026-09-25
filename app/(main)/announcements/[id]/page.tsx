@@ -77,6 +77,20 @@ export default async function AnnouncementDetailPage({
 
   const targetInfo = TARGET_LABEL[announcement.target]
 
+  // 登録者・最終更新者の名前
+  const personIds = [announcement.created_by, announcement.updated_by].filter((v): v is string => !!v)
+  const { data: people } = personIds.length > 0
+    ? await adminSupabase.from('profiles').select('id, display_name, username').in('id', personIds)
+    : { data: [] }
+  const personName = (id: string | null) => {
+    if (!id) return null
+    const p = (people ?? []).find((x: { id: string }) => x.id === id) as
+      { display_name: string | null; username: string | null } | undefined
+    return p ? (p.display_name ?? p.username ?? '不明') : null
+  }
+  const createdByName = personName(announcement.created_by)
+  const updatedByName = personName(announcement.updated_by)
+
   // 申し込み期限（JST基準）。期限日の翌日からコメント投稿不可。
   const todayJST = new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const commentClosed = !!announcement.entry_deadline && todayJST > announcement.entry_deadline
@@ -103,6 +117,13 @@ export default async function AnnouncementDetailPage({
             <span className="mx-1.5">·</span>
             {formatDate(announcement.created_at.split('T')[0])}
           </p>
+          {(createdByName || updatedByName) && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              {createdByName && <>登録: {createdByName}</>}
+              {createdByName && updatedByName && ' → '}
+              {updatedByName && <>更新: {updatedByName}</>}
+            </p>
+          )}
           {isAdmin && (announcement.publish_start || announcement.publish_end) && (
             <p className="text-xs text-gray-400 mt-1">
               公開期間: {announcement.publish_start ? formatDate(announcement.publish_start) : '開始日なし'} 〜 {announcement.publish_end ? formatDate(announcement.publish_end) : '終了日なし'}

@@ -38,6 +38,20 @@ export default async function AnnouncementsPage() {
     return getPublishStatus(a, today) === 'active'
   })
 
+  // 登録者・最終更新者の名前
+  const personIds = [...new Set(
+    (visibleAnnouncements as Announcement[])
+      .flatMap(a => [a.created_by, a.updated_by])
+      .filter((id): id is string => !!id)
+  )]
+  const { data: people } = personIds.length > 0
+    ? await supabase.from('profiles').select('id, display_name, username').in('id', personIds)
+    : { data: [] }
+  const nameMap: Record<string, string> = Object.fromEntries(
+    (people ?? []).map((p: { id: string; display_name: string | null; username: string | null }) =>
+      [p.id, p.display_name ?? p.username ?? '不明'])
+  )
+
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-6">
@@ -58,6 +72,7 @@ export default async function AnnouncementsPage() {
         today={today}
         readIds={readIds}
         currentUserId={user!.id}
+        nameMap={nameMap}
       />
     </div>
   )

@@ -147,6 +147,7 @@ CREATE TABLE public.announcements (
   publish_start timestamptz,
   publish_end timestamptz,
   entry_deadline date,  -- 申し込み期限日（この日を過ぎるとコメント投稿不可）
+  updated_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,  -- 最終更新者（編集して保存した人）
   notify_on_post boolean NOT NULL DEFAULT false,  -- 登録時にプッシュ通知するか
   notify_at timestamptz,                          -- 予約通知の日時（この時刻にプッシュ通知）
   created_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,

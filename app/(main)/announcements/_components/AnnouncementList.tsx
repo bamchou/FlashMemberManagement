@@ -39,12 +39,14 @@ export default function AnnouncementList({
   today,
   readIds = [],
   currentUserId,
+  nameMap = {},
 }: {
   announcements: Announcement[]
   role: Role
   today: string
   readIds?: string[]
   currentUserId?: string
+  nameMap?: Record<string, string>
 }) {
   const isAdmin = role === 'admin'
   const readSet = useMemo(() => new Set(readIds), [readIds])
@@ -260,7 +262,15 @@ export default function AnnouncementList({
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">{formatDate(a.created_at.split('T')[0])}</p>
+                      <p className="text-sm text-gray-500 mt-1 flex flex-wrap items-baseline gap-x-2">
+                        <span>{formatDate(a.created_at.split('T')[0])}</span>
+                        {a.created_by && nameMap[a.created_by] && (
+                          <span className="text-xs text-gray-400">
+                            登録: {nameMap[a.created_by]}
+                            {a.updated_by && nameMap[a.updated_by] && <> → 更新: {nameMap[a.updated_by]}</>}
+                          </span>
+                        )}
+                      </p>
                       {isAdmin && (a.publish_start || a.publish_end) && (
                         <p className="text-xs text-gray-400 mt-1">
                           公開期間: {a.publish_start ? formatDate(a.publish_start) : '開始日なし'} 〜 {a.publish_end ? formatDate(a.publish_end) : '終了日なし'}

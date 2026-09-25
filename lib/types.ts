@@ -88,6 +88,7 @@ export type Announcement = {
   notify_on_post: boolean
   notify_at: string | null
   created_by: string | null
+  updated_by: string | null
   created_at: string
   updated_at: string
 }
