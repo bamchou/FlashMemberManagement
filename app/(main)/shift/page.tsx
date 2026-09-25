@@ -1,118 +1,73 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import type { Role } from '@/lib/types'
-import ShiftCalendar, { type ShiftPractice, type ShiftCoach } from './_components/ShiftCalendar'
 
-export default async function ShiftPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ year?: string; month?: string }>
-}) {
-  const { year: yearStr, month: monthStr } = await searchParams
-  const now = new Date()
-  const year = parseInt(yearStr ?? String(now.getFullYear()), 10)
-  const month = parseInt(monthStr ?? String(now.getMonth() + 1), 10)
+type MenuItem = {
+  href: string
+  label: string
+  description: string
+  roles: Role[]
+  icon: React.ReactNode
+}
 
+const MENU_ITEMS: MenuItem[] = [
+  {
+    href: '/shift/coach',
+    label: 'コーチ用シフト',
+    description: '練習ごとのコーチの参加可否・参加要請を管理します',
+    roles: ['admin', 'coach'],
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    href: '/shift/gym-candidates',
+    label: '体育館予約候補',
+    description: '曜日ごとの第1〜第4候補（体育館・面数・予約時間）を管理します',
+    roles: ['admin'],
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    ),
+  },
+]
+
+export default async function ShiftMenuPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user!.id).single()
   const role = (profile?.role ?? 'member') as Role
   if (role !== 'admin' && role !== 'coach') redirect('/members')
 
-  const admin = createAdminClient()
-
-  // その月の練習予定
-  const monthStart = new Date(year, month - 1, 1).toISOString()
-  const monthEnd = new Date(year, month, 1).toISOString()
-  const { data: events } = await admin
-    .from('events')
-    .select('id, title, start_at, end_at, is_all_day, status, needs_coach')
-    .eq('event_type', 'practice')
-    .gte('start_at', monthStart)
-    .lt('start_at', monthEnd)
-    .order('start_at', { ascending: true })
-  const rows = (events ?? []) as {
-    id: string; title: string; start_at: string; end_at: string
-    is_all_day: boolean; status: string; needs_coach: boolean
-  }[]
-  const eventIds = rows.map(e => e.id)
-
-  // コーチ一覧
-  const { data: coachRows } = await admin
-    .from('profiles')
-    .select('id, display_name, username')
-    .eq('role', 'coach')
-    .order('created_at', { ascending: true })
-  const coaches: ShiftCoach[] = (coachRows ?? []).map(
-    (c: { id: string; display_name: string | null; username: string | null }) => ({
-      id: c.id, name: c.display_name ?? c.username ?? '不明',
-    })
-  )
-
-  // 参加可否
-  const byEvent: Record<string, { available: string[]; unavailable: string[] }> = {}
-  if (eventIds.length > 0) {
-    const { data: attRows } = await admin
-      .from('event_coach_attendances')
-      .select('event_id, coach_id, status')
-      .in('event_id', eventIds)
-    for (const a of (attRows ?? []) as { event_id: string; coach_id: string; status: string }[]) {
-      const b = (byEvent[a.event_id] ??= { available: [], unavailable: [] })
-      if (a.status === 'unavailable') b.unavailable.push(a.coach_id)
-      else b.available.push(a.coach_id)
-    }
-  }
-
-  // 回答者（コーチ一覧に無い管理者等を含む）の名前も解決する
-  const nameMap: Record<string, string> = Object.fromEntries(coaches.map(c => [c.id, c.name]))
-  const responderIds = new Set<string>()
-  for (const b of Object.values(byEvent)) {
-    b.available.forEach(id => responderIds.add(id))
-    b.unavailable.forEach(id => responderIds.add(id))
-  }
-  const missingIds = [...responderIds].filter(id => !(id in nameMap))
-  if (missingIds.length > 0) {
-    const { data: extra } = await admin
-      .from('profiles')
-      .select('id, display_name, username')
-      .in('id', missingIds)
-    for (const p of (extra ?? []) as { id: string; display_name: string | null; username: string | null }[]) {
-      nameMap[p.id] = p.display_name ?? p.username ?? '不明'
-    }
-  }
-
-  const practices: ShiftPractice[] = rows.map(e => {
-    const b = byEvent[e.id] ?? { available: [], unavailable: [] }
-    const myStatus: 'available' | 'unavailable' | null =
-      b.available.includes(user!.id) ? 'available'
-      : b.unavailable.includes(user!.id) ? 'unavailable'
-      : null
-    return {
-      id: e.id,
-      title: e.title,
-      start_at: e.start_at,
-      end_at: e.end_at,
-      is_all_day: e.is_all_day,
-      status: e.status,
-      needs_coach: e.needs_coach,
-      availableIds: b.available,
-      unavailableIds: b.unavailable,
-      myStatus,
-    }
-  })
+  const items = MENU_ITEMS.filter(item => item.roles.includes(role))
 
   return (
-    <div className="w-full">
-      <ShiftCalendar
-        year={year}
-        month={month}
-        role={role}
-        currentUserId={user!.id}
-        coaches={coaches}
-        nameMap={nameMap}
-        practices={practices}
-      />
+    <div className="max-w-2xl">
+      <h1 className="text-xl font-bold text-[#1A3666] mb-6">シフト</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {items.map(item => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="bg-white rounded-xl border border-[#EAE0A8] p-5 flex items-center gap-4 hover:shadow-md hover:border-[#F5C800] transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-[#F5C800]/20 text-[#1A3666] group-hover:bg-[#F5C800]/40">
+              {item.icon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-[#1A3666]">{item.label}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

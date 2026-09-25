@@ -21,7 +21,7 @@ export async function toggleCoachWanted(eventId: string): Promise<{ error?: stri
   const { error } = await admin.from('events').update({ needs_coach: !event.needs_coach }).eq('id', eventId)
   if (error) return { error: '更新に失敗しました' }
 
-  revalidatePath('/shift')
+  revalidatePath('/shift/coach')
   revalidatePath('/calendar')
   revalidatePath(`/calendar/${eventId}`)
   return {}
@@ -71,7 +71,7 @@ export async function setCoachAvailability(
     }
   }
 
-  revalidatePath('/shift')
+  revalidatePath('/shift/coach')
   revalidatePath('/calendar')
   revalidatePath(`/calendar/${eventId}`)
   return {}

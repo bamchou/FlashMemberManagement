@@ -21,8 +21,8 @@ export default async function GymCandidatesPage() {
 
   return (
     <div className="max-w-3xl">
-      <Link href="/accounting" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
-        ← 経理管理に戻る
+      <Link href="/shift" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
+        ← シフトに戻る
       </Link>
       <h1 className="text-xl font-bold text-[#1A3666] mb-2">体育館予約候補</h1>
       <p className="text-sm text-gray-500 mb-5">

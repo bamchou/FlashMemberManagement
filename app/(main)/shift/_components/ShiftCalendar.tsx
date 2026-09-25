@@ -84,7 +84,7 @@ export default function ShiftCalendar({
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
 
   const { navigate, isNavigating } = useProgressNavigate()
-  function nav(y: number, m: number) { navigate(`/shift?year=${y}&month=${m}`) }
+  function nav(y: number, m: number) { navigate(`/shift/coach?year=${y}&month=${m}`) }
   function goPrev() { const p = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 }; nav(p.y, p.m) }
   function goNext() { const n = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 }; nav(n.y, n.m) }
 
@@ -108,7 +108,7 @@ export default function ShiftCalendar({
             {isNavigating && <Spinner className="w-4 h-4" />}
           </h1>
           <button onClick={goNext} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 text-[#1A3666] text-xl font-bold transition-colors">›</button>
-          <button onClick={() => navigate('/shift')}className="text-xs font-semibold text-[#1A3666] border border-[#1A3666] px-3 py-1 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors">今月</button>
+          <button onClick={() => navigate('/shift/coach')}className="text-xs font-semibold text-[#1A3666] border border-[#1A3666] px-3 py-1 rounded-lg hover:bg-[#1A3666] hover:text-white transition-colors">今月</button>
         </div>
         <p className="text-sm font-bold text-[#1A3666]">コーチシフト表</p>
       </div>

@@ -66,6 +66,6 @@ export async function saveWeekdayCandidates(
     if (error) return { error: '保存に失敗しました' }
   }
 
-  revalidatePath('/accounting/gym-candidates')
+  revalidatePath('/shift/gym-candidates')
   return {}
 }
