@@ -7,6 +7,7 @@ import { isImageFile, toSupabaseImageUrl } from '@/lib/utils/imageUrl'
 import type { Role, AnnouncementComment } from '@/lib/types'
 import CommentSection from './_components/CommentSection'
 import AnnouncementReadMarker from './_components/AnnouncementReadMarker'
+import Linkify from '@/app/(main)/_components/Linkify'
 import type { Attachment } from '@/lib/types'
 
 const TARGET_LABEL: Record<string, { label: string; className: string }> = {
@@ -142,7 +143,9 @@ export default async function AnnouncementDetailPage({
         </div>
 
         <div className="pt-5 border-t border-[#EAE0A8]">
-          <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">{announcement.content}</p>
+          <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+            <Linkify text={announcement.content} />
+          </p>
         </div>
 
         {attachments && attachments.length > 0 && (
