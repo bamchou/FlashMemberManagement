@@ -60,15 +60,25 @@ export default function WeekdayCandidates({
         {rows.map((r, i) => (
           <div key={r.priority} className="grid grid-cols-[1.75rem_1fr] gap-x-2 gap-y-1.5 items-center py-2">
             <span className="text-xs font-bold text-gray-500">第{r.priority}</span>
-            <input
-              aria-label={`${DOW[weekday]} 第${r.priority}候補の体育館名`}
-              type="text"
-              lang="ja"
-              placeholder="体育館名"
-              value={r.gym_name}
-              onChange={e => update(i, { gym_name: e.target.value })}
-              className={`${inputCls} w-full`}
-            />
+            <div className="flex items-center gap-2">
+              <input
+                aria-label={`${DOW[weekday]} 第${r.priority}候補の体育館名`}
+                type="text"
+                lang="ja"
+                placeholder="体育館名"
+                value={r.gym_name}
+                onChange={e => update(i, { gym_name: e.target.value })}
+                className={`${inputCls} flex-1 min-w-0`}
+              />
+              <button
+                type="button"
+                onClick={() => update(i, { gym_name: '', courts: '', start_time: '', end_time: '' })}
+                disabled={!r.gym_name && !r.courts && !r.start_time && !r.end_time}
+                className="text-xs text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-100 shrink-0 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                クリア
+              </button>
+            </div>
             <div className="col-start-2 flex items-center gap-1">
               <input
                 aria-label={`${DOW[weekday]} 第${r.priority}候補の面数`}
