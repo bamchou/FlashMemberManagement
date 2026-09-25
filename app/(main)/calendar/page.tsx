@@ -88,6 +88,7 @@ export default async function CalendarPage({
   let dutyQuery = adminSupabase
     .from('gym_reservation_assignments')
     .select('target_date, assignee_id, gym_candidates(gym_name)')
+    .is('event_id', null) // 練習を仮登録済みの枠は表示しない
     .gte('target_date', ymd(fetchStart))
     .lte('target_date', ymd(fetchEnd))
   if (role !== 'admin') dutyQuery = dutyQuery.eq('assignee_id', user!.id)

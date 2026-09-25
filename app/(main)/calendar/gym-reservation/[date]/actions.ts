@@ -53,7 +53,7 @@ export async function registerProvisionalPractice(
   const gymLabel = `${cand.gym_name}${cand.courts != null ? ` ${cand.courts}面` : ''}`
 
   const { data: newEvent, error } = await admin.from('events').insert({
-    title: `練習（${cand.gym_name}）`,
+    title: cand.gym_name,
     description: `${gymLabel}\n体育館予約：${assigneeName}`,
     event_type: 'practice',
     target: 'all',
