@@ -120,7 +120,7 @@ export default async function AnnouncementDetailPage({
           {(createdByName || updatedByName) && (
             <p className="text-xs text-gray-400 mt-0.5">
               {createdByName && <>登録: {createdByName}</>}
-              {createdByName && updatedByName && ' → '}
+              {createdByName && updatedByName && '　'}
               {updatedByName && <>更新: {updatedByName}</>}
             </p>
           )}

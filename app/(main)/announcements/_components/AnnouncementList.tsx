@@ -267,7 +267,7 @@ export default function AnnouncementList({
                         {a.created_by && nameMap[a.created_by] && (
                           <span className="text-xs text-gray-400">
                             登録: {nameMap[a.created_by]}
-                            {a.updated_by && nameMap[a.updated_by] && <> → 更新: {nameMap[a.updated_by]}</>}
+                            {a.updated_by && nameMap[a.updated_by] && <>{'　'}更新: {nameMap[a.updated_by]}</>}
                           </span>
                         )}
                       </p>
