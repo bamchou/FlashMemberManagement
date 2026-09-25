@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { createComment, updateComment, deleteComment, toggleCommentVisibility } from '../comments/actions'
 import type { AnnouncementComment, Role } from '@/lib/types'
+import Linkify from '@/app/(main)/_components/Linkify'
 
 function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr)
@@ -115,7 +116,7 @@ function CommentItem({
           </div>
         </div>
       ) : (
-        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
+        <p className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed"><Linkify text={comment.content} /></p>
       )}
     </div>
   )
