@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { Role } from '@/lib/types'
+import GymAccountCount from './_components/GymAccountCount'
 
 function formatDateJa(iso: string) {
   const [y, m, d] = iso.split('-').map(Number)
@@ -25,7 +26,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, display_name, display_name_kana, role, photo_url, qualifications, birth_date, badminton_start_date, coach_rate_practice')
+    .select('username, display_name, display_name_kana, role, photo_url, qualifications, birth_date, badminton_start_date, coach_rate_practice, gym_account_count')
     .eq('id', user.id)
     .single()
 
@@ -100,6 +101,9 @@ export default async function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* 体育館予約アカウント数（指導者以外） */}
+        {!isCoach && <GymAccountCount initial={profile.gym_account_count ?? 0} />}
 
         {/* バイト代単価（指導者のみ） */}
         {isCoach && (

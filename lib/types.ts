@@ -11,6 +11,7 @@ export type Profile = {
   badminton_start_date: string | null
   show_on_members_page: boolean
   qualifications: string | null
+  gym_account_count: number  // 体育館予約アカウントの保有数
   created_at: string
 }
 
@@ -139,6 +140,7 @@ export type GymCandidate = {
 export type GymReservationAssignment = {
   id: string
   target_date: string   // YYYY-MM-DD
+  slot: number          // 1〜3（1日最大3人）
   assignee_id: string
   assigned_by: string | null
   created_at: string

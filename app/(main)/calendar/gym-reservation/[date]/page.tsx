@@ -22,23 +22,35 @@ export default async function GymReservationDutyPage({
   const isAdmin = profile?.role === 'admin'
 
   const admin = createAdminClient()
-  const { data: assignment } = await admin
+  const { data: assignRows } = await admin
     .from('gym_reservation_assignments')
-    .select('assignee_id')
+    .select('slot, assignee_id')
     .eq('target_date', date)
-    .maybeSingle()
+    .order('slot')
+  const assignments = (assignRows ?? []) as { slot: number; assignee_id: string }[]
 
   const [y, m, d] = date.split('-').map(Number)
   const calendarUrl = `/calendar?year=${y}&month=${m}`
-  if (!assignment || (!isAdmin && assignment.assignee_id !== user!.id)) redirect(calendarUrl)
+  const mineCount = assignments.filter(a => a.assignee_id === user!.id).length
+  if (assignments.length === 0 || (!isAdmin && mineCount === 0)) redirect(calendarUrl)
 
   const wd = weekdayOf(date)
-  const [{ data: assignee }, { data: candRows }] = await Promise.all([
-    admin.from('profiles').select('display_name, username').eq('id', assignment.assignee_id).single(),
+  const assigneeIds = [...new Set(assignments.map(a => a.assignee_id))]
+  const [{ data: assigneeRows }, { data: candRows }] = await Promise.all([
+    admin.from('profiles').select('id, display_name, username').in('id', assigneeIds),
     admin.from('gym_candidates').select('*').eq('weekday', wd).order('priority'),
   ])
+  const nameMap: Record<string, string> = Object.fromEntries(
+    ((assigneeRows ?? []) as { id: string; display_name: string | null; username: string | null }[])
+      .map(p => [p.id, p.display_name ?? p.username ?? '不明']),
+  )
+  // 担当者ごとの件数（アカウントを複数使う人は ×2 など）
+  const assignees = assigneeIds.map(id => ({
+    id,
+    name: nameMap[id] ?? '不明',
+    count: assignments.filter(a => a.assignee_id === id).length,
+  }))
   const candidates = (candRows ?? []) as GymCandidate[]
-  const isMine = assignment.assignee_id === user!.id
   const holiday = getHolidayName(date)
 
   return (
@@ -55,9 +67,21 @@ export default async function GymReservationDutyPage({
             {holiday && <span className="text-sm text-red-400 ml-2">{holiday}</span>}
           </h1>
           <p className="text-sm text-gray-700 mt-1">
-            予約担当：<span className="font-bold">{assignee?.display_name ?? assignee?.username ?? '不明'}</span>
-            {isMine && <span className="ml-2 text-xs font-bold text-sky-700">（あなた）</span>}
+            予約担当：
+            {assignees.map((a, i) => (
+              <span key={a.id}>
+                {i > 0 && '、'}
+                <span className="font-bold">{a.name}</span>
+                {a.count > 1 && <span className="text-xs ml-0.5">×{a.count}</span>}
+                {a.id === user!.id && <span className="text-xs font-bold text-sky-700">（あなた）</span>}
+              </span>
+            ))}
           </p>
+          {mineCount > 0 && (
+            <p className="text-xs text-sky-800 mt-1">
+              あなたは{mineCount > 1 ? `${mineCount}アカウントで予約を担当します` : '予約を担当します'}
+            </p>
+          )}
         </div>
 
         <div className="px-5 py-4">

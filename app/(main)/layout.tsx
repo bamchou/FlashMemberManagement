@@ -1,6 +1,7 @@
 import { ViewTransition, Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import Nav, { MobileNavBar } from './_components/Nav'
 import LogoutButton from './_components/LogoutButton'
@@ -87,14 +88,14 @@ export default async function MainLayout({
 
           {/* ユーザー情報 */}
           <div className="ml-auto flex items-center gap-3 shrink-0">
-            <div className="text-right hidden sm:block">
+            <Link href="/profile" className="text-right hidden sm:block hover:opacity-80" title="マイプロフィール">
               <p className="text-white text-sm font-semibold leading-none">
                 {profile.username}
               </p>
               <p className="text-white/50 text-xs mt-0.5">
                 {roleLabel[profile.role as Role]}
               </p>
-            </div>
+            </Link>
             <NotificationButton />
             <LogoutButton />
           </div>

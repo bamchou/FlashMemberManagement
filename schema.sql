@@ -14,6 +14,7 @@ CREATE TABLE public.profiles (
   badminton_start_date date,
   show_on_members_page boolean NOT NULL DEFAULT false,
   qualifications text,
+  gym_account_count integer NOT NULL DEFAULT 0 CHECK (gym_account_count BETWEEN 0 AND 10), -- 体育館予約アカウント数
   temp_password text,
   coach_rate_practice integer,
   coach_rate_tournament integer,
@@ -253,11 +254,13 @@ CREATE TABLE public.gym_candidates (
 -- gym_reservation_assignments（体育館予約の担当者割当。日付ごとに1人）
 CREATE TABLE public.gym_reservation_assignments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  target_date date NOT NULL UNIQUE,
+  target_date date NOT NULL,
+  slot integer NOT NULL DEFAULT 1 CHECK (slot BETWEEN 1 AND 3),  -- 1日最大3人
   assignee_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   assigned_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (target_date, slot)
 );
 
 -- event_attendances（親睦会・イベントの「大人〇人・子供〇人」人数登録）

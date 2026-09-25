@@ -101,9 +101,13 @@ export default async function CalendarPage({
     ((dutyProfiles ?? []) as { id: string; display_name: string | null; username: string | null }[])
       .map(p => [p.id, p.display_name ?? p.username ?? '不明']),
   )
-  const gymDuties: Record<string, GymDuty> = Object.fromEntries(
-    duties.map(d => [d.target_date, { isMine: d.assignee_id === user!.id, name: dutyNameMap[d.assignee_id] ?? '不明' }]),
-  )
+  const gymDuties: Record<string, GymDuty> = {}
+  for (const d of duties) {
+    const g = (gymDuties[d.target_date] ??= { mineCount: 0, names: [] })
+    if (d.assignee_id === user!.id) g.mineCount++
+    const name = dutyNameMap[d.assignee_id] ?? '不明'
+    if (!g.names.includes(name)) g.names.push(name)
+  }
 
   return (
     <div className="w-full">
