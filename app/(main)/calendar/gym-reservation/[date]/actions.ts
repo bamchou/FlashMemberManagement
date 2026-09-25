@@ -29,7 +29,7 @@ export async function registerProvisionalPractice(
 
   const admin = createAdminClient()
   const [{ data: profile }, { data: assignment }, { data: cand }] = await Promise.all([
-    admin.from('profiles').select('role, display_name, username').eq('id', user.id).single(),
+    admin.from('profiles').select('role').eq('id', user.id).single(),
     admin
       .from('gym_reservation_assignments')
       .select('id, assignee_id, event_id')
@@ -44,17 +44,11 @@ export async function registerProvisionalPractice(
   if (assignment.event_id) return { error: 'この枠からはすでに仮登録されています' }
   if (!cand || cand.weekday !== weekdayOf(targetDate)) return { error: 'この曜日の候補ではない体育館です' }
 
-  const { data: assignee } = await admin
-    .from('profiles')
-    .select('display_name, username')
-    .eq('id', assignment.assignee_id)
-    .single()
-  const assigneeName = assignee?.display_name ?? assignee?.username ?? ''
   const gymLabel = `${cand.gym_name}${cand.courts != null ? ` ${cand.courts}面` : ''}`
 
   const { data: newEvent, error } = await admin.from('events').insert({
     title: cand.gym_name,
-    description: `${gymLabel}\n体育館予約：${assigneeName}`,
+    description: gymLabel,
     event_type: 'practice',
     target: 'all',
     start_at: new Date(`${targetDate}T${startTime}:00+09:00`).toISOString(),
