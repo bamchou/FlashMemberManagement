@@ -6,6 +6,7 @@ import type { GymCandidate } from '@/lib/types'
 import { WEEKDAY_LABELS, formatCandidate, weekdayOf } from '@/lib/gymCandidates'
 import { getHolidayName } from '@/lib/utils/holidays'
 import { BackToListLink } from '@/app/(main)/_components/ListReturn'
+import ProvisionalPracticeForm, { type PracticeCandidate } from './_components/ProvisionalPracticeForm'
 
 /** 体育館予約の担当日の詳細（担当者本人と管理者のみ） */
 export default async function GymReservationDutyPage({
@@ -24,10 +25,10 @@ export default async function GymReservationDutyPage({
   const admin = createAdminClient()
   const { data: assignRows } = await admin
     .from('gym_reservation_assignments')
-    .select('slot, assignee_id, gym_candidate_id')
+    .select('slot, assignee_id, gym_candidate_id, event_id')
     .eq('target_date', date)
     .order('slot')
-  const assignments = (assignRows ?? []) as { slot: number; assignee_id: string; gym_candidate_id: string | null }[]
+  const assignments = (assignRows ?? []) as { slot: number; assignee_id: string; gym_candidate_id: string | null; event_id: string | null }[]
 
   const [y, m, d] = date.split('-').map(Number)
   const calendarUrl = `/calendar?year=${y}&month=${m}`
@@ -46,6 +47,21 @@ export default async function GymReservationDutyPage({
   )
   const candidates = (candRows ?? []) as GymCandidate[]
   const candidateMap = new Map(candidates.map(c => [c.id, c]))
+  const practiceCandidates: PracticeCandidate[] = candidates.map(c => ({
+    id: c.id,
+    label: `第${c.priority}候補 ${c.gym_name}${c.courts != null ? ` ${c.courts}面` : ''}`,
+    start: c.start_time?.slice(0, 5) ?? '',
+    end: c.end_time?.slice(0, 5) ?? '',
+  }))
+
+  // 仮登録済みの練習（削除されていれば event_id は NULL に戻る）
+  const eventIds = assignments.map(a => a.event_id).filter((id): id is string => !!id)
+  const { data: eventRows } = eventIds.length > 0
+    ? await admin.from('events').select('id, status').in('id', eventIds)
+    : { data: [] }
+  const eventStatus: Record<string, string> = Object.fromEntries(
+    ((eventRows ?? []) as { id: string; status: string }[]).map(e => [e.id, e.status]),
+  )
   const holiday = getHolidayName(date)
 
   return (
@@ -85,6 +101,24 @@ export default async function GymReservationDutyPage({
                         ? <>第{cand.priority}候補　{formatCandidate(cand)}</>
                         : <span className="text-gray-400">体育館は未指定</span>}
                     </p>
+                    {a.event_id ? (
+                      <Link
+                        href={`/calendar/${a.event_id}`}
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#1A3666] bg-white border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-50"
+                      >
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${eventStatus[a.event_id] === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-600'}`}>
+                          {eventStatus[a.event_id] === 'confirmed' ? '確定' : '仮'}
+                        </span>
+                        練習を登録済み　予定を見る ›
+                      </Link>
+                    ) : (isMine || isAdmin) && (
+                      <ProvisionalPracticeForm
+                        date={date}
+                        slot={a.slot}
+                        defaultCandidateId={a.gym_candidate_id ?? ''}
+                        candidates={practiceCandidates}
+                      />
+                    )}
                   </div>
                 </li>
               )
