@@ -237,6 +237,19 @@ CREATE TABLE public.event_coach_attendances (
   UNIQUE (event_id, coach_id)
 );
 
+-- gym_candidates（体育館の予約候補。曜日ごとに第1〜第4候補。weekday 0=日〜6=土）
+CREATE TABLE public.gym_candidates (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  weekday integer NOT NULL CHECK (weekday BETWEEN 0 AND 6),
+  priority integer NOT NULL CHECK (priority BETWEEN 1 AND 4),
+  gym_name text NOT NULL,
+  courts text,
+  start_time time,
+  end_time time,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (weekday, priority)
+);
+
 -- event_attendances（親睦会・イベントの「大人〇人・子供〇人」人数登録）
 CREATE TABLE public.event_attendances (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -324,6 +337,7 @@ ALTER TABLE public.push_announcement_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_coach_attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_attendances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gym_candidates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bib_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coach_monthly_payments ENABLE ROW LEVEL SECURITY;
@@ -347,6 +361,7 @@ CREATE POLICY "authenticated_all" ON public.push_announcement_log FOR ALL TO aut
 CREATE POLICY "authenticated_all" ON public.event_comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_coach_attendances FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.event_attendances FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated_all" ON public.gym_candidates FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.calendar_tokens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.bib_requests FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated_all" ON public.coach_monthly_payments FOR ALL TO authenticated USING (true) WITH CHECK (true);
