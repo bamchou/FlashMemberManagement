@@ -57,19 +57,34 @@ export default function WeekdayCandidates({
 
       <div className="px-3 pb-2.5">
         <div className="divide-y divide-gray-200">
-        {rows.map((r, i) => (
+        {rows.map((r, i) => {
+          // スマホは体育館名の横、PCは終了時間の右（右寄せ）に表示
+          const clearButton = (placement: string) => (
+            <button
+              type="button"
+              onClick={() => update(i, { gym_name: '', courts: '', start_time: '', end_time: '' })}
+              disabled={!r.gym_name && !r.courts && !r.start_time && !r.end_time}
+              className={`${placement} text-xs font-semibold text-sky-700 bg-sky-100 border border-sky-300 px-2.5 py-1 rounded-md hover:bg-sky-200 shrink-0 disabled:opacity-40 disabled:hover:bg-sky-100`}
+            >
+              クリア
+            </button>
+          )
+          return (
           <div key={r.priority} className="grid grid-cols-[1.75rem_1fr] gap-x-2 gap-y-1.5 items-center py-2">
             <span className="text-xs font-bold text-gray-500">第{r.priority}</span>
-            <input
-              aria-label={`${DOW[weekday]} 第${r.priority}候補の体育館名`}
-              type="text"
-              lang="ja"
-              placeholder="体育館名"
-              value={r.gym_name}
-              onChange={e => update(i, { gym_name: e.target.value })}
-              className={`${inputCls} w-full`}
-            />
-            <div className="col-start-2 flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-2">
+              <input
+                aria-label={`${DOW[weekday]} 第${r.priority}候補の体育館名`}
+                type="text"
+                lang="ja"
+                placeholder="体育館名"
+                value={r.gym_name}
+                onChange={e => update(i, { gym_name: e.target.value })}
+                className={`${inputCls} flex-1 min-w-0`}
+              />
+              {clearButton('sm:hidden')}
+            </div>
+            <div className="col-start-2 flex items-center gap-1">
               <input
                 aria-label={`${DOW[weekday]} 第${r.priority}候補の面数`}
                 type="text"
@@ -95,17 +110,11 @@ export default function WeekdayCandidates({
                 onChange={e => update(i, { end_time: e.target.value })}
                 className={`${inputCls} w-[6.5rem]`}
               />
-              <button
-                type="button"
-                onClick={() => update(i, { gym_name: '', courts: '', start_time: '', end_time: '' })}
-                disabled={!r.gym_name && !r.courts && !r.start_time && !r.end_time}
-                className="ml-auto text-xs text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-100 shrink-0 disabled:opacity-30 disabled:hover:bg-transparent"
-              >
-                クリア
-              </button>
+              {clearButton('hidden sm:inline-block ml-auto')}
             </div>
           </div>
-        ))}
+          )
+        })}
         </div>
 
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5 mb-2">{error}</p>}
