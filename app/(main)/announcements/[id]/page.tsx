@@ -8,6 +8,7 @@ import type { Role, AnnouncementComment } from '@/lib/types'
 import CommentSection from './_components/CommentSection'
 import AnnouncementReadMarker from './_components/AnnouncementReadMarker'
 import Linkify from '@/app/(main)/_components/Linkify'
+import { BackToListLink } from '@/app/(main)/_components/ListReturn'
 import type { Attachment } from '@/lib/types'
 
 const TARGET_LABEL: Record<string, { label: string; className: string }> = {
@@ -66,9 +67,9 @@ export default async function AnnouncementDetailPage({
   if (!targetAllowed || outOfRange) {
     return (
       <div className="max-w-2xl">
-        <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
+        <BackToListLink section="announcements" fallback="/announcements" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
           ← お知らせ一覧に戻る
-        </Link>
+        </BackToListLink>
         <div className="bg-white rounded-xl border border-[#EAE0A8] py-16 text-center">
           <p className="text-gray-400 text-sm">このお知らせは閲覧できません</p>
         </div>
@@ -99,9 +100,9 @@ export default async function AnnouncementDetailPage({
   return (
     <div className="max-w-2xl space-y-4">
       <AnnouncementReadMarker id={id} />
-      <Link href="/announcements" className="text-sm text-[#1A3666] hover:underline inline-block">
+      <BackToListLink section="announcements" fallback="/announcements" className="text-sm text-[#1A3666] hover:underline inline-block">
         ← お知らせ一覧に戻る
-      </Link>
+      </BackToListLink>
 
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6">
         <div className="mb-5">

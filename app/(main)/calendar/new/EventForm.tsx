@@ -4,6 +4,7 @@ import { useState, useTransition, useRef } from 'react'
 import Link from 'next/link'
 import { createEvent } from '../actions'
 import Spinner from '@/app/(main)/_components/Spinner'
+import { useReturnTo } from '@/app/(main)/_components/ListReturn'
 import type { AccompanimentFeeSetting } from '@/lib/types'
 
 const EVENT_TYPES = [
@@ -62,6 +63,7 @@ export default function EventForm({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const returnTo = useReturnTo('calendar', '')
 
   const [title, setTitle] = useState('')
   const [eventType, setEventType] = useState('practice')
@@ -143,6 +145,7 @@ export default function EventForm({
     setError(null)
 
     const fd = new FormData()
+    fd.set('return_to', returnTo)
     fd.set('title', title)
     fd.set('event_type', eventType)
     fd.set('target', target)
@@ -497,7 +500,7 @@ export default function EventForm({
 
       <div className="flex gap-3 pt-2">
         <Link
-          href="/calendar"
+          href={returnTo || '/calendar'}
           className="flex-1 text-center py-2.5 border border-gray-300 text-sm font-semibold text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
         >
           キャンセル

@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { RememberListUrl } from '@/app/(main)/_components/ListReturn'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import GuardianListClient from './_components/GuardianListClient'
@@ -64,6 +66,9 @@ export default async function GuardiansPage() {
 
   return (
     <div className="max-w-2xl">
+      <Suspense fallback={null}>
+        <RememberListUrl section="users" />
+      </Suspense>
       <div className="mb-6">
         <Link href="/users" className="text-sm text-[#1A3666] hover:underline">← ユーザー管理</Link>
         <h1 className="text-xl font-bold text-[#1A3666] mt-2">退会管理</h1>

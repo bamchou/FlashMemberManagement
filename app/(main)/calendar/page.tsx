@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Role, CalendarEvent } from '@/lib/types'
+import { Suspense } from 'react'
 import CalendarContainer from './_components/CalendarContainer'
+import { RememberListUrl } from '@/app/(main)/_components/ListReturn'
 
 export default async function CalendarPage({
   searchParams,
@@ -81,6 +83,9 @@ export default async function CalendarPage({
 
   return (
     <div className="w-full">
+      <Suspense fallback={null}>
+        <RememberListUrl section="calendar" />
+      </Suspense>
       <CalendarContainer
         year={year}
         month={month}

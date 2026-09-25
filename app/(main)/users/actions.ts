@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { safeReturnTo } from '@/lib/returnTo'
 
 export type UserFormState = { error: string } | undefined
 export type CreateUserState = { error: string } | { password: string } | undefined
@@ -199,7 +200,8 @@ export async function updateUser(
   })
 
   revalidatePath('/users')
-  redirect('/users')
+  // 詳細に入る直前に見ていた一覧（ユーザー一覧／保護者一覧）へ戻る
+  redirect(safeReturnTo(formData.get('return_to'), '/users', '/users'))
 }
 
 export async function toggleUserVisibility(targetUserId: string, show: boolean): Promise<void> {

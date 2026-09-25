@@ -6,6 +6,7 @@ import { updateEvent } from '../../actions'
 import type { CalendarEvent, AccompanimentFeeSetting, Attachment } from '@/lib/types'
 import AttachmentList from '@/app/(main)/_components/AttachmentList'
 import Spinner from '@/app/(main)/_components/Spinner'
+import { useReturnTo } from '@/app/(main)/_components/ListReturn'
 
 const PAYMENT_METHODS = [
   '口座振替', 'クレジットカード', 'コンビニ支払', 'ATM支払', 'ネットバンク', '電子マネー',
@@ -57,6 +58,7 @@ export default function EditEventForm({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const returnTo = useReturnTo('calendar', '')
 
   const [title, setTitle] = useState(event.title)
   const [eventType, setEventType] = useState(event.event_type as string)
@@ -134,6 +136,7 @@ export default function EditEventForm({
     setError(null)
 
     const fd = new FormData()
+    fd.set('return_to', returnTo)
     fd.set('title', title)
     fd.set('event_type', eventType)
     fd.set('status', eventType === 'practice' ? status : 'confirmed')

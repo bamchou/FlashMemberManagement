@@ -260,7 +260,8 @@ export async function updateMember(
 
   revalidatePath(`/members/${id}`)
   revalidatePath('/members')
-  redirect(`/members/${id}`)
+  // 更新後は一覧に戻る
+  redirect('/members')
 }
 
 export async function toggleMemberVisibility(id: string, isVisible: boolean): Promise<void> {

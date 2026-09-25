@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Role, Announcement } from '@/lib/types'
+import { Suspense } from 'react'
 import AnnouncementList from './_components/AnnouncementList'
+import { RememberListUrl } from '@/app/(main)/_components/ListReturn'
 
 function canView(a: Announcement, role: Role): boolean {
   if (role === 'admin') return true
@@ -17,7 +19,13 @@ function getPublishStatus(a: Announcement, today: string): 'active' | 'before' |
   return 'active'
 }
 
-export default async function AnnouncementsPage() {
+export default async function AnnouncementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
+  const { tab } = await searchParams
+  const initialTab: 'normal' | 'always' = tab === 'always' ? 'always' : 'normal'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -73,7 +81,11 @@ export default async function AnnouncementsPage() {
         readIds={readIds}
         currentUserId={user!.id}
         nameMap={nameMap}
+        initialTab={initialTab}
       />
+      <Suspense fallback={null}>
+        <RememberListUrl section="announcements" />
+      </Suspense>
     </div>
   )
 }

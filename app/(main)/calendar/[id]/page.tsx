@@ -9,6 +9,7 @@ import ToggleEventVisibilityButton from './_components/ToggleEventVisibilityButt
 import ParticipantSection from './_components/ParticipantSection'
 import HeadcountSection, { type Attendee } from './_components/HeadcountSection'
 import EventCommentSection from './_components/EventCommentSection'
+import { BackToListLink } from '@/app/(main)/_components/ListReturn'
 
 
 function formatDateTime(isoStr: string): string {
@@ -207,9 +208,9 @@ export default async function EventDetailPage({
 
   return (
     <div className="max-w-2xl">
-      <Link href="/calendar" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
+      <BackToListLink section="calendar" fallback="/calendar" className="text-sm text-[#1A3666] hover:underline mb-4 inline-block">
         ← カレンダーに戻る
-      </Link>
+      </BackToListLink>
 
       <div className="bg-white rounded-xl border border-[#EAE0A8] p-6 mb-4">
         <div className="mb-5">

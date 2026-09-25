@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { RememberListUrl } from '@/app/(main)/_components/ListReturn'
 import { createClient } from '@/lib/supabase/server'
 import type { Role } from '@/lib/types'
 import DeleteUserButton from './_components/DeleteUserButton'
@@ -38,6 +40,9 @@ export default async function UsersPage() {
 
   return (
     <div className="max-w-2xl">
+      <Suspense fallback={null}>
+        <RememberListUrl section="users" />
+      </Suspense>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-[#1A3666]">ユーザー管理</h1>
         <div className="flex items-center gap-2">

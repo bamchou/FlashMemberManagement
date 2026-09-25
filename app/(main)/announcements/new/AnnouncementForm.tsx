@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createAnnouncement, type AnnouncementFormState } from '../actions'
 import Spinner from '@/app/(main)/_components/Spinner'
+import { ReturnToInput } from '@/app/(main)/_components/ListReturn'
 
 export default function AnnouncementForm() {
   const [state, action, pending] = useActionState<AnnouncementFormState, FormData>(
@@ -14,6 +15,7 @@ export default function AnnouncementForm() {
 
   return (
     <form action={action} className="space-y-5">
+      <ReturnToInput section="announcements" fallback="" />
       <div>
         <label htmlFor="title" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
           タイトル<span className="text-red-500 ml-1">*</span>

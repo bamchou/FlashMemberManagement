@@ -3,13 +3,15 @@
 import { useTransition } from 'react'
 import { deleteEvent } from '../../actions'
 import Spinner from '@/app/(main)/_components/Spinner'
+import { useReturnTo } from '@/app/(main)/_components/ListReturn'
 
 export default function DeleteEventButton({ id }: { id: string }) {
   const [isPending, startTransition] = useTransition()
+  const returnTo = useReturnTo('calendar', '')
 
   function handleDelete() {
     if (!confirm('この予定を削除しますか？')) return
-    startTransition(() => deleteEvent(id))
+    startTransition(() => deleteEvent(id, returnTo))
   }
 
   return (

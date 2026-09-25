@@ -3,14 +3,16 @@
 import { useTransition } from 'react'
 import { deleteAnnouncement } from '../actions'
 import Spinner from '@/app/(main)/_components/Spinner'
+import { useReturnTo } from '@/app/(main)/_components/ListReturn'
 
 export default function DeleteButton({ id, title }: { id: string; title: string }) {
   const [isPending, startTransition] = useTransition()
+  const returnTo = useReturnTo('announcements', '')
 
   function handleClick() {
     if (!confirm(`「${title}」を削除しますか？\nこの操作は元に戻せません。`)) return
     startTransition(async () => {
-      await deleteAnnouncement(id)
+      await deleteAnnouncement(id, returnTo)
     })
   }
 

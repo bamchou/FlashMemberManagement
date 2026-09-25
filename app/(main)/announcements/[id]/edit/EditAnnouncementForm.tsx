@@ -6,6 +6,7 @@ import { updateAnnouncement, deleteAnnouncement, type AnnouncementFormState } fr
 import type { Announcement, Attachment } from '@/lib/types'
 import AttachmentList from '@/app/(main)/_components/AttachmentList'
 import Spinner from '@/app/(main)/_components/Spinner'
+import { ReturnToInput, useReturnTo } from '@/app/(main)/_components/ListReturn'
 
 export default function EditAnnouncementForm({
   announcement,
@@ -27,14 +28,16 @@ export default function EditAnnouncementForm({
     undefined
   )
   const router = useRouter()
+  const returnTo = useReturnTo('announcements', '')
 
   async function handleDelete() {
     if (!confirm('このお知らせを削除しますか？\nこの操作は元に戻せません。')) return
-    await deleteAnnouncement(announcement.id)
+    await deleteAnnouncement(announcement.id, returnTo)
   }
 
   return (
     <form action={action} className="space-y-5">
+      <ReturnToInput section="announcements" fallback="" />
       <div>
         <label htmlFor="title" className="block text-sm font-semibold text-[#1A3666] mb-1.5">
           タイトル<span className="text-red-500 ml-1">*</span>

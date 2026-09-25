@@ -40,6 +40,7 @@ export default function AnnouncementList({
   readIds = [],
   currentUserId,
   nameMap = {},
+  initialTab = 'normal',
 }: {
   announcements: Announcement[]
   role: Role
@@ -47,6 +48,7 @@ export default function AnnouncementList({
   readIds?: string[]
   currentUserId?: string
   nameMap?: Record<string, string>
+  initialTab?: 'normal' | 'always'
 }) {
   const isAdmin = role === 'admin'
   const readSet = useMemo(() => new Set(readIds), [readIds])
@@ -54,7 +56,16 @@ export default function AnnouncementList({
   const [noQuery, setNoQuery] = useState('')
   const [targetFilter, setTargetFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState(isAdmin ? 'not_ended' : '')
-  const [typeTab, setTypeTab] = useState<'normal' | 'always'>('normal')
+  const [typeTab, setTypeTabState] = useState<'normal' | 'always'>(initialTab)
+
+  // タブをURLにも反映（詳細から戻ったときに同じタブを開けるように）
+  function setTypeTab(tab: 'normal' | 'always') {
+    setTypeTabState(tab)
+    const url = new URL(window.location.href)
+    if (tab === 'always') url.searchParams.set('tab', 'always')
+    else url.searchParams.delete('tab')
+    window.history.replaceState(null, '', url.pathname + url.search)
+  }
 
   const normalCount = useMemo(
     () => announcements.filter(a => (a.announcement_type ?? 'normal') === 'normal').length,

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateUser, resetPassword, withdrawGuardian } from '../../actions'
+import { useReturnTo } from '@/app/(main)/_components/ListReturn'
 
 const ROLE_OPTIONS = [
   { value: 'admin',  label: '管理者' },
@@ -42,6 +43,7 @@ export default function EditUserForm({
   roleChangeLocked,
 }: Props) {
   const router = useRouter()
+  const returnTo = useReturnTo('users', '')
   const [isPending, startTransition] = useTransition()
   const [isResetting, startReset] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -78,6 +80,7 @@ export default function EditUserForm({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    formData.set('return_to', returnTo)
     startTransition(async () => {
       const result = await updateUser(userId, undefined, formData)
       if (result && 'error' in result) setError(result.error)
@@ -117,7 +120,7 @@ export default function EditUserForm({
       if (result?.error) {
         setWithdrawError(result.error)
       } else {
-        router.push('/users/guardians')
+        router.push(returnTo || '/users/guardians')
       }
     })
   }

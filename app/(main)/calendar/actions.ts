@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { EventType } from '@/lib/types'
+import { safeReturnTo } from '@/lib/returnTo'
 
 const VALID_EVENT_TYPES = ['practice', 'tournament', 'event', 'social', 'other']
 const VALID_TARGETS = ['all', 'coach', 'member']
@@ -188,7 +189,8 @@ export async function createEvent(formData: FormData): Promise<EventFormState> {
   if (uploadErr) return { error: uploadErr }
 
   revalidatePath('/calendar')
-  redirect(calendarUrl(start_at))
+  // 詳細に入る直前に見ていたカレンダー（年月）へ戻る。無ければ予定の月
+  redirect(safeReturnTo(formData.get('return_to'), '/calendar', calendarUrl(start_at)))
 }
 
 export async function updateEvent(id: string, formData: FormData): Promise<EventFormState> {
@@ -316,10 +318,11 @@ export async function updateEvent(id: string, formData: FormData): Promise<Event
 
   revalidatePath('/calendar')
   revalidatePath(`/calendar/${id}`)
-  redirect(calendarUrl(start_at))
+  // 詳細に入る直前に見ていたカレンダー（年月）へ戻る。無ければ予定の月
+  redirect(safeReturnTo(formData.get('return_to'), '/calendar', calendarUrl(start_at)))
 }
 
-export async function deleteEvent(id: string): Promise<void> {
+export async function deleteEvent(id: string, returnTo?: string): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
@@ -338,7 +341,7 @@ export async function deleteEvent(id: string): Promise<void> {
 
   await supabase.from('events').delete().eq('id', id)
   revalidatePath('/calendar')
-  redirect(eventRow ? calendarUrl(eventRow.start_at) : '/calendar')
+  redirect(safeReturnTo(returnTo, '/calendar', eventRow ? calendarUrl(eventRow.start_at) : '/calendar'))
 }
 
 const VALID_PARTICIPATION_CATEGORIES = ['singles', 'doubles', 'both']

@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendAnnouncementPush } from '@/lib/push/announcements'
+import { safeReturnTo } from '@/lib/returnTo'
 
 export type AnnouncementFormState = { error: string } | undefined
 
@@ -124,7 +125,7 @@ export async function createAnnouncement(
   }
 
   revalidatePath('/announcements')
-  redirect('/announcements')
+  redirect(safeReturnTo(formData.get('return_to'), '/announcements', '/announcements'))
 }
 
 export async function updateAnnouncement(
@@ -174,7 +175,8 @@ export async function updateAnnouncement(
 
   revalidatePath('/announcements')
   revalidatePath(`/announcements/${id}`)
-  redirect(`/announcements/${id}`)
+  // 詳細に入る直前に見ていた一覧（タブ）へ戻る
+  redirect(safeReturnTo(formData.get('return_to'), '/announcements', '/announcements'))
 }
 
 // お知らせを既読にする（全ロール可）。新規に既読化したときのみ newlyRead=true。
@@ -206,7 +208,7 @@ export async function togglePin(id: string, isPinned: boolean): Promise<void> {
   revalidatePath(`/announcements/${id}`)
 }
 
-export async function deleteAnnouncement(id: string): Promise<void> {
+export async function deleteAnnouncement(id: string, returnTo?: string): Promise<void> {
   const { supabase, error: authError } = await requireAdmin()
   if (authError || !supabase) return
 
@@ -224,5 +226,5 @@ export async function deleteAnnouncement(id: string): Promise<void> {
   await supabase.from('announcements').delete().eq('id', id)
 
   revalidatePath('/announcements')
-  redirect('/announcements')
+  redirect(safeReturnTo(returnTo, '/announcements', '/announcements'))
 }
