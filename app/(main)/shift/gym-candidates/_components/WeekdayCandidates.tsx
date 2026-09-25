@@ -55,10 +55,11 @@ export default function WeekdayCandidates({
         {isEmpty && <span className="text-xs text-gray-400">なし</span>}
       </div>
 
-      <div className="px-3 py-2.5 space-y-1.5">
+      <div className="px-3 pb-2.5">
+        <div className="divide-y divide-gray-200">
         {rows.map((r, i) => (
-          <div key={r.priority} className="flex items-center gap-x-2 gap-y-1 flex-wrap">
-            <span className="text-xs font-bold text-gray-500 w-7 shrink-0">第{r.priority}</span>
+          <div key={r.priority} className="grid grid-cols-[1.75rem_1fr] gap-x-2 gap-y-1.5 items-center py-2">
+            <span className="text-xs font-bold text-gray-500">第{r.priority}</span>
             <input
               aria-label={`${DOW[weekday]} 第${r.priority}候補の体育館名`}
               type="text"
@@ -66,9 +67,9 @@ export default function WeekdayCandidates({
               placeholder="体育館名"
               value={r.gym_name}
               onChange={e => update(i, { gym_name: e.target.value })}
-              className={`${inputCls} flex-1 min-w-[9rem]`}
+              className={`${inputCls} w-full`}
             />
-            <div className="flex items-center gap-1 shrink-0 ml-9 sm:ml-0">
+            <div className="col-start-2 flex items-center gap-1">
               <input
                 aria-label={`${DOW[weekday]} 第${r.priority}候補の面数`}
                 type="text"
@@ -97,10 +98,11 @@ export default function WeekdayCandidates({
             </div>
           </div>
         ))}
+        </div>
 
-        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">{error}</p>}
+        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5 mb-2">{error}</p>}
 
-        <div className="flex items-center justify-end gap-3 pt-0.5">
+        <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-2.5">
           {message && !dirty && <span className="text-sm text-green-700">{message}</span>}
           {dirty && <span className="text-xs text-orange-600">未保存の変更があります</span>}
           <button
