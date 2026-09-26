@@ -24,11 +24,13 @@ function DayRow({
   day,
   slots,
   people,
+  monthlyUsed,
   onChange,
 }: {
   day: AssignmentDay
   slots: SlotValue[]
   people: AssigneeOption[]
+  monthlyUsed: Record<string, number>  // 今月の割当回数（担当者ID → 回数）
   onChange: (slotIdx: number, value: SlotValue) => Promise<string | null>
 }) {
   const [error, setError] = useState<string | null>(null)
@@ -62,9 +64,8 @@ function DayRow({
       </div>
       <div className="min-w-0 space-y-1.5">
         {slots.map((slot, idx) => {
-          // この日の他の枠での使用数がアカウント数に達している人は選べない
-          const usedElsewhere = (id: string) => slots.filter((v, j) => j !== idx && v.assigneeId === id).length
-          const options = people.filter(p => p.id === slot.assigneeId || usedElsewhere(p.id) < p.accounts)
+          // 今月の割当回数がアカウント数に達した人は選べない（この枠の担当者は残す）
+          const options = people.filter(p => p.id === slot.assigneeId || (monthlyUsed[p.id] ?? 0) < p.accounts)
           return (
             <div key={idx} className="grid grid-cols-[0.75rem_1fr_1fr] gap-1.5 items-center">
               <span className="text-xs font-bold text-gray-400 text-center">
@@ -80,7 +81,7 @@ function DayRow({
                 <option value="">担当者：未割当</option>
                 {options.map(p => (
                   <option key={p.id} value={p.id}>
-                    {p.name}{p.accounts > 1 ? `（${p.accounts}）` : ''}
+                    {p.name}{p.id === slot.assigneeId ? '' : `（あと${p.accounts - (monthlyUsed[p.id] ?? 0)}回）`}
                   </option>
                 ))}
               </select>
@@ -140,9 +141,10 @@ export default function AssignmentList({
     return null
   }
 
-  const allAssignees = Object.values(slotsByDate).flat().map(s => s.assigneeId)
-  const filledCount = allAssignees.filter(Boolean).length
-  const monthlyCount = (id: string) => allAssignees.filter(v => v === id).length
+  const allAssignees = Object.values(slotsByDate).flat().map(s => s.assigneeId).filter(Boolean)
+  const filledCount = allAssignees.length
+  const monthlyUsed: Record<string, number> = {}
+  for (const id of allAssignees) monthlyUsed[id] = (monthlyUsed[id] ?? 0) + 1
 
   return (
     <div>
@@ -159,24 +161,33 @@ export default function AssignmentList({
       </div>
       <p className="text-xs text-gray-500 mb-4">
         1日に3人まで割り当てられ、担当者の右で予約する体育館を指定できます。選ぶとすぐに保存され、割り当てられた人はカレンダーで確認できます。
-        名前の後ろの（数字）は予約アカウント数で、その数まで同じ日に重ねて割り当てられます。
+        1か月に割り当てられるのは各自の予約アカウント数までで、上限に達した人は候補に出なくなります。
       </p>
 
-      {/* 予約アカウント保有者と今月の割当回数 */}
+      {/* 予約アカウント保有者と今月の残り回数 */}
       <div className="bg-white rounded-xl border border-[#EAE0A8] px-4 py-2.5 mb-3">
-        <p className="text-xs font-bold text-gray-400 mb-1.5">予約アカウント保有者（今月の割当回数）</p>
+        <p className="text-xs font-bold text-gray-400 mb-1.5">予約アカウント保有者（今月あと何回割り当てられるか）</p>
         {people.length === 0 ? (
           <p className="text-xs text-gray-400">
             まだいません。各保護者がマイプロフィールで予約アカウント数を登録すると、ここに表示され割り当てられるようになります。
           </p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
-            {people.map(p => (
-              <span key={p.id} className="text-xs bg-sky-50 border border-sky-200 text-[#1A3666] rounded-full px-2 py-0.5">
-                {p.name}
-                <span className="text-gray-500 ml-1">{p.accounts}アカウント・{monthlyCount(p.id)}回</span>
-              </span>
-            ))}
+            {people.filter(p => p.accounts > 0).map(p => {
+              const remaining = Math.max(0, p.accounts - (monthlyUsed[p.id] ?? 0))
+              return (
+                <span
+                  key={p.id}
+                  className={`text-xs rounded-full px-2 py-0.5 border ${
+                    remaining > 0 ? 'bg-sky-50 border-sky-200 text-[#1A3666]' : 'bg-gray-100 border-gray-200 text-gray-400'
+                  }`}
+                >
+                  {p.name}
+                  <span className={`ml-1 font-bold ${remaining > 0 ? 'text-sky-700' : ''}`}>あと{remaining}回</span>
+                  <span className="ml-0.5 text-gray-400">（{p.accounts}アカウント）</span>
+                </span>
+              )
+            })}
           </div>
         )}
       </div>
@@ -198,6 +209,7 @@ export default function AssignmentList({
                 day={day}
                 slots={slotsByDate[day.date]}
                 people={people}
+                monthlyUsed={monthlyUsed}
                 onChange={(idx, value) => changeSlot(day.date, idx, value)}
               />
             ))}

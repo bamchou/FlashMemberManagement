@@ -40,21 +40,27 @@ export async function setGymAssignment(
       if (!cand || cand.weekday !== weekday) return { error: 'この曜日の候補ではない体育館です' }
     }
 
-    const [{ data: person }, { data: others }] = await Promise.all([
+    // 1か月に割り当てられるのは、その人の予約アカウント数まで
+    const [y, m] = targetDate.split('-').map(Number)
+    const mm = String(m).padStart(2, '0')
+    const monthEnd = `${y}-${mm}-${String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, '0')}`
+    const [{ data: person }, { data: monthRows }] = await Promise.all([
       admin.from('profiles').select('display_name, username, gym_account_count').eq('id', assigneeId).single(),
       admin
         .from('gym_reservation_assignments')
-        .select('slot')
-        .eq('target_date', targetDate)
+        .select('target_date, slot')
         .eq('assignee_id', assigneeId)
-        .neq('slot', slot),
+        .gte('target_date', `${y}-${mm}-01`)
+        .lte('target_date', monthEnd),
     ])
     if (!person) return { error: '担当者が見つかりません' }
     const accounts = person.gym_account_count ?? 0
     const name = person.display_name ?? person.username ?? ''
     if (accounts < 1) return { error: `${name}さんは予約アカウントが登録されていません` }
-    if ((others ?? []).length + 1 > accounts) {
-      return { error: `${name}さんの予約アカウントは${accounts}件のため、この日にはこれ以上割り当てられません` }
+    const others = ((monthRows ?? []) as { target_date: string; slot: number }[])
+      .filter(r => !(r.target_date === targetDate && r.slot === slot))
+    if (others.length + 1 > accounts) {
+      return { error: `${name}さんの予約アカウントは${accounts}件のため、${m}月はこれ以上割り当てられません` }
     }
 
     const { error } = await admin.from('gym_reservation_assignments').upsert(
