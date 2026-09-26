@@ -102,12 +102,12 @@ function EventRow({
           ? isTournament && approvalStatus === 'pending' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
           : 'bg-white border-gray-200'
     }`}>
-      {/* 1行目: 日時 + バッジ + タイトル */}
-      <div className="flex items-start gap-1.5 min-w-0">
-        <span className="text-xs text-gray-500 shrink-0 whitespace-nowrap mt-0.5 mr-0.5">{formatDate(event.start_at)}</span>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${bg}`}>{label}</span>
+      {/* 1行目: 日時 + バッジ + タイトル（練習などは参加ボタンを右端に） */}
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="text-xs text-gray-500 shrink-0 whitespace-nowrap mr-0.5">{formatDate(event.start_at)}</span>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${bg}`}>{label}</span>
         {isProvisional && (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0 mt-0.5">仮</span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0">仮</span>
         )}
         <div className="flex-1 min-w-0">
           <Link
@@ -117,14 +117,29 @@ function EventRow({
             {event.title}
           </Link>
         </div>
+        {!isTournament && (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={togglePractice}
+            className={`shrink-0 whitespace-nowrap text-xs font-bold px-3 py-1 rounded-full transition-colors disabled:opacity-50 ${
+              isJoining
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
+            }`}
+          >
+            {pendingCategory === 'practice' ? '...' : isJoining ? '参加取消' : '参加登録'}
+          </button>
+        )}
       </div>
 
       {isTournament && isRejected && (
         <p className="text-xs text-red-500 font-medium mt-0.5">※参加希望がゴメンナサイされました</p>
       )}
 
-      {/* 2行目: ボタン */}
-      <div className="flex flex-wrap gap-1.5 mt-1.5 items-center">
+      {/* 2行目: 大会の参加ボタン（右寄せ） */}
+      {isTournament && (
+      <div className="flex flex-wrap gap-1.5 mt-1.5 items-center justify-end">
         {/* 大会：ゴメンナサイ済み → 再申請ボタン */}
         {isTournament && isRejected && availableButtons.map(btn => (
           <button
@@ -139,21 +154,6 @@ function EventRow({
             {pendingCategory === btn.value ? '登録中...' : btn.label}
           </button>
         ))}
-
-        {!isTournament && (
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={togglePractice}
-            className={`text-xs font-bold px-3 py-1 rounded-full transition-colors disabled:opacity-50 ${
-              isJoining
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-[#1A3666] hover:text-white'
-            }`}
-          >
-            {pendingCategory === 'practice' ? '...' : isJoining ? '参加取消' : '参加登録'}
-          </button>
-        )}
 
         {isTournament && isJoining && (
           <button
@@ -186,6 +186,7 @@ function EventRow({
           </button>
         ))}
       </div>
+      )}
     </div>
   )
 }
