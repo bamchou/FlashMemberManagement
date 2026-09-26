@@ -214,6 +214,8 @@ export default function MemberEventSection({
   events: EventRow[]
   participationStatusMap: Map<string, 'approved' | 'pending' | 'rejected'>
 }) {
+  const [index, setIndex] = useState(0)
+
   if (events.length === 0) {
     return (
       <div className="py-8 text-center">
@@ -223,16 +225,17 @@ export default function MemberEventSection({
   }
 
   const groups = groupByMonth(events)
-  const [index, setIndex] = useState(0)
-  const [month, monthEvents] = groups[index]
+  // 更新で月数が減っても範囲内に収める
+  const current = Math.min(index, groups.length - 1)
+  const [month, monthEvents] = groups[current]
 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
         <button
           type="button"
-          onClick={() => setIndex(i => i - 1)}
-          disabled={index === 0}
+          onClick={() => setIndex(current - 1)}
+          disabled={current === 0}
           className="w-8 h-8 flex items-center justify-center rounded-full border border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           ‹
@@ -240,8 +243,8 @@ export default function MemberEventSection({
         <p className="text-sm font-bold text-[#1A3666]">{month}</p>
         <button
           type="button"
-          onClick={() => setIndex(i => i + 1)}
-          disabled={index === groups.length - 1}
+          onClick={() => setIndex(current + 1)}
+          disabled={current === groups.length - 1}
           className="w-8 h-8 flex items-center justify-center rounded-full border border-[#1A3666] text-[#1A3666] hover:bg-[#1A3666] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           ›
@@ -259,7 +262,7 @@ export default function MemberEventSection({
         ))}
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-3">{index + 1} / {groups.length} ヶ月</p>
+      <p className="text-center text-xs text-gray-400 mt-3">{current + 1} / {groups.length} ヶ月</p>
     </div>
   )
 }
