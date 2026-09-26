@@ -263,7 +263,6 @@ export default function MemberEventSection({
         ))}
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-3">{current + 1} / {groups.length} ヶ月</p>
     </div>
   )
 }
